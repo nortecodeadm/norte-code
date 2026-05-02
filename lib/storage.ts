@@ -6,7 +6,6 @@ const KEYS = {
   WORLD_ELEMENTS: "@norte_code/world_elements",
   CHAPTERS_VIEWED: "@norte_code/chapters_viewed",
   ONBOARDING_COMPLETE: "@norte_code/onboarding_complete",
-  DEVICE_ID: "@norte_code/device_id",
 } as const;
 
 /**

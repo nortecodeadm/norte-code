@@ -65,15 +65,15 @@ Cada entrada segue o padrão:
 
 ---
 
-### [02/05/2026] Supabase Auth: anônimo via device_id
+### [02/05/2026] Supabase Auth: anônimo puro (sem device_id)
 
-**Decisão:** Usar Supabase Anonymous Auth vinculado a device_id, sem login com email/senha.
+**Decisão:** Usar Supabase Anonymous Auth puro, sem login com email/senha e sem vinculação por device_id.
 
 **Contexto:** Crianças de 7-10 não criam contas. COPPA/LGPD complicam coleta de dados infantis. O MVP precisa de zero fricção para validar a tese do produto.
 
 **Alternativas:** Login com email dos pais (fricção alta, escopo de MVP). Sem backend (perde analytics e backup).
 
-**Resultado:** Auth anônima. Cada instalação gera UUID, vincula ao Supabase Auth. Progresso salva local (AsyncStorage) + remote (Supabase). Nenhum dado pessoal coletado.
+**Resultado:** Auth anônima pura. Cada instalação gera UUID via sign-in anônimo, vincula ao Supabase Auth. Progresso salva local (AsyncStorage) + remote (Supabase). Nenhum dado pessoal coletado. Ver decisão posterior sobre remoção de device_id.
 
 ---
 
@@ -86,3 +86,26 @@ Cada entrada segue o padrão:
 **Alternativas:** Execução em tempo real com callbacks (mais complexo de animar). Execução completa + replay (escolhido).
 
 **Resultado:** `executeProgram()` retorna `ExecutionResult` com array de `ExecutionStep`. O componente de animação consome os steps sequencialmente com delay configurável.
+
+---
+
+### [02/05/2026] Auth anônima pura: remoção de device_id
+
+**Decisão:** Remover a coluna `device_id` da tabela `players`. Auth anônima pura, sem tentativa de vinculação por dispositivo.
+
+**Contexto:** O schema original incluía `device_id TEXT UNIQUE NOT NULL` como forma de recuperar progresso em caso de reinstalação. Porém, no Android 10+ os identificadores de dispositivo são randomizados por privacidade (Scoped Storage, ANDROID_ID por app), tornando `device_id` não confiável entre reinstalações. Cria falsa expectativa de recuperação que vai falhar na prática.
+
+**Alternativas consideradas:**
+1. Manter `device_id` como fallback — rejeitado porque Android moderno invalida a premissa.
+2. Vincular conta de pai (email/senha do adulto) — solução real de recuperação, mas escopo pós-MVP.
+3. Auth anônima pura sem `device_id` — aceito.
+
+**Resultado:** 
+- Coluna `device_id` removida da tabela `players`
+- `players.id` = `auth.uid()` (UUID gerado pelo Supabase Anonymous Auth)
+- Fluxo: app abre → restaura sessão local → se não tem, sign-in anônimo → UUID gerado → onboarding → INSERT em players com `id = auth.uid()`
+- Recuperação real de progresso (vinculação de conta parental) entra pós-MVP
+- Chave `DEVICE_ID` removida do storage local (não mais necessária)
+
+**Decisor:** Gui (via análise do Manus que identificou a inconsistência)
+

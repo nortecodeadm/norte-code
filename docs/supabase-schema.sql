@@ -10,14 +10,13 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- 2. Tables
 -- ============================================================
 
--- Players table (linked to device_id via anonymous auth, no personal data)
+-- Players table (linked directly to Supabase anonymous auth user ID)
 CREATE TABLE IF NOT EXISTS players (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  device_id TEXT UNIQUE NOT NULL,
+  id UUID PRIMARY KEY,                          -- matches auth.uid() from anonymous sign-in
   avatar_skin TEXT NOT NULL DEFAULT 'skin_1',
   avatar_hair TEXT NOT NULL DEFAULT 'hair_1',
   avatar_outfit TEXT NOT NULL DEFAULT 'outfit_1',
-  pet_type TEXT NOT NULL DEFAULT 'dog',       -- 'dog', 'cat', 'rabbit'
+  pet_type TEXT NOT NULL DEFAULT 'dog',         -- 'dog', 'cat', 'rabbit'
   pet_name TEXT NOT NULL DEFAULT '',
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
@@ -39,7 +38,7 @@ CREATE TABLE IF NOT EXISTS level_progress (
 CREATE TABLE IF NOT EXISTS world_elements (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   player_id UUID REFERENCES players(id) ON DELETE CASCADE,
-  element_key TEXT NOT NULL,                  -- 'seed_lvl1', 'sprout_lvl2', etc.
+  element_key TEXT NOT NULL,                    -- 'seed_lvl1', 'sprout_lvl2', etc.
   unlocked_at TIMESTAMPTZ DEFAULT now(),
   UNIQUE(player_id, element_key)
 );
@@ -48,7 +47,7 @@ CREATE TABLE IF NOT EXISTS world_elements (
 CREATE TABLE IF NOT EXISTS narrative_chapters_viewed (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   player_id UUID REFERENCES players(id) ON DELETE CASCADE,
-  chapter_id TEXT NOT NULL,                   -- 'chapter_1' in MVP
+  chapter_id TEXT NOT NULL,                     -- 'chapter_1' in MVP
   viewed_at TIMESTAMPTZ DEFAULT now(),
   UNIQUE(player_id, chapter_id)
 );
