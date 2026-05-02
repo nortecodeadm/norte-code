@@ -1,5 +1,6 @@
 import "../global.css";
 
+import * as Sentry from "@sentry/react-native";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -16,10 +17,20 @@ export const unstable_settings = {
   initialRouteName: "index",
 };
 
+// Initialize Sentry for crash reporting
+const SENTRY_DSN = process.env.EXPO_PUBLIC_SENTRY_DSN ?? "";
+if (SENTRY_DSN) {
+  Sentry.init({
+    dsn: SENTRY_DSN,
+    tracesSampleRate: 1.0,
+    debug: __DEV__,
+  });
+}
+
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
-export default function RootLayout() {
+function RootLayout() {
   const [loaded, error] = useFonts({
     Nunito: require("../assets/fonts/Nunito-Regular.ttf"),
     "Nunito-Bold": require("../assets/fonts/Nunito-Bold.ttf"),
@@ -63,3 +74,6 @@ export default function RootLayout() {
     </GestureHandlerRootView>
   );
 }
+
+// Wrap the root component with Sentry for automatic error boundary
+export default SENTRY_DSN ? Sentry.wrap(RootLayout) : RootLayout;

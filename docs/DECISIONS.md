@@ -109,3 +109,42 @@ Cada entrada segue o padrão:
 
 **Decisor:** Gui (via análise do Manus que identificou a inconsistência)
 
+---
+
+### [02/05/2026] Build profile "development" com dev client
+
+**Decisão:** Adicionar perfil `development` no `eas.json` com `developmentClient: true` e `distribution: internal`, gerando APK com dev client embutido.
+
+**Contexto:** O app crashava silenciosamente em builds `preview` (produção-like) sem mostrar nenhuma mensagem de erro. Sem emulador Android disponível no ambiente de desenvolvimento (sandbox sem KVM), e sem ADB conectado ao dispositivo físico, não havia forma de capturar stack traces de crashes nativos. O dev client mostra a "tela vermelha" com stack trace completo diretamente no dispositivo.
+
+**Alternativas consideradas:**
+1. Pedir ao Gui pra rodar `adb logcat` — requer setup de ADB no PC dele.
+2. Adicionar logging remoto (Sentry) — complementar, mas não resolve crash na inicialização antes do Sentry carregar.
+3. Build de development com dev client — mostra erro na tela, zero setup extra.
+
+**Resultado:** Perfil `development` configurado no `eas.json`. Usado como ferramenta de diagnóstico quando builds `preview` crasham. O fluxo de debug passa a ser: build development → instala → vê erro na tela → corrige → build preview pra validar.
+
+**Decisor:** Gui
+
+---
+
+### [02/05/2026] Sentry para monitoramento de crashes em produção
+
+**Decisão:** Integrar `@sentry/react-native` para captura automática de crashes, erros JS e performance.
+
+**Contexto:** Após a experiência de crash silencioso no build preview, ficou claro que precisamos de telemetria de erros para builds que rodam fora do ambiente de desenvolvimento. Sentry captura crashes automaticamente e envia para dashboard acessível remotamente.
+
+**Alternativas consideradas:**
+1. Sem monitoramento (status quo) — cego pra erros em produção.
+2. Firebase Crashlytics — bom, mas requer Google Services e setup mais pesado.
+3. Sentry — SDK oficial pra Expo/React Native, plano free generoso, setup simples.
+
+**Resultado:** 
+- `@sentry/react-native` instalado como dependência
+- Plugin configurado no `app.json`
+- Inicialização condicional no `_layout.tsx` (só ativa se `EXPO_PUBLIC_SENTRY_DSN` estiver preenchido)
+- Componente root wrapped com `Sentry.wrap()` para error boundary automático
+- DSN será fornecido pelo Gui após criar conta no Sentry (plano free)
+
+**Decisor:** Gui
+

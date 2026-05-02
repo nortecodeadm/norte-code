@@ -33,7 +33,11 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      ["@sentry/react-native", {
+        "organization": "SENTRY_ORG_PLACEHOLDER",
+        "project": "norte-code"
+      }]
     ],
     "experiments": {
       "typedRoutes": true
