@@ -34,9 +34,10 @@
     },
     "plugins": [
       "expo-router",
-      ["@sentry/react-native", {
+      ["@sentry/react-native/expo", {
         "organization": "norte-code-adm",
-        "project": "norte-code"
+        "project": "norte-code",
+        "uploadSourceMaps": false
       }]
     ],
     "experiments": {
