@@ -8,7 +8,7 @@
     "icon": "./assets/images/icon.png",
     "scheme": "nortecode",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "splash": {
       "image": "./assets/images/splash-icon.png",
       "resizeMode": "contain",
@@ -24,7 +24,7 @@
         "backgroundColor": "#1F5F3F"
       },
       "package": "com.nortecode.app",
-      "edgeToEdgeEnabled": true,
+      "edgeToEdgeEnabled": false,
       "predictiveBackGestureEnabled": false
     },
     "web": {
