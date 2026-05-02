@@ -35,7 +35,7 @@
     "plugins": [
       "expo-router",
       ["@sentry/react-native", {
-        "organization": "SENTRY_ORG_PLACEHOLDER",
+        "organization": "norte-code-adm",
         "project": "norte-code"
       }]
     ],

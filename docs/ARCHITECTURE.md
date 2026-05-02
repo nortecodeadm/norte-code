@@ -93,11 +93,12 @@ Splash (index.tsx)
 
 ### 5.1. Auth
 - **Sem login com email/senha** no MVP
-- Auth anônima via Supabase (device_id como identificador)
+- Auth anônima pura via Supabase (`players.id = auth.uid()`)
+- Sem `device_id` — recuperação de progresso via conta parental entra pós-MVP
 - Sem coleta de dados pessoais (COPPA/LGPD compliance)
 
 ### 5.2. Tabelas (Supabase)
-- `players` — dados do jogador (avatar, pet, device_id)
+- `players` — dados do jogador (avatar, pet, nome)
 - `level_progress` — progresso por nível (completed, attempts)
 - `world_elements` — elementos visuais desbloqueados no mundo
 - `narrative_chapters_viewed` — capítulos já vistos
@@ -129,11 +130,44 @@ Documentação detalhada em `docs/INTERPRETER.md`.
 
 ## 8. Build e Distribuição
 
-- **Preview**: `.apk` via EAS Build (profile: preview)
-- **Produção futura**: `.aab` via EAS Build (profile: production) → Play Store
+| Perfil | Uso | Formato | Notas |
+|--------|-----|---------|-------|
+| `development` | Debug com tela de erro visível | `.apk` | Inclui `expo-dev-client` |
+| `preview` | Teste de produção no device | `.apk` | Sem dev tools |
+| `production` | Play Store (futuro) | `.aab` | Signing de produção |
+
 - **Sem iOS no MVP**
 
-## 9. Decisões Arquiteturais Importantes
+## 9. Observabilidade e Debug
+
+### 9.1. Sentry (Crash Reporting)
+
+- **SDK:** `@sentry/react-native`
+- **Inicialização:** Primeiro import no `_layout.tsx`, antes de qualquer outro módulo. Garante captura de crashes na inicialização.
+- **DSN:** Via variável de ambiente `EXPO_PUBLIC_SENTRY_DSN`
+- **Funcionalidades ativas:**
+  - Captura automática de exceções JS não tratadas
+  - Captura de crashes nativos (Android)
+  - Performance tracing (`tracesSampleRate: 1.0`)
+  - Error boundary automático via `Sentry.wrap()`
+- **Dashboard:** Acessível em sentry.io pela org do projeto
+- **Quando usar:** Todo crash em builds `preview` ou `production` aparece automaticamente no dashboard com stack trace, device info, e breadcrumbs.
+
+### 9.2. Development Build
+
+- Build com `expo-dev-client` que mostra tela vermelha com stack trace completo diretamente no dispositivo
+- Usado para diagnóstico rápido quando Sentry não captura (ex: crash antes da inicialização do JS)
+- Perfil `development` no `eas.json`
+
+### 9.3. Fluxo de Debug
+
+1. **Crash em preview/production** → Verificar dashboard Sentry
+2. **Sentry não capturou** → Gerar build `development`, reproduzir, ler tela vermelha
+3. **Crash antes do JS carregar** → Analisar logs do EAS Build (fase Run Gradlew)
+
+---
+
+## 10. Decisões Arquiteturais Importantes
 
 1. **Offline-first**: o app deve funcionar 100% sem internet após primeira abertura
 2. **Interpretador client-side**: toda lógica de execução roda no device, não no servidor

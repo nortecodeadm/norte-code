@@ -1,6 +1,19 @@
+// Sentry MUST be the very first import to capture initialization crashes
+import * as Sentry from "@sentry/react-native";
+
+// Initialize Sentry immediately, before any other code runs
+const SENTRY_DSN = process.env.EXPO_PUBLIC_SENTRY_DSN ?? "";
+if (SENTRY_DSN) {
+  Sentry.init({
+    dsn: SENTRY_DSN,
+    tracesSampleRate: 1.0,
+    debug: __DEV__,
+    enableNativeFramesTracking: true,
+  });
+}
+
 import "../global.css";
 
-import * as Sentry from "@sentry/react-native";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -16,16 +29,6 @@ export {
 export const unstable_settings = {
   initialRouteName: "index",
 };
-
-// Initialize Sentry for crash reporting
-const SENTRY_DSN = process.env.EXPO_PUBLIC_SENTRY_DSN ?? "";
-if (SENTRY_DSN) {
-  Sentry.init({
-    dsn: SENTRY_DSN,
-    tracesSampleRate: 1.0,
-    debug: __DEV__,
-  });
-}
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
