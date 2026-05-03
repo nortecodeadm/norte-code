@@ -1,15 +1,16 @@
 /**
- * Avatar asset mapping — 2-layer system (dressed body + hair)
+ * Avatar asset mapping — 3-layer system (body + outfit + hair)
  *
- * The avatar is composed of 2 layers rendered at runtime:
- * 1. Dressed Body (skinTone + outfit) — base layer with colored t-shirt
- * 2. Hair (hairStyle + hairColor) — top layer, pre-positioned on canvas
+ * The avatar is composed of 3 layers rendered at runtime:
+ * 1. Body (skinTone) — base layer with skin tone
+ * 2. Outfit (outfit color) — middle layer, clothing overlay
+ * 3. Hair (hairStyle + hairColor) — top layer, pre-positioned on canvas
  *
- * All assets are 512x512 with same canvas anchoring.
- * Hair layers are already positioned to align with the body's head.
+ * All assets are 1024x1024 with same canvas anchoring.
+ * Layers align perfectly when stacked with same dimensions.
  *
  * Total combinations: 4 skins × 3 outfits × 4 styles × 4 colors = 192
- * Total images: 12 dressed bodies + 16 hair layers = 28
+ * Total images: 4 bodies + 3 outfits + 16 hair layers = 23
  */
 
 export type SkinTone = 'clara' | 'media-clara' | 'media-escura' | 'escura';
@@ -17,21 +18,19 @@ export type HairStyle = 'curtoliso' | 'curtobaguncado' | 'longoliso' | 'cacheado
 export type HairColor = 'castanho-escuro' | 'castanho-medio' | 'castanho-claro' | 'loiro-mel';
 export type Outfit = 'verde' | 'azul' | 'amarela';
 
-// --- Dressed Body assets (4 skins × 3 outfits = 12) ---
-type BodyKey = `${string}_${string}`;
-const BODY_ASSETS: Record<BodyKey, ReturnType<typeof require>> = {
-  'clara_verde': require('../../assets/avatar/corpos/corpo_clara_verde.png'),
-  'clara_azul': require('../../assets/avatar/corpos/corpo_clara_azul.png'),
-  'clara_amarela': require('../../assets/avatar/corpos/corpo_clara_amarela.png'),
-  'media-clara_verde': require('../../assets/avatar/corpos/corpo_media-clara_verde.png'),
-  'media-clara_azul': require('../../assets/avatar/corpos/corpo_media-clara_azul.png'),
-  'media-clara_amarela': require('../../assets/avatar/corpos/corpo_media-clara_amarela.png'),
-  'media-escura_verde': require('../../assets/avatar/corpos/corpo_media-escura_verde.png'),
-  'media-escura_azul': require('../../assets/avatar/corpos/corpo_media-escura_azul.png'),
-  'media-escura_amarela': require('../../assets/avatar/corpos/corpo_media-escura_amarela.png'),
-  'escura_verde': require('../../assets/avatar/corpos/corpo_escura_verde.png'),
-  'escura_azul': require('../../assets/avatar/corpos/corpo_escura_azul.png'),
-  'escura_amarela': require('../../assets/avatar/corpos/corpo_escura_amarela.png'),
+// --- Body assets (4 skins) ---
+const BODY_ASSETS: Record<SkinTone, ReturnType<typeof require>> = {
+  'clara': require('../../assets/avatar/corpos/corpo_pele1_clara.png'),
+  'media-clara': require('../../assets/avatar/corpos/corpo_pele2_media-clara.png'),
+  'media-escura': require('../../assets/avatar/corpos/corpo_pele3_media-escura.png'),
+  'escura': require('../../assets/avatar/corpos/corpo_pele4_escura.png'),
+};
+
+// --- Outfit assets (3 colors) ---
+const OUTFIT_ASSETS: Record<Outfit, ReturnType<typeof require>> = {
+  'verde': require('../../assets/avatar/roupas/roupa_verde.png'),
+  'azul': require('../../assets/avatar/roupas/roupa_azul.png'),
+  'amarela': require('../../assets/avatar/roupas/roupa_amarela.png'),
 };
 
 // --- Hair assets (4 styles × 4 colors = 16) ---
@@ -57,9 +56,12 @@ const HAIR_ASSETS: Record<HairKey, ReturnType<typeof require>> = {
 
 // --- Public API ---
 
-export function getBodyAsset(skinTone: SkinTone, outfit: Outfit) {
-  const key: BodyKey = `${skinTone}_${outfit}`;
-  return BODY_ASSETS[key];
+export function getBodyAsset(skinTone: SkinTone) {
+  return BODY_ASSETS[skinTone];
+}
+
+export function getOutfitAsset(outfit: Outfit) {
+  return OUTFIT_ASSETS[outfit];
 }
 
 export function getHairAsset(style: HairStyle, color: HairColor) {

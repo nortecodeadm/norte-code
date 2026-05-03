@@ -1,7 +1,7 @@
 # Arquitetura — Norte Code MVP
 
 **Última atualização:** 03/05/2026
-**Versão:** 0.2.1 (Fix Assets + Avatar 2-Layer)
+**Versão:** 0.3.0 (Assets v3 — Gemini Pro + Avatar 3-Layer)
 
 ---
 
@@ -128,19 +128,20 @@ Documentação detalhada em `docs/INTERPRETER.md`.
 - **Estilo**: flat-design contemporâneo com toques orgânicos
 - **Animações**: suaves, contemplativas, ease-in-out
 
-### 7.1. Sistema de Avatar (2 Layers)
+### 7.1. Sistema de Avatar (3 Layers)
 
-O avatar é renderizado por composição de **2 camadas** PNG transparentes (512×512px) sobrepostas no mesmo canvas:
+O avatar é renderizado por composição de **3 camadas** PNG transparentes (1024×1024px) sobrepostas no mesmo canvas:
 
 | Layer | Ordem (z-index) | Variações | Exemplo de arquivo |
 |-------|-----------------|-----------|--------------------|
-| Corpo vestido (pele + roupa) | 1 (base) | 12 combos (4 skins × 3 outfits) | `corpo_clara_verde.png` |
-| Cabelo | 2 (topo) | 16 combos (4 estilos × 4 cores) | `cabelo_curtoliso_castanho-escuro.png` |
+| Corpo (pele) | 1 (base) | 4 tons de pele | `corpo_pele1_clara.png` |
+| Roupa (camiseta) | 2 (meio) | 3 cores | `roupa_verde.png` |
+| Cabelo | 3 (topo) | 16 combos (4 estilos × 4 cores) | `cabelo_curtoliso_castanho-escuro.png` |
 
-**Nota:** A roupa é pré-composta no corpo (colorização programática da camiseta branca). Isso garante alinhamento perfeito sem necessidade de uma terceira layer.
+**Nota:** Todas as layers compartilham o mesmo canvas 1024×1024 com o personagem na mesma posição e escala. As layers se sobrepõem perfeitamente quando empilhadas com `position: absolute` no mesmo container.
 
 **Total de combinações:** 4 skins × 3 outfits × 4 estilos × 4 cores = **192 avatares possíveis**.
-**Total de imagens:** 12 corpos + 16 cabelos = **28 PNGs** (~500KB).
+**Total de imagens:** 4 corpos + 3 roupas + 16 cabelos = **23 PNGs** (~5MB).
 
 **Props do componente `<Avatar />`:**
 - `skinTone`: `'clara'` | `'media-clara'` | `'media-escura'` | `'escura'`
@@ -150,7 +151,8 @@ O avatar é renderizado por composição de **2 camadas** PNG transparentes (512
 - `size`: número (largura/altura em px)
 
 **API de assets (`lib/assets/avatar.ts`):**
-- `getBodyAsset(skinTone, outfit)` → retorna require() do corpo vestido
+- `getBodyAsset(skinTone)` → retorna require() do corpo (só pele)
+- `getOutfitAsset(outfit)` → retorna require() da roupa
 - `getHairAsset(style, color)` → retorna require() do cabelo
 
 ### 7.2. Mascotes
@@ -159,11 +161,11 @@ O avatar é renderizado por composição de **2 camadas** PNG transparentes (512
 
 | Mascote | Estados | Tamanho |
 |---------|---------|----------|
-| Cachorro | padrão, atento, feliz, pensativo, dormindo | 512×512px |
-| Gato | padrão, atento, feliz, pensativo, dormindo | 512×512px |
-| Coelho | padrão, atento, feliz, pensativo, dormindo | 512×512px |
+| Cachorro | padrão, atento, feliz, pensativo, dormindo | 1024×1024px |
+| Gato | padrão, atento, feliz, pensativo, dormindo | 1024×1024px |
+| Coelho | padrão, atento, feliz, pensativo, dormindo | 1024×1024px |
 
-**Total:** 15 PNGs (~550KB)
+**Total:** 15 PNGs (~7MB)
 
 **Props do componente `<Mascote />`:**
 - `type`: `'cachorro'` | `'gato'` | `'coelho'`
@@ -186,13 +188,15 @@ assets/
 │   └── coelho/
 │       └── ... (5 estados)
 ├── avatar/
-│   ├── corpos/                          # Corpo vestido (pele + roupa pré-composta)
-│   │   ├── corpo_clara_verde.png
-│   │   ├── corpo_clara_azul.png
-│   │   ├── corpo_clara_amarela.png
-│   │   ├── corpo_media-clara_verde.png
-│   │   ├── ... (12 combinações: 4 skins × 3 outfits)
-│   │   └── corpo_escura_amarela.png
+│   ├── corpos/                          # Body layer (só pele)
+│   │   ├── corpo_pele1_clara.png
+│   │   ├── corpo_pele2_media-clara.png
+│   │   ├── corpo_pele3_media-escura.png
+│   │   └── corpo_pele4_escura.png
+│   ├── roupas/                          # Outfit layer (camiseta)
+│   │   ├── roupa_verde.png
+│   │   ├── roupa_azul.png
+│   │   └── roupa_amarela.png
 │   └── cabelos/                         # Hair layer (pré-posicionado no canvas)
 │       ├── cabelo_curtoliso_castanho-escuro.png
 │       ├── cabelo_curtoliso_castanho-medio.png
@@ -203,7 +207,7 @@ assets/
     └── Fraunces-*.ttf
 ```
 
-**Total de assets visuais:** 43 PNGs (~1MB)
+**Total de assets visuais:** 38 PNGs (~12MB)
 
 ## 8. Build e Distribuição
 

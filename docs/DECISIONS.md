@@ -239,3 +239,43 @@ Cada entrada segue o padrão:
 
 **Decisor:** Gui
 
+
+---
+
+### [03/05/2026] Assets v3: Tratamento profissional via Gemini Pro — volta ao sistema 3 layers
+
+**Decisão:** Re-tratar todos os assets com Gemini Pro (IA de geração de imagem) e voltar ao sistema de 3 layers independentes (corpo + roupa + cabelo).
+
+**Contexto:** Os assets v2 (gerados/tratados programaticamente pelo Manus) não atingiram qualidade visual suficiente. O Gui decidiu usar outra IA (Gemini Pro) para tratar as imagens originais com mais qualidade. O Manus preparou um briefing detalhado com as especificações técnicas, e o Gui executou o tratamento via Gemini Pro, que entregou 38 PNGs com:
+- Transparência real (canal alpha funcional, 56-95% de pixels transparentes)
+- Canvas padronizado 1024×1024 para todas as peças
+- Posicionamento correto por categoria — layers se sobrepõem perfeitamente
+
+**Mudança arquitetural:** O sistema volta de 2 layers (dressed body + hair) para **3 layers independentes** (corpo + roupa + cabelo), porque a Gemini Pro conseguiu gerar a roupa como layer separada que se alinha corretamente ao corpo.
+
+**Mudanças no código:**
+- `lib/assets/avatar.ts`: Novo mapeamento com `getBodyAsset(skin)`, `getOutfitAsset(outfit)`, e `getHairAsset(style, color)`. Body agora é indexado só por skin (4 imagens), outfit separado (3 imagens).
+- `components/Avatar.tsx`: 3 `<Image>` layers (body + outfit + hair) com `position: absolute` no mesmo container.
+- Nomes dos arquivos de corpo: `corpo_pele1_clara.png`, `corpo_pele2_media-clara.png`, etc.
+- Nomes dos arquivos de roupa: `roupa_verde.png`, `roupa_azul.png`, `roupa_amarela.png`
+
+**Resultado:**
+- 23 imagens de avatar (4 corpos + 3 roupas + 16 cabelos) + 15 mascotes = 38 total
+- Tamanho total: ~12MB (1024×1024, qualidade profissional)
+- 192 combinações possíveis (4 skins × 3 outfits × 4 estilos × 4 cores)
+- Composição validada: rosto visível, cabelo na cabeça, roupa no torso
+
+**Decisor:** Gui
+
+---
+
+### [03/05/2026] Banco de dados: migração já aplicada, tabela vazia
+
+**Decisão:** Confirmar que a migração `avatar_hair → avatar_hair_style + avatar_hair_color` já foi aplicada e a tabela `players` está vazia (sem registros antigos para deletar).
+
+**Contexto:** Ao verificar o Supabase, a coluna `avatar_hair` não existe mais (erro 42703 ao tentar selecionar). As colunas `avatar_hair_style` e `avatar_hair_color` já existem e respondem corretamente. A tabela retorna `[]` (vazia). Nenhuma ação de migração ou DELETE necessária.
+
+**Resultado:** Banco pronto para receber novos registros com o schema correto.
+
+**Decisor:** Manus (verificação automatizada)
+
