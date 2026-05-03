@@ -1,0 +1,20 @@
+# .easignore - Reduce EAS Build upload size
+# EAS already installs node_modules on the build server
+
+# Git history (not needed for build)
+.git
+
+# Documentation (not needed for build)
+docs/
+
+# Development files
+*.md
+.env.example
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
