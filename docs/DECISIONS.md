@@ -187,3 +187,55 @@ Cada entrada segue o padrão:
 
 **Decisor:** Gui
 
+---
+
+### [03/05/2026] Fix: Xadrez de transparência incorporado nos PNGs
+
+**Decisão:** Reprocessar todos os 38 PNGs de avatar e mascotes com rembg (AI background removal) para restaurar transparência real.
+
+**Contexto:** Ao testar o build no dispositivo, todos os assets apareciam com fundo xadrez cinza/branco visível — o padrão clássico de "transparência" de editores gráficos. Investigação revelou que o xadrez estava **incorporado nos dados RGB** dos arquivos, não era transparência real. O canal alpha existia mas estava todo em 255 (opaco). Isso aconteceu durante a geração/exportação dos assets pela IA — o fundo de transparência foi "achatado" (flattened) junto com a ilustração.
+
+**Diagnóstico realizado:**
+1. Hipótese 1 (arquivos corrompidos): `file *.png` retornou "RGBA" — canal alpha presente. Mas análise com PIL mostrou 0% de pixels transparentes. **Causa raiz confirmada:** xadrez é dado RGB real.
+2. Hipótese 2 (componente Image): Descartada — o componente não adiciona background.
+3. Hipótese 3 (Metro bundler): Descartada — metro.config.js e app.json não fazem conversão de assets.
+
+**Alternativas de solução:**
+1. Detecção algorítmica de xadrez (v1 e v2) — tentou detectar blocos alternados e restaurar alpha. Resultado: artefatos nas bordas, qualidade insuficiente.
+2. rembg (AI background removal) — modelo U2-Net remove fundo automaticamente. Resultado: perfeito em todos os 38 PNGs, sem artefatos.
+
+**Resultado:** Todos os assets reprocessados com rembg. Transparência real restaurada. Tamanho reduzido de ~100MB para ~1MB após otimização.
+
+**Decisor:** Gui
+
+---
+
+### [03/05/2026] Arquitetura do Avatar: de 3 layers para 2 layers (dressed body + hair)
+
+**Decisão:** Mudar o sistema de composição do avatar de 3 layers independentes (corpo + roupa + cabelo) para 2 layers (corpo vestido + cabelo).
+
+**Contexto:** Após restaurar a transparência, descobriu-se que os assets originais não eram layers composíveis — cada um foi gerado como ilustração standalone com escala e posição diferentes. O cabelo cobria o rosto inteiro, a roupa cobria a face. O componente `<Avatar />` estava correto (3 `<Image>` empilhadas), mas os assets não se alinhavam.
+
+**Investigação de composição:**
+- Testou-se composição normal, reversa, híbrida com máscara, e crop na testa
+- Nenhuma produzia resultado aceitável com os assets originais
+- Conclusão: os assets precisavam ser re-gerados como layers composíveis
+
+**Solução implementada:**
+1. **Corpos vestidos (pré-compostos):** Corpo original + colorização programática da camiseta branca. A camiseta branca do corpo base é detectada por HSV (alta luminosidade, baixa saturação, na região do torso) e recolorida para verde/azul/amarela. Resultado: 4 skins × 3 outfits = 12 imagens.
+2. **Cabelos (re-gerados):** 4 estilos gerados por IA como layers isoladas, posicionados programaticamente no mesmo canvas 512×512 do corpo. Recoloridos via hue-shift para 4 cores. Resultado: 4 estilos × 4 cores = 16 imagens.
+3. **Mascotes:** Reprocessados com rembg, redimensionados para 512×512.
+
+**Mudanças no código:**
+- `lib/assets/avatar.ts`: Novo mapeamento com `getBodyAsset(skin, outfit)` e `getHairAsset(style, color)`. Sem mais `getOutfitAsset()`.
+- `components/Avatar.tsx`: 2 `<Image>` layers (body + hair) em vez de 3. Ambas usam `resizeMode="contain"` no mesmo container.
+- `app/onboarding/avatar.tsx` e `app/world.tsx`: Sem mudanças — já usavam `<Avatar />` com as mesmas props.
+
+**Resultado:**
+- 28 imagens de avatar (12 corpos + 16 cabelos) + 15 mascotes = 43 total
+- Tamanho total: ~1MB (era ~100MB)
+- 192 combinações possíveis (4 skins × 3 outfits × 4 estilos × 4 cores)
+- Composição funciona perfeitamente — rosto visível em todas as combinações
+
+**Decisor:** Gui
+

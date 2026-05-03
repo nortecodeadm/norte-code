@@ -1,12 +1,11 @@
 /**
- * Avatar Component — Layered composition at runtime
- * 
- * Renders 3 stacked <Image /> layers:
- * 1. Body (skinTone) — relative position, anchors the container
- * 2. Outfit — absolute position, covers the white t-shirt
- * 3. Hair (style + color) — absolute position, top layer
- * 
- * All source images are 2048x2048 with same canvas anchoring,
+ * Avatar Component — 2-layer composition at runtime
+ *
+ * Renders 2 stacked <Image /> layers:
+ * 1. Dressed Body (skinTone + outfit) — relative position, anchors the container
+ * 2. Hair (style + color) — absolute position, pre-positioned on same canvas
+ *
+ * All source images are 512x512 with same canvas anchoring,
  * so they align perfectly when stacked with same dimensions.
  */
 
@@ -18,7 +17,6 @@ import {
   HairColor,
   Outfit,
   getBodyAsset,
-  getOutfitAsset,
   getHairAsset,
 } from '../lib/assets/avatar';
 
@@ -32,25 +30,18 @@ interface AvatarProps {
 }
 
 export function Avatar({ skinTone, hairStyle, hairColor, outfit, size = 200 }: AvatarProps) {
-  const bodySource = getBodyAsset(skinTone);
-  const outfitSource = getOutfitAsset(outfit);
+  const bodySource = getBodyAsset(skinTone, outfit);
   const hairSource = getHairAsset(hairStyle, hairColor);
 
   return (
     <View style={[styles.container, { width: size, height: size }]}>
-      {/* Layer 1: Body (base) */}
+      {/* Layer 1: Dressed Body (base — includes skin tone + colored t-shirt) */}
       <Image
         source={bodySource}
         style={[styles.baseLayer, { width: size, height: size }]}
         resizeMode="contain"
       />
-      {/* Layer 2: Outfit (covers white t-shirt) */}
-      <Image
-        source={outfitSource}
-        style={[styles.overlayLayer, { width: size, height: size }]}
-        resizeMode="contain"
-      />
-      {/* Layer 3: Hair (top) */}
+      {/* Layer 2: Hair (pre-positioned on same canvas) */}
       <Image
         source={hairSource}
         style={[styles.overlayLayer, { width: size, height: size }]}
