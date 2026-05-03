@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { PetType, SkinOption, HairOption, OutfitOption } from "./player";
+import type { PetType, SkinTone, HairStyle, HairColor, Outfit } from "./player";
 
 /**
  * Temporary state for the onboarding flow.
@@ -10,24 +10,27 @@ import type { PetType, SkinOption, HairOption, OutfitOption } from "./player";
 interface OnboardingState {
   petType: PetType | null;
   petName: string;
-  avatarSkin: SkinOption;
-  avatarHair: HairOption;
-  avatarOutfit: OutfitOption;
+  avatarSkin: SkinTone;
+  avatarHairStyle: HairStyle;
+  avatarHairColor: HairColor;
+  avatarOutfit: Outfit;
 
   setPetType: (type: PetType) => void;
   setPetName: (name: string) => void;
-  setAvatarSkin: (skin: SkinOption) => void;
-  setAvatarHair: (hair: HairOption) => void;
-  setAvatarOutfit: (outfit: OutfitOption) => void;
+  setAvatarSkin: (skin: SkinTone) => void;
+  setAvatarHairStyle: (style: HairStyle) => void;
+  setAvatarHairColor: (color: HairColor) => void;
+  setAvatarOutfit: (outfit: Outfit) => void;
   reset: () => void;
 }
 
 const initialState = {
   petType: null as PetType | null,
   petName: "",
-  avatarSkin: "skin_1" as SkinOption,
-  avatarHair: "hair_1" as HairOption,
-  avatarOutfit: "outfit_1" as OutfitOption,
+  avatarSkin: "clara" as SkinTone,
+  avatarHairStyle: "curtoliso" as HairStyle,
+  avatarHairColor: "castanho-escuro" as HairColor,
+  avatarOutfit: "verde" as Outfit,
 };
 
 export const useOnboardingState = create<OnboardingState>((set) => ({
@@ -36,7 +39,8 @@ export const useOnboardingState = create<OnboardingState>((set) => ({
   setPetType: (type) => set({ petType: type }),
   setPetName: (name) => set({ petName: name }),
   setAvatarSkin: (skin) => set({ avatarSkin: skin }),
-  setAvatarHair: (hair) => set({ avatarHair: hair }),
+  setAvatarHairStyle: (style) => set({ avatarHairStyle: style }),
+  setAvatarHairColor: (color) => set({ avatarHairColor: color }),
   setAvatarOutfit: (outfit) => set({ avatarOutfit: outfit }),
   reset: () => set(initialState),
 }));

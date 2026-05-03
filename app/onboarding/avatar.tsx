@@ -11,65 +11,87 @@ import Animated, {
 import { useOnboardingState } from "../../lib/onboarding-state";
 import { ensureAnonymousSession } from "../../lib/auth";
 import { createPlayer } from "../../lib/player";
-import type { SkinOption, HairOption, OutfitOption } from "../../lib/player";
+import type { SkinTone, HairStyle, HairColor, Outfit } from "../../lib/player";
+import { Avatar } from "../../components/Avatar";
+import {
+  SKIN_TONE_OPTIONS,
+  HAIR_STYLE_OPTIONS,
+  HAIR_COLOR_OPTIONS,
+  OUTFIT_OPTIONS,
+} from "../../lib/assets/avatar";
 
-// ─── Avatar Options ───────────────────────────────────────────────────────────
+// ─── Swatch Component (color circles) ────────────────────────────────────────
 
-const SKIN_OPTIONS: { id: SkinOption; color: string; label: string }[] = [
-  { id: "skin_1", color: "#FDDCB5", label: "Clara" },
-  { id: "skin_2", color: "#E8B88A", label: "Média clara" },
-  { id: "skin_3", color: "#C68B59", label: "Média escura" },
-  { id: "skin_4", color: "#8B5E3C", label: "Escura" },
-];
-
-const HAIR_OPTIONS: { id: HairOption; emoji: string; label: string }[] = [
-  { id: "hair_1", emoji: "💇", label: "Curto" },
-  { id: "hair_2", emoji: "💇‍♀️", label: "Médio" },
-  { id: "hair_3", emoji: "👱", label: "Longo" },
-  { id: "hair_4", emoji: "🧑‍🦱", label: "Cacheado" },
-];
-
-const OUTFIT_OPTIONS: { id: OutfitOption; color: string; label: string }[] = [
-  { id: "outfit_1", color: "#2E8F5A", label: "Verde" },
-  { id: "outfit_2", color: "#4A90D9", label: "Azul" },
-  { id: "outfit_3", color: "#D4A744", label: "Amarela" },
-];
-
-// ─── Selection Row Component ──────────────────────────────────────────────────
-
-function SelectionRow<T extends string>({
-  title,
-  options,
-  selected,
-  onSelect,
-  renderOption,
+function Swatch({
+  hex,
+  isSelected,
+  onPress,
 }: {
-  title: string;
-  options: { id: T }[];
-  selected: T;
-  onSelect: (id: T) => void;
-  renderOption: (option: { id: T }, isSelected: boolean) => React.ReactNode;
+  hex: string;
+  isSelected: boolean;
+  onPress: () => void;
 }) {
   return (
-    <View className="mb-6 w-full">
-      <Text
-        className="text-garden-green-600 mb-3"
-        style={{ fontFamily: "Nunito-SemiBold", fontSize: 14 }}
+    <Pressable onPress={onPress} style={{ marginHorizontal: 6 }}>
+      <View
+        style={{
+          width: 48,
+          height: 48,
+          borderRadius: 24,
+          backgroundColor: hex,
+          borderWidth: isSelected ? 3 : 1,
+          borderColor: isSelected ? "#1F5F3F" : "rgba(0,0,0,0.1)",
+        }}
       >
-        {title}
-      </Text>
-      <View className="flex-row" style={{ gap: 12 }}>
-        {options.map((option) => (
-          <Pressable key={option.id} onPress={() => onSelect(option.id)}>
-            {renderOption(option, selected === option.id)}
-          </Pressable>
-        ))}
+        {isSelected && (
+          <View className="flex-1 items-center justify-center">
+            <Text className="text-white font-bold" style={{ fontSize: 16 }}>
+              ✓
+            </Text>
+          </View>
+        )}
       </View>
-    </View>
+    </Pressable>
   );
 }
 
-// ─── Main Screen ──────────────────────────────────────────────────────────────
+// ─── Style Button (text pills) ───────────────────────────────────────────────
+
+function StyleButton({
+  label,
+  isSelected,
+  onPress,
+}: {
+  label: string;
+  isSelected: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={{
+        paddingHorizontal: 14,
+        paddingVertical: 10,
+        borderRadius: 16,
+        backgroundColor: isSelected ? "#1F5F3F" : "rgba(31, 95, 63, 0.08)",
+        marginHorizontal: 4,
+        marginVertical: 3,
+      }}
+    >
+      <Text
+        style={{
+          fontFamily: isSelected ? "Nunito-Bold" : "Nunito-Regular",
+          fontSize: 13,
+          color: isSelected ? "#FFFDF7" : "#1F5F3F",
+        }}
+      >
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
+// ─── Main Screen ─────────────────────────────────────────────────────────────
 
 export default function AvatarScreen() {
   const router = useRouter();
@@ -77,10 +99,12 @@ export default function AvatarScreen() {
     petType,
     petName,
     avatarSkin,
-    avatarHair,
+    avatarHairStyle,
+    avatarHairColor,
     avatarOutfit,
     setAvatarSkin,
-    setAvatarHair,
+    setAvatarHairStyle,
+    setAvatarHairColor,
     setAvatarOutfit,
     reset,
   } = useOnboardingState();
@@ -89,14 +113,11 @@ export default function AvatarScreen() {
 
   // Animations
   const contentOpacity = useSharedValue(0);
-  const previewScale = useSharedValue(0.9);
+  const contentTranslateY = useSharedValue(20);
 
   const contentStyle = useAnimatedStyle(() => ({
     opacity: contentOpacity.value,
-  }));
-
-  const previewStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: previewScale.value }],
+    transform: [{ translateY: contentTranslateY.value }],
   }));
 
   useEffect(() => {
@@ -104,17 +125,22 @@ export default function AvatarScreen() {
       duration: 500,
       easing: Easing.out(Easing.cubic),
     });
-    previewScale.value = withSpring(1, { damping: 12 });
+    contentTranslateY.value = withTiming(0, {
+      duration: 500,
+      easing: Easing.out(Easing.cubic),
+    });
   }, []);
 
-  // Bounce preview when selection changes
+  // Avatar preview bounce on change
+  const avatarScale = useSharedValue(1);
+  const avatarStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: avatarScale.value }],
+  }));
+
   useEffect(() => {
-    previewScale.value = withSpring(1.03, { damping: 8 });
-    const timer = setTimeout(() => {
-      previewScale.value = withSpring(1, { damping: 10 });
-    }, 150);
-    return () => clearTimeout(timer);
-  }, [avatarSkin, avatarHair, avatarOutfit]);
+    avatarScale.value = 0.95;
+    avatarScale.value = withSpring(1, { damping: 8, stiffness: 200 });
+  }, [avatarSkin, avatarHairStyle, avatarHairColor, avatarOutfit]);
 
   const handleConfirm = async () => {
     if (isSubmitting) return;
@@ -132,9 +158,10 @@ export default function AvatarScreen() {
       // Create player in Supabase + local storage
       await createPlayer(userId, {
         avatar_skin: avatarSkin,
-        avatar_hair: avatarHair,
+        avatar_hair_style: avatarHairStyle,
+        avatar_hair_color: avatarHairColor,
         avatar_outfit: avatarOutfit,
-        pet_type: petType ?? "dog",
+        pet_type: petType ?? "cachorro",
         pet_name: petName.trim(),
       });
 
@@ -149,179 +176,137 @@ export default function AvatarScreen() {
     }
   };
 
-  // Get the current visual values for the preview
-  const currentSkinColor =
-    SKIN_OPTIONS.find((s) => s.id === avatarSkin)?.color ?? SKIN_OPTIONS[0].color;
-  const currentOutfitColor =
-    OUTFIT_OPTIONS.find((o) => o.id === avatarOutfit)?.color ??
-    OUTFIT_OPTIONS[0].color;
-  const currentHairEmoji =
-    HAIR_OPTIONS.find((h) => h.id === avatarHair)?.emoji ?? "💇";
-
   return (
     <View className="flex-1 bg-warm-white">
       <ScrollView
-        contentContainerStyle={{
-          flexGrow: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          paddingHorizontal: 32,
-          paddingVertical: 40,
-        }}
+        contentContainerStyle={{ paddingBottom: 120 }}
         showsVerticalScrollIndicator={false}
       >
-        <Animated.View style={contentStyle} className="w-full items-center">
-          {/* Header */}
+        <Animated.View style={contentStyle} className="items-center pt-12 px-6">
+          {/* Title */}
           <Text
             className="text-garden-green text-center mb-6"
             style={{
               fontFamily: "Nunito-SemiBold",
-              fontSize: 20,
-              lineHeight: 28,
+              fontSize: 22,
+              lineHeight: 30,
             }}
           >
-            Como você quer ser?
+            Como você se parece?
           </Text>
 
-          {/* Avatar Preview */}
-          <Animated.View
-            style={previewStyle}
-            className="items-center justify-center mb-8"
-          >
-            <View
-              className="items-center justify-center rounded-full"
-              style={{
-                width: 120,
-                height: 120,
-                backgroundColor: currentSkinColor,
-                borderWidth: 3,
-                borderColor: "rgba(31, 95, 63, 0.15)",
-              }}
-            >
-              {/* Hair indicator */}
-              <Text style={{ fontSize: 28, marginBottom: -4 }}>
-                {currentHairEmoji}
-              </Text>
-              {/* Face */}
-              <Text style={{ fontSize: 14 }}>😊</Text>
-              {/* Outfit indicator */}
-              <View
-                className="rounded-lg mt-1"
-                style={{
-                  width: 50,
-                  height: 24,
-                  backgroundColor: currentOutfitColor,
-                  borderRadius: 6,
-                }}
-              />
-            </View>
+          {/* Avatar Preview — Real layered composition */}
+          <Animated.View style={avatarStyle} className="mb-8">
+            <Avatar
+              skinTone={avatarSkin}
+              hairStyle={avatarHairStyle}
+              hairColor={avatarHairColor}
+              outfit={avatarOutfit}
+              size={220}
+            />
           </Animated.View>
 
-          {/* Skin selection */}
-          <SelectionRow
-            title="Cor de pele"
-            options={SKIN_OPTIONS}
-            selected={avatarSkin}
-            onSelect={setAvatarSkin}
-            renderOption={(option, isSelected) => {
-              const opt = SKIN_OPTIONS.find((s) => s.id === option.id)!;
-              return (
-                <View
-                  className="items-center justify-center rounded-full"
-                  style={{
-                    width: 48,
-                    height: 48,
-                    backgroundColor: opt.color,
-                    borderWidth: 3,
-                    borderColor: isSelected ? "#1F5F3F" : "transparent",
-                  }}
-                >
-                  {isSelected && (
-                    <Text className="text-white text-xs font-bold">✓</Text>
-                  )}
-                </View>
-              );
-            }}
-          />
-
-          {/* Hair selection */}
-          <SelectionRow
-            title="Cabelo"
-            options={HAIR_OPTIONS}
-            selected={avatarHair}
-            onSelect={setAvatarHair}
-            renderOption={(option, isSelected) => {
-              const opt = HAIR_OPTIONS.find((h) => h.id === option.id)!;
-              return (
-                <View
-                  className="items-center justify-center rounded-2xl bg-white"
-                  style={{
-                    width: 56,
-                    height: 56,
-                    borderWidth: 2,
-                    borderColor: isSelected
-                      ? "#1F5F3F"
-                      : "rgba(31, 95, 63, 0.08)",
-                  }}
-                >
-                  <Text style={{ fontSize: 24 }}>{opt.emoji}</Text>
-                </View>
-              );
-            }}
-          />
-
-          {/* Outfit selection */}
-          <SelectionRow
-            title="Camiseta"
-            options={OUTFIT_OPTIONS}
-            selected={avatarOutfit}
-            onSelect={setAvatarOutfit}
-            renderOption={(option, isSelected) => {
-              const opt = OUTFIT_OPTIONS.find((o) => o.id === option.id)!;
-              return (
-                <View
-                  className="items-center justify-center rounded-2xl"
-                  style={{
-                    width: 56,
-                    height: 56,
-                    backgroundColor: opt.color,
-                    borderWidth: 3,
-                    borderColor: isSelected ? "#1F5F3F" : "transparent",
-                    opacity: isSelected ? 1 : 0.7,
-                  }}
-                >
-                  <Text style={{ fontSize: 18 }}>👕</Text>
-                  {isSelected && (
-                    <View className="absolute -top-1 -right-1 h-5 w-5 items-center justify-center rounded-full bg-garden-green">
-                      <Text className="text-white" style={{ fontSize: 10 }}>
-                        ✓
-                      </Text>
-                    </View>
-                  )}
-                </View>
-              );
-            }}
-          />
-
-          {/* Confirm button */}
-          <Pressable
-            onPress={handleConfirm}
-            disabled={isSubmitting}
-            className="mt-8 bg-garden-green rounded-2xl px-10 py-4 active:opacity-80"
-            style={({ pressed }) => ({
-              transform: [{ scale: pressed ? 0.96 : 1 }],
-              opacity: isSubmitting ? 0.6 : 1,
-            })}
-          >
+          {/* Skin Tone */}
+          <View className="w-full mb-6">
             <Text
-              className="text-warm-white text-center"
-              style={{ fontFamily: "Nunito-Bold", fontSize: 17 }}
+              className="text-garden-green-700 mb-3"
+              style={{ fontFamily: "Nunito-SemiBold", fontSize: 14 }}
             >
-              {isSubmitting ? "Preparando..." : "É esse!"}
+              Cor de pele
             </Text>
-          </Pressable>
+            <View className="flex-row justify-center">
+              {SKIN_TONE_OPTIONS.map((option) => (
+                <Swatch
+                  key={option.value}
+                  hex={option.hex}
+                  isSelected={avatarSkin === option.value}
+                  onPress={() => setAvatarSkin(option.value)}
+                />
+              ))}
+            </View>
+          </View>
+
+          {/* Hair Style */}
+          <View className="w-full mb-6">
+            <Text
+              className="text-garden-green-700 mb-3"
+              style={{ fontFamily: "Nunito-SemiBold", fontSize: 14 }}
+            >
+              Estilo do cabelo
+            </Text>
+            <View className="flex-row justify-center flex-wrap">
+              {HAIR_STYLE_OPTIONS.map((option) => (
+                <StyleButton
+                  key={option.value}
+                  label={option.label}
+                  isSelected={avatarHairStyle === option.value}
+                  onPress={() => setAvatarHairStyle(option.value)}
+                />
+              ))}
+            </View>
+          </View>
+
+          {/* Hair Color */}
+          <View className="w-full mb-6">
+            <Text
+              className="text-garden-green-700 mb-3"
+              style={{ fontFamily: "Nunito-SemiBold", fontSize: 14 }}
+            >
+              Cor do cabelo
+            </Text>
+            <View className="flex-row justify-center">
+              {HAIR_COLOR_OPTIONS.map((option) => (
+                <Swatch
+                  key={option.value}
+                  hex={option.hex}
+                  isSelected={avatarHairColor === option.value}
+                  onPress={() => setAvatarHairColor(option.value)}
+                />
+              ))}
+            </View>
+          </View>
+
+          {/* Outfit */}
+          <View className="w-full mb-6">
+            <Text
+              className="text-garden-green-700 mb-3"
+              style={{ fontFamily: "Nunito-SemiBold", fontSize: 14 }}
+            >
+              Camiseta
+            </Text>
+            <View className="flex-row justify-center">
+              {OUTFIT_OPTIONS.map((option) => (
+                <Swatch
+                  key={option.value}
+                  hex={option.hex}
+                  isSelected={avatarOutfit === option.value}
+                  onPress={() => setAvatarOutfit(option.value)}
+                />
+              ))}
+            </View>
+          </View>
         </Animated.View>
       </ScrollView>
+
+      {/* Fixed bottom button */}
+      <View className="absolute bottom-0 left-0 right-0 pb-10 pt-4 px-6 bg-warm-white">
+        <Pressable
+          onPress={handleConfirm}
+          disabled={isSubmitting}
+          className="bg-garden-green rounded-2xl py-4 active:opacity-80"
+          style={({ pressed }) => ({
+            transform: [{ scale: pressed ? 0.96 : 1 }],
+            opacity: isSubmitting ? 0.6 : 1,
+          })}
+        >
+          <Text
+            className="text-warm-white text-center"
+            style={{ fontFamily: "Nunito-Bold", fontSize: 17 }}
+          >
+            {isSubmitting ? "Preparando..." : "É esse!"}
+          </Text>
+        </Pressable>
+      </View>
     </View>
   );
 }

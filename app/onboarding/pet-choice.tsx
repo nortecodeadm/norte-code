@@ -11,17 +11,19 @@ import Animated, {
 } from "react-native-reanimated";
 import { useOnboardingState } from "../../lib/onboarding-state";
 import type { PetType } from "../../lib/player";
+import { Mascote } from "../../components/Mascote";
+import { MascoteType, MASCOTE_NAMES } from "../../lib/assets/mascotes";
 
 interface PetOption {
   type: PetType;
-  emoji: string; // Placeholder until real illustrations
+  mascoteType: MascoteType;
   label: string;
 }
 
 const PET_OPTIONS: PetOption[] = [
-  { type: "dog", emoji: "🐕", label: "Cachorro" },
-  { type: "cat", emoji: "🐈", label: "Gato" },
-  { type: "rabbit", emoji: "🐇", label: "Coelho" },
+  { type: "cachorro", mascoteType: "cachorro", label: MASCOTE_NAMES.cachorro },
+  { type: "gato", mascoteType: "gato", label: MASCOTE_NAMES.gato },
+  { type: "coelho", mascoteType: "coelho", label: MASCOTE_NAMES.coelho },
 ];
 
 function PetCard({
@@ -64,7 +66,7 @@ function PetCard({
   }));
 
   return (
-    <Animated.View style={cardStyle}>
+    <Animated.View style={cardStyle} className="flex-1">
       <Pressable onPress={onSelect}>
         <Animated.View
           style={[
@@ -76,13 +78,14 @@ function PetCard({
                 : "rgba(31, 95, 63, 0.08)",
             },
           ]}
-          className="items-center justify-center rounded-3xl bg-white px-5 py-7 shadow-sm"
+          className="items-center justify-center rounded-3xl bg-white px-3 py-5 shadow-sm"
         >
-          {/* Placeholder emoji — will be replaced with illustrations */}
-          <Text style={{ fontSize: 48 }}>{pet.emoji}</Text>
+          {/* Real mascot illustration */}
+          <Mascote type={pet.mascoteType} width={90} />
+
           <Text
             className="mt-3 text-garden-green-700"
-            style={{ fontFamily: "Nunito-SemiBold", fontSize: 14 }}
+            style={{ fontFamily: "Nunito-SemiBold", fontSize: 13 }}
           >
             {pet.label}
           </Text>
@@ -158,7 +161,7 @@ export default function PetChoiceScreen() {
         </Animated.View>
 
         {/* Pet options */}
-        <View className="flex-row" style={{ gap: 16 }}>
+        <View className="flex-row w-full" style={{ gap: 12 }}>
           {PET_OPTIONS.map((pet, index) => (
             <PetCard
               key={pet.type}

@@ -8,10 +8,13 @@ import Animated, {
 } from "react-native-reanimated";
 import { getPlayer, type PlayerData } from "../lib/player";
 import { getCurrentUserId } from "../lib/auth";
+import { Avatar } from "../components/Avatar";
+import { Mascote } from "../components/Mascote";
+import type { MascoteType } from "../lib/assets/mascotes";
 
 /**
  * World screen — placeholder for Seção 1 delivery.
- * Shows the player's data to confirm onboarding completed successfully.
+ * Shows the player's avatar + mascot to confirm onboarding completed successfully.
  * Full world implementation comes in Seção 2+.
  */
 export default function WorldScreen() {
@@ -38,45 +41,53 @@ export default function WorldScreen() {
     });
   };
 
-  const petEmoji =
-    player?.pet_type === "dog"
-      ? "🐕"
-      : player?.pet_type === "cat"
-        ? "🐈"
-        : "🐇";
-
   return (
     <View className="flex-1 bg-warm-white items-center justify-center px-8">
       <Animated.View style={fadeStyle} className="items-center">
         {player ? (
           <>
             <Text
-              className="text-garden-green text-center mb-4"
+              className="text-garden-green text-center mb-6"
               style={{ fontFamily: "Fraunces-Bold", fontSize: 24 }}
             >
               Seu mundo
             </Text>
 
-            <Text style={{ fontSize: 64, marginBottom: 8 }}>{petEmoji}</Text>
+            {/* Real Avatar — layered composition */}
+            <Avatar
+              skinTone={player.avatar_skin}
+              hairStyle={player.avatar_hair_style}
+              hairColor={player.avatar_hair_color}
+              outfit={player.avatar_outfit}
+              size={180}
+            />
 
-            <Text
-              className="text-garden-green-600 text-center mb-2"
-              style={{ fontFamily: "Nunito-SemiBold", fontSize: 18 }}
-            >
-              {player.pet_name}
-            </Text>
+            {/* Real Mascot */}
+            <View className="mt-4 items-center">
+              <Mascote
+                type={player.pet_type as MascoteType}
+                state="feliz"
+                width={140}
+              />
+              <Text
+                className="text-garden-green-600 text-center mt-2"
+                style={{ fontFamily: "Nunito-SemiBold", fontSize: 18 }}
+              >
+                {player.pet_name}
+              </Text>
+            </View>
 
             <Text
               className="text-garden-green-400 text-center mt-6"
-              style={{ fontFamily: "Nunito", fontSize: 14, lineHeight: 22 }}
+              style={{ fontFamily: "Nunito-Regular", fontSize: 14, lineHeight: 22 }}
             >
               O mundo ainda está vazio...{"\n"}mas em breve vai crescer.
             </Text>
 
-            <View className="mt-8 rounded-2xl bg-garden-green-50 px-6 py-4">
+            <View className="mt-6 rounded-2xl bg-garden-green-50 px-6 py-4">
               <Text
                 className="text-garden-green-700 text-center"
-                style={{ fontFamily: "Nunito", fontSize: 12, lineHeight: 18 }}
+                style={{ fontFamily: "Nunito-Regular", fontSize: 12, lineHeight: 18 }}
               >
                 Tela Mundo — implementação completa{"\n"}virá na próxima seção.
               </Text>
@@ -85,7 +96,7 @@ export default function WorldScreen() {
         ) : (
           <Text
             className="text-garden-green-400"
-            style={{ fontFamily: "Nunito", fontSize: 16 }}
+            style={{ fontFamily: "Nunito-Regular", fontSize: 16 }}
           >
             Carregando...
           </Text>

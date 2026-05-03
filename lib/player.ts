@@ -1,16 +1,19 @@
 import { supabase } from "./supabase";
 import { storage } from "./storage";
 
-export type PetType = "dog" | "cat" | "rabbit";
-export type SkinOption = "skin_1" | "skin_2" | "skin_3" | "skin_4";
-export type HairOption = "hair_1" | "hair_2" | "hair_3" | "hair_4";
-export type OutfitOption = "outfit_1" | "outfit_2" | "outfit_3";
+// Semantic types matching asset file names exactly
+export type PetType = "cachorro" | "gato" | "coelho";
+export type SkinTone = "clara" | "media-clara" | "media-escura" | "escura";
+export type HairStyle = "curtoliso" | "curtobaguncado" | "longoliso" | "cacheado";
+export type HairColor = "castanho-escuro" | "castanho-medio" | "castanho-claro" | "loiro-mel";
+export type Outfit = "verde" | "azul" | "amarela";
 
 export interface PlayerData {
   id: string;
-  avatar_skin: SkinOption;
-  avatar_hair: HairOption;
-  avatar_outfit: OutfitOption;
+  avatar_skin: SkinTone;
+  avatar_hair_style: HairStyle;
+  avatar_hair_color: HairColor;
+  avatar_outfit: Outfit;
   pet_type: PetType;
   pet_name: string;
 }
@@ -33,7 +36,8 @@ export async function createPlayer(
     const { error } = await supabase.from("players").insert({
       id: userId,
       avatar_skin: data.avatar_skin,
-      avatar_hair: data.avatar_hair,
+      avatar_hair_style: data.avatar_hair_style,
+      avatar_hair_color: data.avatar_hair_color,
       avatar_outfit: data.avatar_outfit,
       pet_type: data.pet_type,
       pet_name: data.pet_name,
@@ -112,7 +116,8 @@ export async function getPlayer(userId: string): Promise<PlayerData | null> {
     const player: PlayerData = {
       id: data.id,
       avatar_skin: data.avatar_skin,
-      avatar_hair: data.avatar_hair,
+      avatar_hair_style: data.avatar_hair_style,
+      avatar_hair_color: data.avatar_hair_color,
       avatar_outfit: data.avatar_outfit,
       pet_type: data.pet_type,
       pet_name: data.pet_name,

@@ -1,7 +1,7 @@
 # Arquitetura — Norte Code MVP
 
-**Última atualização:** 02/05/2026
-**Versão:** 0.1.0 (Setup Inicial)
+**Última atualização:** 03/05/2026
+**Versão:** 0.2.0 (Onboarding + Assets Visuais)
 
 ---
 
@@ -98,7 +98,7 @@ Splash (index.tsx)
 - Sem coleta de dados pessoais (COPPA/LGPD compliance)
 
 ### 5.2. Tabelas (Supabase)
-- `players` — dados do jogador (avatar, pet, nome)
+- `players` — dados do jogador (avatar_skin, avatar_hair_style, avatar_hair_color, avatar_outfit, pet_type, pet_name)
 - `level_progress` — progresso por nível (completed, attempts)
 - `world_elements` — elementos visuais desbloqueados no mundo
 - `narrative_chapters_viewed` — capítulos já vistos
@@ -127,6 +127,72 @@ Documentação detalhada em `docs/INTERPRETER.md`.
 - **Tipografia**: Nunito (texto corrido), Fraunces (títulos)
 - **Estilo**: flat-design contemporâneo com toques orgânicos
 - **Animações**: suaves, contemplativas, ease-in-out
+
+### 7.1. Sistema de Avatar (Layers)
+
+O avatar é renderizado por composição de camadas PNG transparentes (512×512px) sobrepostas:
+
+| Layer | Ordem (z-index) | Variações | Exemplo de arquivo |
+|-------|-----------------|-----------|--------------------|
+| Corpo (pele) | 1 (base) | 4 tons | `corpo_pele1_clara.png` |
+| Roupa | 2 | 3 cores | `roupa_verde.png` |
+| Cabelo | 3 (topo) | 16 combos (4 estilos × 4 cores) | `cabelo_curtoliso_castanho-escuro.png` |
+
+**Props do componente `<Avatar />`:**
+- `skinTone`: `'clara'` | `'media-clara'` | `'media-escura'` | `'escura'`
+- `hairStyle`: `'curtoliso'` | `'curtobaguncado'` | `'longoliso'` | `'cacheado'`
+- `hairColor`: `'castanho-escuro'` | `'castanho-medio'` | `'castanho-claro'` | `'loiro-mel'`
+- `outfit`: `'verde'` | `'azul'` | `'amarela'`
+- `size`: número (largura/altura em px)
+
+### 7.2. Mascotes
+
+3 mascotes disponíveis, cada um com 3 estados emocionais:
+
+| Mascote | Estados | Tamanho |
+|---------|---------|----------|
+| Cachorro | padrão, feliz, triste | 512×512px |
+| Gato | padrão, feliz, triste | 512×512px |
+| Coelho | padrão, feliz, triste | 512×512px |
+
+**Props do componente `<Mascote />`:**
+- `type`: `'cachorro'` | `'gato'` | `'coelho'`
+- `state`: `'padrao'` | `'feliz'` | `'triste'` (default: `'padrao'`)
+- `width`: número (altura calculada automaticamente)
+
+### 7.3. Estrutura de Assets
+
+```
+assets/images/
+├── mascotes/
+│   ├── cachorro/
+│   │   ├── cachorro_padrao.png
+│   │   ├── cachorro_feliz.png
+│   │   └── cachorro_triste.png
+│   ├── gato/
+│   │   ├── gato_padrao.png
+│   │   ├── gato_feliz.png
+│   │   └── gato_triste.png
+│   └── coelho/
+│       ├── coelho_padrao.png
+│       ├── coelho_feliz.png
+│       └── coelho_triste.png
+└── avatar/
+    ├── corpos/
+    │   ├── corpo_pele1_clara.png
+    │   ├── corpo_pele2_media-clara.png
+    │   ├── corpo_pele3_media-escura.png
+    │   └── corpo_pele4_escura.png
+    ├── cabelos/
+    │   ├── cabelo_curtoliso_castanho-escuro.png
+    │   ├── cabelo_curtoliso_castanho-medio.png
+    │   ├── ... (16 combinações)
+    │   └── cabelo_cacheado_loiro-mel.png
+    └── roupas/
+        ├── roupa_verde.png
+        ├── roupa_azul.png
+        └── roupa_amarela.png
+```
 
 ## 8. Build e Distribuição
 

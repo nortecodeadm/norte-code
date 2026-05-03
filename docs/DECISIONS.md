@@ -148,3 +148,42 @@ Cada entrada segue o padrão:
 
 **Decisor:** Gui
 
+---
+
+### [03/05/2026] Migração para valores semânticos e assets reais
+
+**Decisão:** Substituir valores genéricos (`skin_1`, `hair_1`, `outfit_1`, `dog`/`cat`/`rabbit`) por valores semânticos que correspondem exatamente aos nomes dos arquivos de assets (`clara`, `curtoliso`, `castanho-escuro`, `cachorro`, etc.).
+
+**Contexto:** Os assets visuais reais foram entregues pelo Claude (Lotes 1 e 2) com nomenclatura semântica em português. Para manter consistência entre código, banco, e arquivos, os tipos TypeScript e colunas do banco precisam usar os mesmos nomes. Além disso, a coluna `avatar_hair` foi separada em `avatar_hair_style` e `avatar_hair_color` para refletir a composição real dos assets (ex: `cabelo_curtoliso_castanho-escuro.png`).
+
+**Alterações:**
+- `pet_type`: `dog`/`cat`/`rabbit` → `cachorro`/`gato`/`coelho`
+- `avatar_skin`: `skin_1..4` → `clara`/`media-clara`/`media-escura`/`escura`
+- `avatar_hair` removido → `avatar_hair_style` + `avatar_hair_color`
+- `avatar_hair_style`: `curtoliso`/`curtobaguncado`/`longoliso`/`cacheado`
+- `avatar_hair_color`: `castanho-escuro`/`castanho-medio`/`castanho-claro`/`loiro-mel`
+- `avatar_outfit`: `outfit_1..3` → `verde`/`azul`/`amarela`
+
+**Padrão:** Tudo lowercase, sem acento, separado por hífen quando composto.
+
+**Migration:** `docs/migrations/0002_avatar_semantic_values.sql`
+
+**Decisor:** Gui
+
+---
+
+### [03/05/2026] Assets visuais: geração por IA (Claude) para MVP
+
+**Decisão:** Usar assets gerados por IA (via Claude) para o MVP, com possibilidade de substituir por ilustrações profissionais no lançamento.
+
+**Contexto:** O app usava emojis como placeholder para mascotes e avatar. Para testar com o Benjamin (usuário-piloto), precisamos de visuais que representem a identidade da marca sem investir em ilustrador neste momento.
+
+**Assets recebidos (Lotes 1 e 2):**
+- 3 mascotes (cachorro, gato, coelho) com 3 estados cada (padrão, feliz, triste) — 512×512px
+- Avatar componentizado em layers: 4 corpos (pele), 16 cabelos (4 estilos × 4 cores), 3 roupas — 512×512px
+- Manequim de referência para alinhamento de layers
+
+**Resultado:** Assets integrados como `require()` estáticos no bundle. Componentes `<Avatar />` e `<Mascote />` criados para renderização por composição de layers.
+
+**Decisor:** Gui
+

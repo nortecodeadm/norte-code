@@ -18,6 +18,7 @@ import Animated, {
   Easing,
 } from "react-native-reanimated";
 import { useOnboardingState } from "../../lib/onboarding-state";
+import { Mascote } from "../../components/Mascote";
 
 const MAX_NAME_LENGTH = 12;
 
@@ -109,11 +110,9 @@ export default function PetNameScreen() {
           </Text>
         </Animated.View>
 
-        {/* Pet emoji reminder */}
+        {/* Pet mascot reminder */}
         <Animated.View style={inputStyle} className="mb-6">
-          <Text style={{ fontSize: 48 }}>
-            {petType === "dog" ? "🐕" : petType === "cat" ? "🐈" : "🐇"}
-          </Text>
+          {petType && <Mascote type={petType} width={80} />}
         </Animated.View>
 
         {/* Name input */}
