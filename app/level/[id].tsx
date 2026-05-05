@@ -296,51 +296,51 @@ export default function LevelScreen() {
       </View>
 
       {/* Objective */}
-      <View className="px-6 py-2">
+      <View className="px-6 py-1">
         <Text
           className="text-garden-green-700 text-center"
-          style={{ fontFamily: "Nunito-SemiBold", fontSize: 14, lineHeight: 20 }}
+          style={{ fontFamily: "Nunito-SemiBold", fontSize: 13, lineHeight: 18 }}
         >
           {level.objective}
         </Text>
         <Text
           className="text-garden-green-400 text-center mt-1"
-          style={{ fontFamily: "Nunito-Regular", fontSize: 12 }}
+          style={{ fontFamily: "Nunito-Regular", fontSize: 11 }}
         >
           {level.description}
         </Text>
       </View>
 
-      {/* Scene */}
+      {/* Scene — fixed height, does not grow */}
       <LevelScene world={worldState} />
 
-      {/* Hint (shown after 5s of inactivity) */}
-      <Animated.View style={hintStyle} className="px-6 py-1">
-        {showHint && (
-          <View className="bg-amber-50 rounded-xl px-4 py-2 border border-amber-200">
+      {/* Hint (shown after 5s of inactivity) — zero height when hidden */}
+      {showHint && (
+        <Animated.View style={hintStyle} className="px-6 py-1">
+          <View className="bg-amber-50 rounded-xl px-3 py-1 border border-amber-200">
             <Text
               className="text-amber-700 text-center"
-              style={{ fontFamily: "Nunito-Regular", fontSize: 12 }}
+              style={{ fontFamily: "Nunito-Regular", fontSize: 11 }}
             >
               {level.hint}
             </Text>
           </View>
-        )}
-      </Animated.View>
+        </Animated.View>
+      )}
 
-      {/* Error message */}
-      <Animated.View style={errorStyle} className="px-6 py-1">
-        {errorMessage && (
-          <View className="bg-red-50 rounded-xl px-4 py-2 border border-red-200">
+      {/* Error message — zero height when hidden */}
+      {errorMessage && (
+        <Animated.View style={errorStyle} className="px-6 py-1">
+          <View className="bg-red-50 rounded-xl px-3 py-1 border border-red-200">
             <Text
               className="text-red-600 text-center"
-              style={{ fontFamily: "Nunito-SemiBold", fontSize: 12 }}
+              style={{ fontFamily: "Nunito-SemiBold", fontSize: 11 }}
             >
               {errorMessage}
             </Text>
           </View>
-        )}
-      </Animated.View>
+        </Animated.View>
+      )}
 
       {/* Block Palette */}
       <BlockPalette
@@ -349,16 +349,18 @@ export default function LevelScreen() {
         disabled={executeState === "running" || executeState === "success"}
       />
 
-      {/* Program Area */}
-      <ProgramArea
-        blocks={programBlocks}
-        onBlockRemove={handleRemoveBlock}
-        activeBlockId={activeBlockId}
-        maxBlocks={level.maxBlocks}
-        disabled={executeState === "running"}
-      />
+      {/* Scrollable middle: ProgramArea takes remaining space */}
+      <View style={{ flex: 1, minHeight: 60 }}>
+        <ProgramArea
+          blocks={programBlocks}
+          onBlockRemove={handleRemoveBlock}
+          activeBlockId={activeBlockId}
+          maxBlocks={level.maxBlocks}
+          disabled={executeState === "running"}
+        />
+      </View>
 
-      {/* Execute Button */}
+      {/* Execute Button — ALWAYS visible at bottom, never pushed off screen */}
       <ExecuteButton
         state={executeState}
         onPress={handleExecute}
