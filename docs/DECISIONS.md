@@ -504,3 +504,53 @@ A Gemini Pro foi usada para gerar os avatares finais como imagens completas pré
 
 **Decisor:** Gui
 
+---
+
+### [05/05/2026] SafeAreaView: react-native-safe-area-context (não react-native)
+
+**Decisão:** Usar `SafeAreaView` do pacote `react-native-safe-area-context` em todas as telas, nunca o `SafeAreaView` nativo do `react-native`.
+
+**Contexto:** O `SafeAreaView` do `react-native` só funciona no iOS. Em Android com notch ou punch-hole (câmera frontal), o conteúdo fica atrás da câmera/status bar. Resultado: título "Primeira semente" e botões de navegação sobrepostos pela câmera frontal.
+
+**Implementação:**
+1. `SafeAreaProvider` adicionado como wrapper no `_layout.tsx` (envolve `GestureHandlerRootView`)
+2. Todas as telas pós-onboarding trocaram o import: `import { SafeAreaView } from "react-native-safe-area-context"`
+3. API é idêntica — só muda o import, JSX permanece igual
+
+**Arquivos corrigidos:**
+- `app/_layout.tsx` — SafeAreaProvider
+- `app/level/[id].tsx` — SafeAreaView
+- `app/level-summary/[id].tsx` — SafeAreaView
+
+**Regra futura:** Qualquer nova tela que use SafeAreaView DEVE importar de `react-native-safe-area-context`.
+
+**Decisor:** Gui (via análise do Claude)
+
+---
+
+### [05/05/2026] Navegação: router.replace('/world') em telas pós-onboarding
+
+**Decisão:** O botão "voltar" (←) em telas pós-onboarding (level, level-summary, chapter) usa `router.replace('/world')` em vez de `router.back()`.
+
+**Contexto:** Se a criança completou o onboarding e foi direto pro nível (sem passar pelo Mundo), `router.back()` retornava pra escolha de mascote ou outra tela do onboarding — comportamento errado e confuso.
+
+**Regra de produto:** Voltar do nível SEMPRE leva pra Tela Mundo. A Tela Mundo é o "home" permanente.
+
+**Por que `replace` e não `push`:** `replace` substitui a tela atual na pilha de navegação, mantendo a pilha limpa sem telas pendentes no histórico.
+
+**Exceção:** Dentro do onboarding, `router.back()` é correto — criança deve poder voltar pra trocar avatar, mascote, etc.
+
+**Decisor:** Gui (via análise do Claude)
+
+---
+
+### [05/05/2026] ExecuteButton: width 100% explícito
+
+**Decisão:** O `Pressable` do ExecuteButton deve ter `width: '100%'` e `paddingHorizontal: 24` explícitos.
+
+**Contexto:** Sem width definido, o Pressable colapsava pro tamanho do texto interno. O resultado era um botão minúsculo que parecia "texto branco solto" sobre fundo branco — quase invisível. O `Animated.View` pai com `className="mx-4"` só define margens, não largura.
+
+**Resultado:** Botão largo de tela inteira, verde-jardim vibrante (#1F5F3F) quando ativo, verde-acinzentado (#7A9E7E) quando disabled. Texto sempre centralizado e visível. Altura suficiente para toque confortável (~50px).
+
+**Decisor:** Gui (via análise do Claude)
+

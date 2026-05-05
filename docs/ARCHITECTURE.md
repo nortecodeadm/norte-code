@@ -20,6 +20,7 @@ O Norte Code é um app Android para crianças de 7 a 10 anos que ensina lógica 
 | Navegação | Expo Router (file-based) | 6.x |
 | Animações | React Native Reanimated | 4.x |
 | Gestos | React Native Gesture Handler | — |
+| Safe Area | react-native-safe-area-context | ~5.6.0 |
 | Backend | Supabase (PostgreSQL + Auth) | — |
 | Persistência Local | AsyncStorage | — |
 | Build | EAS Build | — |
@@ -282,3 +283,5 @@ A Tela Mundo segue princípios de ilustração de livro infantil com hierarquia 
 3. **Mundo permanente com transição visual**: após nível 5, o cenário muda (jardim → terreno árido). A arquitetura de renderização do mundo deve suportar múltiplos "biomas"
 4. **Arquitetura aberta para missões especiais**: embora não implementadas no MVP, a estrutura de carregamento de cenários deve prever cenários temporários isolados do mundo permanente
 5. **Sem mecânicas viciantes**: nenhum streak, timer, loot box ou moeda premium na arquitetura
+6. **SafeAreaView sempre de `react-native-safe-area-context`**: nunca usar o SafeAreaView nativo do `react-native` (só funciona no iOS). `SafeAreaProvider` envolve o app inteiro no `_layout.tsx`
+7. **Navegação pós-onboarding**: botão "voltar" em telas de gameplay usa `router.replace('/world')`, nunca `router.back()`. Evita retorno acidental ao fluxo de onboarding

@@ -19,6 +19,7 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import "react-native-reanimated";
 
 export {
@@ -57,26 +58,28 @@ function RootLayout() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          animation: "fade",
-        }}
-      >
-        <Stack.Screen name="index" />
-        <Stack.Screen name="onboarding/welcome" />
-        <Stack.Screen name="onboarding/pet-choice" />
-        <Stack.Screen name="onboarding/pet-name" />
-        <Stack.Screen name="onboarding/avatar" />
-        <Stack.Screen name="onboarding/player-name" />
-        <Stack.Screen name="onboarding/transition" />
-        <Stack.Screen name="world" />
-        <Stack.Screen name="level/[id]" />
-        <Stack.Screen name="level-summary/[id]" />
-        <Stack.Screen name="chapter/[id]" />
-      </Stack>
-    </GestureHandlerRootView>
+    <SafeAreaProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            animation: "fade",
+          }}
+        >
+          <Stack.Screen name="index" />
+          <Stack.Screen name="onboarding/welcome" />
+          <Stack.Screen name="onboarding/pet-choice" />
+          <Stack.Screen name="onboarding/pet-name" />
+          <Stack.Screen name="onboarding/avatar" />
+          <Stack.Screen name="onboarding/player-name" />
+          <Stack.Screen name="onboarding/transition" />
+          <Stack.Screen name="world" />
+          <Stack.Screen name="level/[id]" />
+          <Stack.Screen name="level-summary/[id]" />
+          <Stack.Screen name="chapter/[id]" />
+        </Stack>
+      </GestureHandlerRootView>
+    </SafeAreaProvider>
   );
 }
 

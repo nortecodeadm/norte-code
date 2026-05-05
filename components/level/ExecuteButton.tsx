@@ -84,6 +84,8 @@ export function ExecuteButton({
           backgroundColor: isDisabled && state !== "running" ? "#7A9E7E" : config.bg,
           borderRadius: 16,
           paddingVertical: 14,
+          paddingHorizontal: 24,
+          width: '100%' as any,
           alignItems: "center",
           opacity: pressed && !isDisabled ? 0.8 : 1,
           transform: [{ scale: pressed && !isDisabled ? 0.97 : 1 }],

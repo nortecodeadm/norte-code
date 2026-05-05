@@ -10,7 +10,8 @@
  */
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import { View, Text, Pressable, SafeAreaView } from "react-native";
+import { View, Text, Pressable } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import Animated, {
   useSharedValue,
@@ -276,7 +277,7 @@ export default function LevelScreen() {
     <SafeAreaView className="flex-1 bg-warm-white">
       {/* Header */}
       <View className="flex-row items-center justify-between px-4 pt-2 pb-1">
-        <Pressable onPress={() => router.back()} className="px-3 py-2">
+        <Pressable onPress={() => router.replace('/world')} className="px-3 py-2">
           <Text style={{ fontSize: 18, color: "#1F5F3F" }}>←</Text>
         </Pressable>
 
