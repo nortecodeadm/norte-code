@@ -1,7 +1,7 @@
 # Níveis — Norte Code MVP
 
-**Última atualização:** 02/05/2026
-**Versão:** 0.1.0 (Setup Inicial)
+**Última atualização:** 05/05/2026
+**Versão:** 1.0.0 (Nível 1 jogável)
 
 ---
 
@@ -26,7 +26,7 @@ Cada nível ensina **uma única coisa**. Não acumular conceitos novos por níve
 
 ---
 
-## Nível 1 — Sequência simples (2 passos)
+## Nível 1 — Sequência simples (2 passos) ✅ IMPLEMENTADO
 
 - **Conceito:** sequência de ações em ordem
 - **Cenário:** avatar anda até sementinha e planta
@@ -34,6 +34,13 @@ Cada nível ensina **uma única coisa**. Não acumular conceitos novos por níve
 - **Solução:** [Andar para frente] → [Plantar]
 - **Recompensa visual:** sementinha aparece no chão do Mundo
 - **Texto de resumo:** "Você fez seu primeiro programa! Cada passo na ordem certa. Isso se chama **sequência**."
+
+**Implementação técnica:**
+- Grid: 3×1, player em (0,0) facing east
+- Condição de vitória: `plant_all_seeds`
+- Max blocos: 4
+- Reward key: `seed_lvl1`
+- Arquivo: `lib/levels/index.ts` → `createLevel1()`
 
 ## Nível 2 — Sequência mais longa (3-4 passos)
 

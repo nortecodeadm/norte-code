@@ -1,56 +1,387 @@
 /**
- * Norte Code Block Interpreter
+ * Norte Code Block Interpreter — AST JSON Engine
  *
- * This is the CORE ENGINE of the app. It takes a sequence of blocks
- * assembled by the child and executes them step-by-step, updating
- * the world state and producing animation commands.
+ * Core engine that executes a program (AST in JSON format) against a WorldState.
+ * The same JSON that renders the UI blocks IS the program that gets executed.
+ * No duplication of state.
  *
- * Architecture:
- * 1. Receives a program (array of AnyBlock)
- * 2. Receives the initial world state (grid, entities, conditions)
- * 3. Executes blocks one by one, yielding steps for animation
- * 4. Returns final state + success/failure result
- *
- * IMPORTANT: This module must support:
- * - Nested loops (repeat inside repeat)
- * - Conditionals inside loops
- * - Function definitions and calls
- * - Step-by-step execution (for animation playback)
- * - Infinite loop detection (max steps safeguard)
- *
- * Full implementation will be done during the gameplay development phase.
- * This file establishes the interface contract.
+ * AST Format (defined with Claude):
+ * - Program:    { type: "program", body: [...statements] }
+ * - Action:     { type: "action", name: "walk_forward" | "plant" | ... }
+ * - Loop:       { type: "loop", times: N, body: [...statements] }
+ * - Conditional: { type: "if", condition: "has_seed", then: [...], else?: [...] }
  */
 
-import { AnyBlock } from "./blocks";
-import { WorldState, ExecutionStep, ExecutionResult } from "./world-state";
+import {
+  WorldState,
+  ExecutionStep,
+  ExecutionResult,
+  Direction,
+  CellContent,
+  Position,
+  PlayerState,
+  StepAction,
+} from "./world-state";
 
-const MAX_EXECUTION_STEPS = 200; // Safety limit to prevent infinite loops
+// ─── AST Node Types ────────────────────────────────────────────────────────
+
+export interface ActionNode {
+  type: "action";
+  name: string;
+  id?: string; // Optional block ID for UI highlight
+}
+
+export interface LoopNode {
+  type: "loop";
+  times: number;
+  body: ASTNode[];
+  id?: string;
+}
+
+export interface IfNode {
+  type: "if";
+  condition: string;
+  then: ASTNode[];
+  else?: ASTNode[];
+  id?: string;
+}
+
+export interface ProgramNode {
+  type: "program";
+  body: ASTNode[];
+}
+
+export type ASTNode = ActionNode | LoopNode | IfNode;
+
+// ─── Config ────────────────────────────────────────────────────────────────
+
+const MAX_EXECUTION_STEPS = 200;
 
 export interface InterpreterConfig {
   maxSteps?: number;
-  stepDelay?: number; // ms between steps for animation
+  stepDelay?: number; // ms between steps for animation (used by UI, not engine)
 }
 
+// ─── Direction helpers ─────────────────────────────────────────────────────
+
+const DIRECTION_VECTORS: Record<Direction, Position> = {
+  north: { x: 0, y: -1 },
+  south: { x: 0, y: 1 },
+  east: { x: 1, y: 0 },
+  west: { x: -1, y: 0 },
+};
+
+const TURN_LEFT: Record<Direction, Direction> = {
+  north: "west",
+  west: "south",
+  south: "east",
+  east: "north",
+};
+
+const TURN_RIGHT: Record<Direction, Direction> = {
+  north: "east",
+  east: "south",
+  south: "west",
+  west: "north",
+};
+
+// ─── Execution Context ─────────────────────────────────────────────────────
+
+interface ExecutionContext {
+  world: WorldState;
+  steps: ExecutionStep[];
+  maxSteps: number;
+  error?: string;
+}
+
+// ─── Main Entry Point ──────────────────────────────────────────────────────
+
 /**
- * Execute a program (sequence of blocks) against a world state.
+ * Execute a program (AST JSON) against a world state.
  * Returns the execution result with all steps for animation playback.
  */
 export function executeProgram(
-  program: AnyBlock[],
+  program: ProgramNode,
   initialState: WorldState,
   config: InterpreterConfig = {}
 ): ExecutionResult {
   const maxSteps = config.maxSteps ?? MAX_EXECUTION_STEPS;
 
-  // TODO: Implement full interpreter logic
-  // This will be the most critical piece of code in the app.
-  // Implementation deferred to gameplay development phase.
+  // Deep clone the initial state to avoid mutations
+  const world: WorldState = JSON.parse(JSON.stringify(initialState));
+
+  const ctx: ExecutionContext = {
+    world,
+    steps: [],
+    maxSteps,
+  };
+
+  // Execute the program body
+  executeBlock(program.body, ctx);
+
+  // Check if goal was reached
+  const success = ctx.error ? false : checkGoal(ctx.world);
 
   return {
-    success: false,
-    steps: [],
-    finalState: initialState,
-    error: "Interpreter not yet implemented",
+    success,
+    steps: ctx.steps,
+    finalState: ctx.world,
+    error: ctx.error,
   };
+}
+
+// ─── Block Execution (recursive) ──────────────────────────────────────────
+
+function executeBlock(nodes: ASTNode[], ctx: ExecutionContext): void {
+  for (const node of nodes) {
+    if (ctx.error) return; // Stop on error
+    if (ctx.steps.length >= ctx.maxSteps) {
+      ctx.error = "Seu programa ficou rodando demais! Tente simplificar.";
+      return;
+    }
+
+    switch (node.type) {
+      case "action":
+        executeAction(node, ctx);
+        break;
+      case "loop":
+        executeLoop(node, ctx);
+        break;
+      case "if":
+        executeIf(node, ctx);
+        break;
+    }
+  }
+}
+
+// ─── Action Execution ──────────────────────────────────────────────────────
+
+function executeAction(node: ActionNode, ctx: ExecutionContext): void {
+  const { world } = ctx;
+  const player = world.player;
+  const fromState: PlayerState = JSON.parse(JSON.stringify(player));
+
+  let action: StepAction;
+  let worldChanges: ExecutionStep["worldChanges"];
+
+  switch (node.name) {
+    case "walk_forward":
+    case "move_forward": {
+      const vec = DIRECTION_VECTORS[player.direction];
+      const newPos: Position = {
+        x: player.position.x + vec.x,
+        y: player.position.y + vec.y,
+      };
+
+      // Bounds check
+      if (
+        newPos.x < 0 ||
+        newPos.x >= world.gridWidth ||
+        newPos.y < 0 ||
+        newPos.y >= world.gridHeight
+      ) {
+        action = "fail_move";
+        break;
+      }
+
+      // Obstacle check
+      const targetCell = world.grid[newPos.y][newPos.x];
+      if (targetCell.content === "rock") {
+        action = "fail_move";
+        break;
+      }
+
+      player.position = newPos;
+      action = "move";
+      break;
+    }
+
+    case "turn_left": {
+      player.direction = TURN_LEFT[player.direction];
+      action = "turn";
+      break;
+    }
+
+    case "turn_right": {
+      player.direction = TURN_RIGHT[player.direction];
+      action = "turn";
+      break;
+    }
+
+    case "plant": {
+      const cell = world.grid[player.position.y][player.position.x];
+      if (cell.content === "empty") {
+        worldChanges = [
+          {
+            position: { ...player.position },
+            from: cell.content,
+            to: "seed" as CellContent,
+          },
+        ];
+        cell.content = "seed";
+        action = "plant";
+      } else {
+        // Can't plant here — still counts as a step but no effect
+        action = "plant";
+      }
+      break;
+    }
+
+    case "water": {
+      const cell = world.grid[player.position.y][player.position.x];
+      if (cell.content === "seed" || cell.content === "sprout") {
+        const newContent: CellContent =
+          cell.content === "seed" ? "sprout" : "flower";
+        worldChanges = [
+          {
+            position: { ...player.position },
+            from: cell.content,
+            to: newContent,
+          },
+        ];
+        cell.content = newContent;
+        action = "water";
+      } else {
+        action = "water";
+      }
+      break;
+    }
+
+    case "pick_fruit": {
+      const cell = world.grid[player.position.y][player.position.x];
+      if (cell.content === "fruit") {
+        worldChanges = [
+          {
+            position: { ...player.position },
+            from: "fruit",
+            to: "empty",
+          },
+        ];
+        cell.content = "empty";
+        player.inventory.fruits += 1;
+        action = "pick";
+      } else {
+        action = "pick";
+      }
+      break;
+    }
+
+    default:
+      // Unknown action — treat as no-op
+      action = "stop";
+      break;
+  }
+
+  const toState: PlayerState = JSON.parse(JSON.stringify(player));
+
+  ctx.steps.push({
+    action: action!,
+    fromState,
+    toState,
+    worldChanges,
+    blockId: node.id ?? "",
+  });
+}
+
+// ─── Loop Execution ────────────────────────────────────────────────────────
+
+function executeLoop(node: LoopNode, ctx: ExecutionContext): void {
+  for (let i = 0; i < node.times; i++) {
+    if (ctx.error) return;
+    if (ctx.steps.length >= ctx.maxSteps) {
+      ctx.error = "Seu programa ficou rodando demais! Tente simplificar.";
+      return;
+    }
+    executeBlock(node.body, ctx);
+  }
+}
+
+// ─── Conditional Execution ─────────────────────────────────────────────────
+
+function executeIf(node: IfNode, ctx: ExecutionContext): void {
+  const conditionMet = evaluateCondition(node.condition, ctx.world);
+
+  // Record the condition evaluation as a step
+  const player = ctx.world.player;
+  const state: PlayerState = JSON.parse(JSON.stringify(player));
+  ctx.steps.push({
+    action: conditionMet ? "condition_true" : "condition_false",
+    fromState: state,
+    toState: state,
+    blockId: node.id ?? "",
+  });
+
+  if (conditionMet) {
+    executeBlock(node.then, ctx);
+  } else if (node.else) {
+    executeBlock(node.else, ctx);
+  }
+}
+
+// ─── Condition Evaluation ──────────────────────────────────────────────────
+
+function evaluateCondition(condition: string, world: WorldState): boolean {
+  const cell = world.grid[world.player.position.y][world.player.position.x];
+
+  switch (condition) {
+    case "has_seed":
+      return cell.content === "seed";
+    case "has_sprout":
+      return cell.content === "sprout";
+    case "has_puddle":
+      return cell.content === "puddle";
+    case "has_fruit":
+      return cell.content === "fruit";
+    case "has_flowerbed":
+      return cell.content === "flowerbed";
+    default:
+      return false;
+  }
+}
+
+// ─── Goal Checking ─────────────────────────────────────────────────────────
+
+function checkGoal(world: WorldState): boolean {
+  const goal = world.goalCondition;
+
+  switch (goal.type) {
+    case "reach_position":
+      return (
+        world.player.position.x === goal.target.x &&
+        world.player.position.y === goal.target.y
+      );
+
+    case "plant_all_seeds": {
+      // Check if there are no more empty cells that should have seeds
+      // (this depends on level design — for now, check if any seed was planted)
+      const hasSeed = world.grid.some((row) =>
+        row.some((cell) => cell.content === "seed")
+      );
+      return hasSeed;
+    }
+
+    case "water_all_sprouts": {
+      // All cells that were sprouts should now be flowers
+      const hasUnwateredSprout = world.grid.some((row) =>
+        row.some((cell) => cell.content === "sprout")
+      );
+      return !hasUnwateredSprout;
+    }
+
+    case "collect_fruits":
+      return world.player.inventory.fruits >= goal.target;
+
+    case "tend_all_flowerbeds": {
+      const hasUntended = world.grid.some((row) =>
+        row.some((cell) => cell.content === "flowerbed")
+      );
+      return !hasUntended;
+    }
+
+    case "custom":
+      return goal.check(world);
+
+    default:
+      return false;
+  }
 }

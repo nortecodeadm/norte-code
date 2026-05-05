@@ -69,6 +69,7 @@ function RootLayout() {
         <Stack.Screen name="onboarding/pet-choice" />
         <Stack.Screen name="onboarding/pet-name" />
         <Stack.Screen name="onboarding/avatar" />
+        <Stack.Screen name="onboarding/transition" />
         <Stack.Screen name="world" />
         <Stack.Screen name="level/[id]" />
         <Stack.Screen name="level-summary/[id]" />

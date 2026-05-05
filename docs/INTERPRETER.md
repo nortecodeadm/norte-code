@@ -1,7 +1,7 @@
 # Interpretador de Blocos — Norte Code
 
-**Última atualização:** 02/05/2026
-**Versão:** 0.1.0 (Setup Inicial — interfaces definidas, implementação pendente)
+**Última atualização:** 05/05/2026
+**Versão:** 1.0.0 (Engine implementada — Nível 1 jogável)
 
 ---
 
@@ -9,87 +9,267 @@
 
 O interpretador é o **motor central** do Norte Code. Ele transforma a sequência de blocos que a criança montou em ações executáveis no cenário do nível. É o equivalente a um compilador/runtime simplificado para a linguagem visual do app.
 
-## 2. Fluxo de Execução
+**Princípio fundamental:** O mesmo JSON que renderiza a UI dos blocos É o programa que é executado. Sem duplicação de estado.
+
+---
+
+## 2. Arquitetura AST (Abstract Syntax Tree)
+
+O programa da criança é representado como uma árvore JSON. Cada nó da árvore é um dos tipos abaixo:
+
+### 2.1 Program (raiz)
+
+Todo programa é envolvido por um nó `program`:
+
+```json
+{
+  "type": "program",
+  "body": [ ...statements ]
+}
+```
+
+O campo `body` contém uma lista ordenada de nós (statements) que serão executados sequencialmente.
+
+### 2.2 Action (folhas)
+
+Ações são os blocos atômicos — cada um executa uma operação no mundo:
+
+```json
+{ "type": "action", "name": "walk_forward", "id": "blk_1" }
+{ "type": "action", "name": "plant", "id": "blk_2" }
+{ "type": "action", "name": "turn_left", "id": "blk_3" }
+{ "type": "action", "name": "water", "id": "blk_4" }
+{ "type": "action", "name": "pick_fruit", "id": "blk_5" }
+```
+
+O campo `id` é opcional e usado para highlight visual durante execução.
+
+**Ações disponíveis:**
+
+| name | Efeito | Introduzido |
+|------|--------|-------------|
+| `walk_forward` / `move_forward` | Move 1 célula na direção atual | Nível 1 |
+| `turn_left` | Gira 90° anti-horário | Nível 3 |
+| `turn_right` | Gira 90° horário | Nível 3 |
+| `plant` | Planta semente na célula atual | Nível 1 |
+| `water` | Rega (seed→sprout, sprout→flower) | Nível 2 |
+| `pick_fruit` | Coleta fruta da célula atual | Nível 8 |
+
+### 2.3 Loop (níveis 4+)
+
+Repete um bloco de statements N vezes:
+
+```json
+{
+  "type": "loop",
+  "times": 3,
+  "body": [
+    { "type": "action", "name": "walk_forward" },
+    { "type": "action", "name": "plant" }
+  ],
+  "id": "blk_loop_1"
+}
+```
+
+O campo `times` define quantas iterações. O `body` pode conter qualquer tipo de nó, incluindo loops aninhados.
+
+### 2.4 Conditional (níveis 6+)
+
+Executa um bloco condicionalmente:
+
+```json
+{
+  "type": "if",
+  "condition": "has_seed",
+  "then": [
+    { "type": "action", "name": "water" }
+  ],
+  "else": [
+    { "type": "action", "name": "plant" }
+  ],
+  "id": "blk_if_1"
+}
+```
+
+O campo `else` é opcional. Se omitido, nada acontece quando a condição é falsa.
+
+**Condições disponíveis:**
+
+| condition | Verdadeiro quando... |
+|-----------|---------------------|
+| `has_seed` | Célula atual contém semente |
+| `has_sprout` | Célula atual contém broto |
+| `has_puddle` | Célula atual contém poça |
+| `has_fruit` | Célula atual contém fruta |
+| `has_flowerbed` | Célula atual contém canteiro |
+
+---
+
+## 3. Fluxo de Execução
 
 ```
-[Criança monta blocos] → [Aperta "Executar"]
+[Criança monta blocos na UI]
        │
        ▼
-[Interpretador recebe programa + estado do mundo]
+[UI converte ProgramBlock[] → ProgramNode (AST JSON)]
        │
        ▼
-[Executa bloco a bloco, gerando ExecutionSteps]
+[executeProgram(ast, worldState, config)]
        │
        ▼
-[Retorna ExecutionResult (sucesso/falha + steps)]
+[Engine percorre AST recursivamente]
+  ├── action → executa no WorldState, gera ExecutionStep
+  ├── loop → repete body N vezes
+  └── if → avalia condição, executa then ou else
        │
        ▼
-[Animador reproduz os steps visualmente no cenário]
+[Retorna ExecutionResult]
+  ├── success: boolean (goal atingido?)
+  ├── steps: ExecutionStep[] (para animação)
+  ├── finalState: WorldState (estado final do mundo)
+  └── error?: string (se houve problema)
+       │
+       ▼
+[UI anima steps sequencialmente (500ms cada)]
+       │
+       ▼
+[Se success → tela de resumo + recompensa]
+[Se falha → mensagem + permite editar programa]
 ```
 
-## 3. Tipos de Blocos Suportados
-
-| Tipo | Label (criança vê) | Conceito | Nível de introdução |
-|------|-------------------|----------|-------------------|
-| `move_forward` | "Andar para frente" | Sequência | 1 |
-| `turn_left` | "Virar à esquerda" | Direção | 3 |
-| `turn_right` | "Virar à direita" | Direção | 3 |
-| `plant` | "Plantar" | Ação | 1 |
-| `water` | "Regar" | Ação | 2 |
-| `pick_fruit` | "Pegar fruta" | Ação + variável | 8 |
-| `repeat` | "Repetir N vezes" | Loop | 4 |
-| `if_condition` | "Se..." | Condicional | 6 |
-| `if_else` | "Se... senão..." | Condicional dupla | 7 |
-| `define_function` | "Definir [nome]" | Função | 9 |
-| `call_function` | "Fazer [nome]" | Chamada de função | 9 |
-| `stop` | "Parar" | Controle | 8 |
+---
 
 ## 4. Modelo de Mundo (WorldState)
 
-O mundo de cada nível é representado como um grid 2D. Cada célula pode conter um tipo de conteúdo (`CellContent`): vazio, semente, broto, flor, fruta, poça, pedra, canteiro, cesta.
+O mundo de cada nível é representado como um grid 2D:
 
-O jogador tem posição (x, y), direção (norte/sul/leste/oeste) e inventário (frutas coletadas).
+```typescript
+interface WorldState {
+  grid: Cell[][];          // Grid[y][x]
+  gridWidth: number;
+  gridHeight: number;
+  player: PlayerState;
+  goalCondition: GoalCondition;
+}
+
+interface Cell {
+  position: Position;
+  content: CellContent;    // "empty" | "seed" | "sprout" | "flower" | "fruit" | "puddle" | "rock" | "flowerbed" | "basket"
+}
+
+interface PlayerState {
+  position: Position;      // { x, y }
+  direction: Direction;    // "north" | "south" | "east" | "west"
+  inventory: { fruits: number };
+}
+```
+
+**Regras de movimento:**
+- Mover para fora do grid → `fail_move` (step registrado, posição não muda)
+- Mover para célula com `rock` → `fail_move`
+- Plantar em célula não-vazia → no-op (step registrado, sem efeito)
+- Regar seed → vira sprout. Regar sprout → vira flower.
+
+---
 
 ## 5. Condições de Vitória (GoalCondition)
 
-Cada nível define uma condição de vitória que o interpretador verifica ao final da execução:
+Cada nível define uma condição verificada ao final da execução:
 
-- `reach_position` — jogador chegou a uma posição específica
-- `plant_all_seeds` — todas as sementes foram plantadas
-- `water_all_sprouts` — todos os brotos foram regados
-- `collect_fruits` — N frutas coletadas
-- `tend_all_flowerbeds` — todos os canteiros cuidados
-- `custom` — função customizada de verificação
+| type | Descrição | Parâmetro |
+|------|-----------|-----------|
+| `reach_position` | Jogador chegou a (x,y) | `target: Position` |
+| `plant_all_seeds` | Pelo menos 1 semente plantada | — |
+| `water_all_sprouts` | Nenhum sprout restante | — |
+| `collect_fruits` | N frutas no inventário | `target: number` |
+| `tend_all_flowerbeds` | Nenhum flowerbed restante | — |
+| `custom` | Função customizada | `check: (world) => boolean` |
 
-## 6. Execução Step-by-Step
+---
 
-O interpretador não executa tudo de uma vez. Ele gera uma lista de `ExecutionStep`, cada um representando uma ação atômica (mover, virar, plantar, etc.). Isso permite que o componente de animação reproduza cada passo visualmente com timing controlado.
+## 6. ExecutionStep (para animação)
 
-Cada step contém:
-- A ação realizada
-- O estado do jogador antes e depois
-- Mudanças no mundo (se houver)
-- O ID do bloco que gerou o step (para highlight visual)
+Cada step atômico gerado pelo interpretador:
+
+```typescript
+interface ExecutionStep {
+  action: StepAction;          // "move" | "turn" | "plant" | "water" | "pick" | "fail_move" | "stop" | "condition_true" | "condition_false"
+  fromState: PlayerState;      // Estado antes
+  toState: PlayerState;        // Estado depois
+  worldChanges?: WorldChange[];// Mudanças nas células
+  blockId: string;             // ID do bloco que gerou (para highlight)
+}
+```
+
+A UI reproduz os steps com 500ms de intervalo, destacando o bloco ativo na ProgramArea.
+
+---
 
 ## 7. Proteção contra Loop Infinito
 
-O interpretador tem um limite de `MAX_EXECUTION_STEPS = 200`. Se o programa da criança gerar mais que 200 steps sem atingir a condição de vitória, a execução para com mensagem amigável ("Seu programa ficou rodando demais! Tente simplificar.").
+Limite: `MAX_EXECUTION_STEPS = 200`. Se ultrapassado:
+- Execução para imediatamente
+- `error` retorna: "Seu programa ficou rodando demais! Tente simplificar."
+- UI mostra estado de erro
+
+---
 
 ## 8. Como Adicionar um Novo Tipo de Bloco
 
-1. Adicionar o tipo em `BlockType` (arquivo `blocks.ts`)
-2. Criar a interface específica se necessário (ex: `RepeatBlock`)
-3. Adicionar o label em português no `createBlock()`
-4. Implementar a lógica de execução no `interpreter.ts`
-5. Atualizar esta documentação
+1. Adicionar o `name` no switch case de `executeAction()` em `interpreter.ts`
+2. Adicionar o tipo em `BlockType` (arquivo `blocks.ts`)
+3. Adicionar label/cor/ícone em `BLOCK_CONFIG` no `BlockPalette.tsx`
+4. Adicionar label em `BLOCK_LABELS` no `ProgramArea.tsx`
+5. Se for bloco composto (loop/if), adicionar handler próprio
+6. Atualizar esta documentação
 
-## 9. Status de Implementação
+---
 
-- [x] Interfaces e tipos definidos
-- [ ] Lógica de execução sequencial
-- [ ] Suporte a loops (simples e aninhados)
-- [ ] Suporte a condicionais (if e if/else)
-- [ ] Suporte a variáveis (contador)
-- [ ] Suporte a funções (definir/chamar)
-- [ ] Detecção de loop infinito
+## 9. Como Adicionar uma Nova Condição
+
+1. Adicionar o case em `evaluateCondition()` em `interpreter.ts`
+2. Documentar na tabela da seção 2.4 acima
+3. Adicionar ao UI de seleção de condição (quando implementado)
+
+---
+
+## 10. Exemplo Completo — Nível 1
+
+**Objetivo:** Andar até posição (1,0) e plantar uma semente.
+
+**Programa montado pela criança:**
+```json
+{
+  "type": "program",
+  "body": [
+    { "type": "action", "name": "move_forward", "id": "blk_1" },
+    { "type": "action", "name": "plant", "id": "blk_2" }
+  ]
+}
+```
+
+**Mundo inicial:**
+- Grid 3×1, todo vazio
+- Player em (0,0) virado para east
+
+**Execução:**
+1. `move_forward` → player move de (0,0) para (1,0)
+2. `plant` → célula (1,0) muda de "empty" para "seed"
+
+**Verificação:** `plant_all_seeds` → existe seed no grid? Sim → **SUCCESS**
+
+---
+
+## 11. Status de Implementação
+
+- [x] AST JSON definido (Program, Action, Loop, If)
+- [x] Engine de execução sequencial
+- [x] Suporte a loops (simples e aninhados)
+- [x] Suporte a condicionais (if e if/else)
+- [x] Detecção de loop infinito (200 steps)
+- [x] Geração de ExecutionSteps para animação
+- [x] Componentes visuais (BlockPalette, ProgramArea, ExecuteButton, LevelScene)
+- [x] Nível 1 jogável (ciclo completo)
+- [ ] Suporte a funções (definir/chamar) — Nível 9
 - [ ] Testes unitários
+- [ ] Drag-and-drop de blocos (MVP usa tap-to-add)

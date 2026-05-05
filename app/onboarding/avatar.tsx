@@ -164,7 +164,7 @@ export default function AvatarScreen() {
       });
 
       reset();
-      router.replace("/world");
+      router.replace("/onboarding/transition");
     } catch (error) {
       console.error("[Avatar] Error completing onboarding:", error);
       setIsSubmitting(false);

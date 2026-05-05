@@ -1,5 +1,19 @@
+/**
+ * Interpreter module — public API
+ */
+
+// AST types and executor
 export { executeProgram } from "./interpreter";
-export type { InterpreterConfig } from "./interpreter";
+export type {
+  InterpreterConfig,
+  ProgramNode,
+  ASTNode,
+  ActionNode,
+  LoopNode,
+  IfNode,
+} from "./interpreter";
+
+// Block definitions (for UI palette)
 export { createBlock } from "./blocks";
 export type {
   BlockType,
@@ -12,6 +26,8 @@ export type {
   FunctionCallBlock,
   AnyBlock,
 } from "./blocks";
+
+// World state types
 export type {
   Direction,
   CellContent,

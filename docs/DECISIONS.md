@@ -339,3 +339,51 @@ A Gemini Pro foi usada para gerar os avatares finais como imagens completas pré
 **Contexto:** Menos combinações = menos imagens pré-renderizadas = bundle menor + geração mais rápida. Expansão planejada para pós-MVP.
 
 **Decisor:** Gui (briefing)
+
+---
+
+### [05/05/2026] Interpretador AST em JSON (alinhamento com Claude)
+
+**Decisão:** Adotar formato AST JSON onde o mesmo JSON renderiza a UI dos blocos E é executado pelo interpretador. Sem duplicação de estado.
+
+**Contexto:** Alinhamento com Claude definiu a estrutura: Program (raiz com body[]), Action (folhas com name), Loop (times + body[]), If (condition + then[] + else[]). Essa estrutura é recursiva e extensível.
+
+**Alternativas:** (1) Modelo flat de blocos com IDs e referências — mais complexo de executar recursivamente. (2) Compilar blocos para linguagem intermediária — over-engineering para MVP.
+
+**Resultado:** AST JSON implementado em `lib/interpreter/interpreter.ts`. Engine recursiva que percorre a árvore, executa ações no WorldState, e gera ExecutionSteps para animação. Documentado em INTERPRETER.md.
+
+---
+
+### [05/05/2026] Tela de transição pós-onboarding
+
+**Decisão:** Adicionar tela intermediária entre onboarding e Tela Mundo com texto narrativo fixo: "Este é o seu lugar. Ainda está vazio. Vamos cuidar dele juntos?"
+
+**Contexto:** Alinhamento com Claude definiu que a transição entre onboarding e gameplay precisa de um momento de pausa narrativa. Texto definitivo, não improvisado.
+
+**Alternativas:** (1) Ir direto pro Mundo — abrupto. (2) Animação elaborada — fora do escopo MVP.
+
+**Resultado:** Tela `app/onboarding/transition.tsx` com texto centralizado em Fraunces/Lora, botão "Vamos!" verde-jardim. Fundo neutro, mesma identidade visual.
+
+---
+
+### [05/05/2026] Gameplay: tap-to-add ao invés de drag-and-drop
+
+**Decisão:** No MVP, blocos são adicionados ao programa por tap (toque) na paleta. Remoção por tap no bloco na ProgramArea.
+
+**Contexto:** Drag-and-drop em React Native requer bibliotecas adicionais (react-native-gesture-handler com reordenação) e é complexo de implementar bem para crianças de 7-10 anos. Tap é mais simples e confiável.
+
+**Alternativas:** (1) Drag-and-drop completo — complexo, pode ser frustrante para crianças. (2) Drag-and-drop simplificado — ainda requer gesture handler.
+
+**Resultado:** Tap-to-add implementado. Drag-and-drop pode ser adicionado em versão futura como melhoria de UX.
+
+---
+
+### [05/05/2026] Animação de execução: 500ms por step
+
+**Decisão:** Cada ExecutionStep é reproduzido com 500ms de intervalo, com highlight do bloco ativo na ProgramArea.
+
+**Contexto:** Crianças precisam ver o que cada bloco faz. Muito rápido = não entende. Muito lento = perde atenção. 500ms é o sweet spot baseado em referências (Scratch Jr usa ~400ms, Code.org usa ~600ms).
+
+**Alternativas:** (1) Velocidade configurável — complexidade desnecessária no MVP. (2) Animação contínua sem steps — perde a conexão bloco↔ação.
+
+**Resultado:** 500ms fixo, com possibilidade de ajuste futuro via `InterpreterConfig.stepDelay`.

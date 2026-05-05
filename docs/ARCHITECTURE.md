@@ -1,7 +1,7 @@
 # Arquitetura — Norte Code MVP
 
-**Última atualização:** 03/05/2026
-**Versão:** 0.4.0 (MVP Visual — Avatar Pré-renderizado + Mascotes 4 estados)
+**Última atualização:** 05/05/2026
+**Versão:** 0.5.0 (Semana 3 — Interpretador + Nível 1 jogável)
 
 ---
 
@@ -35,7 +35,8 @@ norte-code/
 │   │   ├── welcome.tsx           # Boas-vindas
 │   │   ├── pet-choice.tsx        # Escolha do bichinho
 │   │   ├── pet-name.tsx          # Nome do bichinho
-│   │   └── avatar.tsx            # Customização de avatar
+│   │   ├── avatar.tsx            # Customização de avatar
+│   │   └── transition.tsx        # Transição narrativa pós-onboarding
 │   ├── world.tsx                 # Tela Mundo (home permanente)
 │   ├── level/[id].tsx            # Tela de nível (gameplay)
 │   ├── level-summary/[id].tsx    # Resumo pós-nível
@@ -49,10 +50,12 @@ norte-code/
 ├── lib/
 │   ├── supabase.ts               # Cliente Supabase configurado
 │   ├── storage.ts                # Wrapper AsyncStorage (offline-first)
-│   └── interpreter/              # Motor de execução dos blocos
+│   ├── levels/
+│   │   └── index.ts              # Definições dos níveis (LevelDefinition)
+│   └── interpreter/              # Motor de execução dos blocos (AST JSON)
 │       ├── index.ts              # Exports públicos
-│       ├── blocks.ts             # Definição de tipos de blocos
-│       ├── interpreter.ts        # Executor do programa
+│       ├── blocks.ts             # Definição de tipos de blocos (UI)
+│       ├── interpreter.ts        # Engine AST (executeProgram)
 │       └── world-state.ts        # Estado do mundo durante execução
 ├── data/
 │   ├── levels/                   # Configuração de cada nível (1-10)
@@ -75,7 +78,7 @@ norte-code/
 Splash (index.tsx)
   │
   ├── [primeiro acesso] → Onboarding
-  │     welcome → pet-choice → pet-name → avatar → world
+  │     welcome → pet-choice → pet-name → avatar → transition → world
   │
   └── [retorno] → World (home)
         │
@@ -109,15 +112,25 @@ Splash (index.tsx)
 - Supabase sincroniza em background quando há conexão
 - Se offline, app funciona normalmente com dados locais
 
-## 6. Interpretador de Blocos
+## 6. Interpretador de Blocos (AST JSON)
 
-O interpretador é o **núcleo do app**. Ele:
-1. Recebe um programa (array de blocos montados pela criança)
-2. Recebe o estado inicial do mundo do nível (grid, entidades)
-3. Executa bloco a bloco, gerando "steps" para animação
-4. Retorna resultado (sucesso/falha) + estado final
+O interpretador é o **núcleo do app**. Arquitetura:
 
-Suporta: sequência, loops (aninhados), condicionais (if/else), variáveis (contador), funções (definir/chamar).
+1. **AST JSON** — O mesmo JSON renderiza a UI dos blocos E é executado pelo interpretador
+2. **Engine recursiva** — Percorre a árvore (Program → Action/Loop/If)
+3. **ExecutionSteps** — Cada ação atômica gera um step para animação (500ms/step)
+4. **GoalCondition** — Verificada ao final da execução
+
+**Tipos de nó AST:**
+- `action` — Folhas: walk_forward, plant, water, turn_left, turn_right, pick_fruit
+- `loop` — Repetição N vezes (níveis 4+)
+- `if` — Condicional com then/else (níveis 6+)
+
+**Componentes visuais:**
+- `BlockPalette` — Blocos disponíveis (tap-to-add)
+- `ProgramArea` — Programa montado (tap-to-remove)
+- `ExecuteButton` — Botão executar (idle/running/success/error)
+- `LevelScene` — Grid visual do nível
 
 Documentação detalhada em `docs/INTERPRETER.md`.
 
