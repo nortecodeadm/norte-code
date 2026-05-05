@@ -25,7 +25,7 @@ export function Avatar({ skinTone, hairStyle, hairColor, outfit, size = 200 }: A
   return (
     <Image
       source={source}
-      style={{ width: size, height: size }}
+      style={{ width: size, aspectRatio: 890 / 1705 }}
       resizeMode="contain"
     />
   );

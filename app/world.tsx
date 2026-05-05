@@ -18,33 +18,33 @@ import { storage } from "../lib/storage";
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 // ─── World Layout ─────────────────────────────────────────────────────────────
-// Asset analysis (May 2026):
-//   Avatar PNG: 890×1705, content fills only 60%×73% of canvas (lots of transparency)
-//   Mascote PNG: 880×1062, content fills 96%×94% of canvas (almost no transparency)
+// Referência visual: mundo-fase1.png (criado pelo Gui no Canva)
 //
-// To achieve "avatar much bigger than mascote, mascote at waist height":
-//   - Avatar needs a LARGE box (50% screen width) to compensate for its low fill ratio
-//   - Mascote needs a SMALL box (15% screen width) since it fills its box almost completely
-//   - Visual result: avatar ~2.5x taller than mascote
+// Composição:
+//   - Avatar + Mascote: canto INFERIOR ESQUERDO, juntos, no chão
+//   - Pedra + Tronco: quadrante SUPERIOR DIREITO, distantes (cenário de fundo)
+//   - Sementinha: canto INFERIOR DIREITO, separada do grupo (recompensa)
+//   - Botão Play: canto inferior direito, abaixo/junto da sementinha
 //
-// Composition: children's book illustration style
-//   - Background layer: pedra (left) + tronco (right) — small, far away
-//   - Foreground: avatar (center-left, large) + mascote (right of avatar, small)
-//   - Sementinha: relative to avatar container (at feet)
+// Avatar PNG: 890×1705 → aspectRatio 890/1705 (aplicado no componente)
+// Mascote PNG: 880×1062 → aspectRatio 880/1062 (aplicado no componente)
+// Com aspectRatio real, os componentes agora têm proporções corretas
+// e não precisam de box gigante para compensar transparência.
 
 const pctW = (p: number) => SCREEN_WIDTH * (p / 100);
 const pctH = (p: number) => SCREEN_HEIGHT * (p / 100);
 
 const WORLD_LAYOUT = {
-  // Cenário — ao fundo, maiores e mais acima (impressão de profundidade)
-  pedra: { top: pctH(28), left: pctW(5), width: pctW(16) },
-  tronco: { top: pctH(30), right: pctW(5), width: pctW(22) },
+  // Cenário — quadrante SUPERIOR DIREITO
+  pedra: { top: pctH(50), right: pctW(15), width: pctW(20) },
+  tronco: { top: pctH(58), right: pctW(35), width: pctW(28) },
 
-  // Protagonistas — primeiro plano, parte inferior da tela
-  // Avatar: box grande para compensar transparência do PNG
-  avatar: { bottom: pctH(10), left: pctW(15), width: pctW(50) },
-  // Mascote: box pequeno (preenche quase 100% do box)
-  mascote: { bottom: pctH(8), left: pctW(58), width: pctW(15) },
+  // Protagonistas — canto INFERIOR ESQUERDO, juntos
+  avatar: { bottom: pctH(5), left: pctW(8), width: pctW(35) },
+  mascote: { bottom: pctH(5), left: pctW(42), width: pctW(20) },
+
+  // Recompensa — canto INFERIOR DIREITO
+  sementinha: { bottom: pctH(8), right: pctW(15), width: pctW(12) },
 
   // UI
   botaoPlay: { bottom: pctH(4), right: pctW(6) },
@@ -60,7 +60,7 @@ const MUNDO_SEMENTINHA = require("../assets/mundo/mundo_sementinha.png");
  * World Screen — The player's permanent home.
  *
  * Full-screen background with overlaid elements positioned absolutely.
- * Uses `bottom` instead of `top` for protagonists to anchor them to ground level.
+ * Composition follows Gui's Canva reference (mundo-fase1.png).
  */
 export default function WorldScreen() {
   const router = useRouter();
@@ -87,7 +87,7 @@ export default function WorldScreen() {
     transform: [{ scale: playBtnScale.value }],
   }));
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     const userId = await getCurrentUserId();
     if (userId) {
       const data = await getPlayer(userId);
@@ -110,15 +110,17 @@ export default function WorldScreen() {
     const worldElements = await storage.get<string[]>(
       storage.keys.WORLD_ELEMENTS
     );
+    console.log('[world] worldElements loaded:', worldElements);
+    console.log('[world] showSeed will be:', worldElements?.includes('seed_lvl1'));
     if (worldElements && worldElements.includes("seed_lvl1")) {
       setShowSeed(true);
     }
-  };
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
       loadData();
-    }, [])
+    }, [loadData])
   );
 
   useEffect(() => {
@@ -165,22 +167,22 @@ export default function WorldScreen() {
         resizeMode="cover"
         style={{ flex: 1 }}
       >
-        {/* Z-layer 1: Scenery elements (pedra, tronco) — background, small, upper area */}
+        {/* Z-layer 1: Scenery (pedra, tronco) — quadrante superior direito */}
         <Animated.View style={[fadeStyle, { position: "absolute", width: SCREEN_WIDTH, height: SCREEN_HEIGHT }]}>
-          {/* Pedra — left side, background */}
+          {/* Pedra — upper right area */}
           <Image
             source={MUNDO_PEDRA}
             resizeMode="contain"
             style={{
               position: "absolute",
               top: WORLD_LAYOUT.pedra.top,
-              left: WORLD_LAYOUT.pedra.left,
+              right: WORLD_LAYOUT.pedra.right,
               width: WORLD_LAYOUT.pedra.width,
               aspectRatio: 1062 / 880,
             }}
           />
 
-          {/* Tronco — right side, background */}
+          {/* Tronco — upper right area, slightly lower */}
           <Image
             source={MUNDO_TRONCO}
             resizeMode="contain"
@@ -194,8 +196,7 @@ export default function WorldScreen() {
           />
         </Animated.View>
 
-        {/* Z-layer 2: Avatar container (avatar + sementinha relativa) */}
-        {/* Uses `bottom` to anchor to ground level */}
+        {/* Z-layer 2: Avatar — bottom left, large */}
         <Animated.View
           style={[
             avatarStyle,
@@ -214,24 +215,9 @@ export default function WorldScreen() {
             outfit={player.avatar_outfit}
             size={WORLD_LAYOUT.avatar.width}
           />
-
-          {/* Sementinha — at the avatar's feet (78% from top of container) */}
-          {showSeed && (
-            <Image
-              source={MUNDO_SEMENTINHA}
-              resizeMode="contain"
-              style={{
-                position: "absolute",
-                top: "78%",
-                left: "35%",
-                width: "25%",
-                aspectRatio: 838 / 580,
-              }}
-            />
-          )}
         </Animated.View>
 
-        {/* Z-layer 3: Mascote — to the right of avatar, smaller, at ground level */}
+        {/* Z-layer 3: Mascote — to the right of avatar, smaller */}
         <Animated.View
           style={[
             mascotStyle,
@@ -245,6 +231,27 @@ export default function WorldScreen() {
         >
           <Mascote type={player.pet_type} state="padrao" size={WORLD_LAYOUT.mascote.width} />
         </Animated.View>
+
+        {/* Z-layer 3.5: Sementinha (recompensa do Nível 1) — canto inferior direito */}
+        {showSeed && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                bottom: WORLD_LAYOUT.sementinha.bottom,
+                right: WORLD_LAYOUT.sementinha.right,
+                width: WORLD_LAYOUT.sementinha.width,
+              },
+            ]}
+          >
+            <Image
+              source={MUNDO_SEMENTINHA}
+              resizeMode="contain"
+              style={{ width: "100%", aspectRatio: 838 / 580 }}
+            />
+          </Animated.View>
+        )}
 
         {/* Z-layer 4: UI — Play button */}
         <Animated.View

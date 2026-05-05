@@ -26,7 +26,7 @@ export function Mascote({ type, state = 'padrao', size, width }: MascoteProps) {
   return (
     <Image
       source={source}
-      style={{ width: finalSize, height: finalSize }}
+      style={{ width: finalSize, aspectRatio: 880 / 1062 }}
       resizeMode="contain"
     />
   );

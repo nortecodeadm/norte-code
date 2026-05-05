@@ -77,7 +77,17 @@ export function ExecuteButton({
     : config.label;
 
   return (
-    <Animated.View style={[animStyle, { marginHorizontal: 16, marginBottom: 16, marginTop: 8 }]}>
+    <Animated.View
+      style={[
+        animStyle,
+        {
+          marginHorizontal: 16,
+          marginBottom: 16,
+          marginTop: 8,
+          alignSelf: 'stretch',
+        },
+      ]}
+    >
       <Pressable
         onPress={() => !isDisabled && onPress()}
         style={({ pressed }) => ({

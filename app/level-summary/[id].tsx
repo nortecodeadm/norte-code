@@ -56,6 +56,9 @@ export default function LevelSummaryScreen() {
   const saveProgress = async () => {
     if (!level) return;
 
+    console.log('[level-summary] Saving progress for level', levelId);
+    console.log('[level-summary] reward.elementKey:', level.reward.elementKey);
+
     // Save level completion
     const progress = (await storage.get<Record<number, boolean>>(
       storage.keys.LEVEL_PROGRESS
@@ -72,6 +75,7 @@ export default function LevelSummaryScreen() {
       await storage.set(storage.keys.WORLD_ELEMENTS, elements);
     }
 
+    console.log('[level-summary] WORLD_ELEMENTS now:', elements);
     setSaved(true);
   };
 
