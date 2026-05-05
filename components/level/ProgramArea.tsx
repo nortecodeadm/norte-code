@@ -60,7 +60,7 @@ export function ProgramArea({
   disabled = false,
 }: ProgramAreaProps) {
   return (
-    <View className="flex-1 mx-4 rounded-2xl bg-white/80 border border-garden-green/10 p-3">
+    <View style={{ maxHeight: 140 }} className="mx-4 rounded-2xl bg-white/80 border border-garden-green/10 p-3">
       {/* Header */}
       <View className="flex-row justify-between items-center mb-2">
         <Text

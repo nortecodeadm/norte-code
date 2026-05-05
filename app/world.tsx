@@ -22,11 +22,11 @@ const pctW = (p: number) => SCREEN_WIDTH * (p / 100);
 const pctH = (p: number) => SCREEN_HEIGHT * (p / 100);
 
 const WORLD_LAYOUT = {
-  pedra: { top: pctH(62), left: pctW(12), width: pctW(22) },
-  tronco: { top: pctH(78), left: pctW(55), width: pctW(32) },
-  sementinha: { top: pctH(70), left: pctW(40), width: pctW(8) },
-  avatar: { top: pctH(50), left: pctW(38), width: pctW(20) },
-  mascote: { top: pctH(55), left: pctW(58), width: pctW(14) },
+  pedra: { top: pctH(58), left: pctW(8), width: pctW(15) },
+  tronco: { top: pctH(68), left: pctW(60), width: pctW(22) },
+  sementinha: { top: pctH(64), left: pctW(42), width: pctW(8) },
+  avatar: { top: pctH(42), left: pctW(30), width: pctW(35) },
+  mascote: { top: pctH(56), left: pctW(62), width: pctW(12) },
   botaoExecutar: { bottom: pctH(6), right: pctW(6) },
 };
 
@@ -208,7 +208,7 @@ export default function WorldScreen() {
             hairStyle={player.avatar_hair_style}
             hairColor={player.avatar_hair_color}
             outfit={player.avatar_outfit}
-            size={SCREEN_WIDTH * 0.2}
+            size={SCREEN_WIDTH * 0.35}
           />
         </Animated.View>
 
@@ -223,7 +223,7 @@ export default function WorldScreen() {
             },
           ]}
         >
-          <Mascote type={player.pet_type} state="padrao" size={SCREEN_WIDTH * 0.14} />
+          <Mascote type={player.pet_type} state="padrao" size={SCREEN_WIDTH * 0.12} />
         </Animated.View>
 
         {/* Z-layer 4: UI — Play button */}

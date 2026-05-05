@@ -79,7 +79,7 @@ export default function WelcomeScreen() {
 
         <Animated.View style={buttonStyle} className="mt-14">
           <Pressable
-            onPress={() => router.push("/onboarding/pet-choice")}
+            onPress={() => router.push("/onboarding/avatar")}
             className="bg-garden-green rounded-2xl px-10 py-4 active:opacity-80"
             style={({ pressed }) => ({
               transform: [{ scale: pressed ? 0.96 : 1 }],
