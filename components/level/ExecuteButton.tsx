@@ -77,16 +77,16 @@ export function ExecuteButton({
     : config.label;
 
   return (
-    <Animated.View style={animStyle} className="mx-4 mb-4 mt-2">
+    <Animated.View style={[animStyle, { marginHorizontal: 16, marginBottom: 16, marginTop: 8 }]}>
       <Pressable
         onPress={() => !isDisabled && onPress()}
         style={({ pressed }) => ({
           backgroundColor: isDisabled && state !== "running" ? "#7A9E7E" : config.bg,
           borderRadius: 16,
-          paddingVertical: 14,
+          paddingVertical: 16,
           paddingHorizontal: 24,
-          width: '100%' as any,
-          alignItems: "center",
+          alignItems: "center" as const,
+          justifyContent: "center" as const,
           opacity: pressed && !isDisabled ? 0.8 : 1,
           transform: [{ scale: pressed && !isDisabled ? 0.97 : 1 }],
           shadowColor: config.bg,

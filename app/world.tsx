@@ -36,9 +36,9 @@ const pctW = (p: number) => SCREEN_WIDTH * (p / 100);
 const pctH = (p: number) => SCREEN_HEIGHT * (p / 100);
 
 const WORLD_LAYOUT = {
-  // Cenário — ao fundo, pequeno, na metade superior
-  pedra: { top: pctH(38), left: pctW(8), width: pctW(10) },
-  tronco: { top: pctH(40), right: pctW(10), width: pctW(14) },
+  // Cenário — ao fundo, maiores e mais acima (impressão de profundidade)
+  pedra: { top: pctH(28), left: pctW(5), width: pctW(16) },
+  tronco: { top: pctH(30), right: pctW(5), width: pctW(22) },
 
   // Protagonistas — primeiro plano, parte inferior da tela
   // Avatar: box grande para compensar transparência do PNG
@@ -215,14 +215,14 @@ export default function WorldScreen() {
             size={WORLD_LAYOUT.avatar.width}
           />
 
-          {/* Sementinha — at the avatar's feet, centered below */}
+          {/* Sementinha — at the avatar's feet (78% from top of container) */}
           {showSeed && (
             <Image
               source={MUNDO_SEMENTINHA}
               resizeMode="contain"
               style={{
                 position: "absolute",
-                bottom: 0,
+                top: "78%",
                 left: "35%",
                 width: "25%",
                 aspectRatio: 838 / 580,
