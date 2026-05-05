@@ -279,3 +279,63 @@ Cada entrada segue o padrão:
 
 **Decisor:** Manus (verificação automatizada)
 
+
+---
+
+### [04/05/2026] Avatar: composição em runtime → pré-renderizado
+
+**Decisão:** Abandonar o sistema de 3 layers compostas em runtime (corpo + roupa + cabelo) e adotar avatares pré-renderizados (36 imagens únicas, uma por combinação).
+
+**Contexto:** Após 3 iterações tentando composição em layers:
+1. Assets originais tinham xadrez de transparência "queimado" nos pixels RGB
+2. Após rembg, layers ficaram com transparência real mas não se alinhavam (cada uma gerada com escala/posição diferente)
+3. Tentativa de re-gerar com canvas padronizado produziu resultado visual insuficiente
+
+A Gemini Pro foi usada para gerar os avatares finais como imagens completas pré-renderizadas, com qualidade visual muito superior.
+
+**Alternativas consideradas:**
+- Composição em runtime com 3 layers (complexo, propenso a bugs de alinhamento)
+- Composição em runtime com 2 layers (corpo vestido + cabelo — melhor mas ainda com problemas de escala)
+- Pré-renderizado (36 imagens) — escolhido
+
+**Resultado:**
+- 36 avatares pré-renderizados: 2 skins × 3 estilos × 3 cores × 2 outfits
+- Componente `<Avatar />` simplificado para single `<Image />`
+- Zero risco de bugs de composição em runtime
+- Trade-off: mais imagens no bundle (~14MB), mas eliminação total de complexidade visual
+
+**Decisor:** Gui (mudança de estratégia) + Gemini Pro (geração) + Manus (implementação)
+
+---
+
+### [04/05/2026] Mascotes: 5 estados → 4 estados, flat structure
+
+**Decisão:** Reduzir de 5 estados (padrao, atento, feliz, pensativo, dormindo) para 4 (padrao, atento, feliz, dormindo). Mudar de subpastas por tipo para flat structure.
+
+**Contexto:** O estado "pensativo" não tinha uso claro no gameplay planejado. A flat structure (`{tipo}_{estado}.png`) simplifica os requires e elimina subpastas desnecessárias.
+
+**Resultado:**
+- 12 mascotes: 3 tipos × 4 estados
+- MVP usa apenas `padrao`; outros 3 prontos para Sprint 2
+- Componente `<Mascote />` aceita prop `state` para fácil swap futuro
+
+**Decisor:** Gui (briefing IMPLEMENTACAO_AVATAR_E_MASCOTE.md)
+
+---
+
+### [04/05/2026] Tipos MVP: redução de opções
+
+**Decisão:** Reduzir opções de customização para o MVP visual.
+
+**Mudanças:**
+| Atributo | Antes | Agora (MVP) |
+|----------|-------|-------------|
+| Skin | 4 (clara, media-clara, media-escura, escura) | 2 (clara, media-escura) |
+| Hair Style | 4 (curtoliso, curtobaguncado, longoliso, cacheado) | 3 (lisocurto, lisomedio, cacheado) |
+| Hair Color | 4 (castanho-escuro, castanho-medio, castanho-claro, loiro-mel) | 3 (castanhomedio, castanhoescuro, loiro) |
+| Outfit | 3 (verde, azul, amarela) | 2 (verde, amarelo) |
+| **Total combinações** | **192** | **36** |
+
+**Contexto:** Menos combinações = menos imagens pré-renderizadas = bundle menor + geração mais rápida. Expansão planejada para pós-MVP.
+
+**Decisor:** Gui (briefing)

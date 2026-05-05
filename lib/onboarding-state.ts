@@ -28,8 +28,8 @@ const initialState = {
   petType: null as PetType | null,
   petName: "",
   avatarSkin: "clara" as SkinTone,
-  avatarHairStyle: "curtoliso" as HairStyle,
-  avatarHairColor: "castanho-escuro" as HairColor,
+  avatarHairStyle: "lisocurto" as HairStyle,
+  avatarHairColor: "castanhomedio" as HairColor,
   avatarOutfit: "verde" as Outfit,
 };
 

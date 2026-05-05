@@ -1,38 +1,33 @@
 /**
- * Mascote Component
- * 
- * Displays the mascot image for a given type and state.
- * Defaults to 'padrao' state for MVP.
- * Structured for easy state swapping in Sprint 2.
+ * Mascote (Pet) Component
+ *
+ * Renders a single mascot image in the given state.
+ * MVP only uses 'padrao' state. Other states ready for Sprint 2.
  */
 
 import React from 'react';
-import { Image, StyleSheet } from 'react-native';
-import { MascoteType, MascoteState, getMascoteAsset } from '../lib/assets/mascotes';
+import { Image } from 'react-native';
+import { getMascoteAsset } from '../lib/assets/mascotes';
+import type { PetType, PetState } from '../lib/player';
 
 interface MascoteProps {
-  type: MascoteType;
-  state?: MascoteState;
-  /** Width of the mascot image. Height adjusts automatically (aspect ~1.83:1). */
+  type: PetType;
+  state?: PetState;
+  /** Size of the mascot (square). Defaults to 200. */
+  size?: number;
+  /** @deprecated Use `size` instead */
   width?: number;
 }
 
-export function Mascote({ type, state = 'padrao', width = 200 }: MascoteProps) {
+export function Mascote({ type, state = 'padrao', size, width }: MascoteProps) {
+  const finalSize = size ?? width ?? 200;
   const source = getMascoteAsset(type, state);
-  // Original aspect ratio: 2816x1536 ≈ 1.833:1
-  const height = width / 1.833;
 
   return (
     <Image
       source={source}
-      style={[styles.image, { width, height }]}
+      style={{ width: finalSize, height: finalSize }}
       resizeMode="contain"
     />
   );
 }
-
-const styles = StyleSheet.create({
-  image: {
-    // No additional styling needed — size controlled by props
-  },
-});

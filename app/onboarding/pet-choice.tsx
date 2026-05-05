@@ -12,18 +12,17 @@ import Animated, {
 import { useOnboardingState } from "../../lib/onboarding-state";
 import type { PetType } from "../../lib/player";
 import { Mascote } from "../../components/Mascote";
-import { MascoteType, MASCOTE_NAMES } from "../../lib/assets/mascotes";
+import { PET_TYPE_LABELS } from "../../lib/assets/mascotes";
 
 interface PetOption {
   type: PetType;
-  mascoteType: MascoteType;
   label: string;
 }
 
 const PET_OPTIONS: PetOption[] = [
-  { type: "cachorro", mascoteType: "cachorro", label: MASCOTE_NAMES.cachorro },
-  { type: "gato", mascoteType: "gato", label: MASCOTE_NAMES.gato },
-  { type: "coelho", mascoteType: "coelho", label: MASCOTE_NAMES.coelho },
+  { type: "cachorro", label: PET_TYPE_LABELS.cachorro },
+  { type: "gato", label: PET_TYPE_LABELS.gato },
+  { type: "coelho", label: PET_TYPE_LABELS.coelho },
 ];
 
 function PetCard({
@@ -81,7 +80,7 @@ function PetCard({
           className="items-center justify-center rounded-3xl bg-white px-3 py-5 shadow-sm"
         >
           {/* Real mascot illustration */}
-          <Mascote type={pet.mascoteType} width={90} />
+          <Mascote type={pet.type} width={90} />
 
           <Text
             className="mt-3 text-garden-green-700"

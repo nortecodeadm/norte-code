@@ -1,19 +1,21 @@
 import { supabase } from "./supabase";
 import { storage } from "./storage";
 
-// Semantic types matching asset file names exactly
+// ─── Types (MVP) ────────────────────────────────────────────────────────────
+
 export type PetType = "cachorro" | "gato" | "coelho";
-export type SkinTone = "clara" | "media-clara" | "media-escura" | "escura";
-export type HairStyle = "curtoliso" | "curtobaguncado" | "longoliso" | "cacheado";
-export type HairColor = "castanho-escuro" | "castanho-medio" | "castanho-claro" | "loiro-mel";
-export type Outfit = "verde" | "azul" | "amarela";
+export type PetState = "padrao" | "atento" | "feliz" | "dormindo";
+export type SkinTone = "clara" | "media-escura";
+export type HairStyle = "lisocurto" | "lisomedio" | "cacheado";
+export type HairColor = "castanhomedio" | "castanhoescuro" | "loiro";
+export type Outfit = "verde" | "amarelo";
 
 // Valid values for runtime validation
 const VALID_PET_TYPES: string[] = ["cachorro", "gato", "coelho"];
-const VALID_SKIN_TONES: string[] = ["clara", "media-clara", "media-escura", "escura"];
-const VALID_HAIR_STYLES: string[] = ["curtoliso", "curtobaguncado", "longoliso", "cacheado"];
-const VALID_HAIR_COLORS: string[] = ["castanho-escuro", "castanho-medio", "castanho-claro", "loiro-mel"];
-const VALID_OUTFITS: string[] = ["verde", "azul", "amarela"];
+const VALID_SKIN_TONES: string[] = ["clara", "media-escura"];
+const VALID_HAIR_STYLES: string[] = ["lisocurto", "lisomedio", "cacheado"];
+const VALID_HAIR_COLORS: string[] = ["castanhomedio", "castanhoescuro", "loiro"];
+const VALID_OUTFITS: string[] = ["verde", "amarelo"];
 
 export interface PlayerData {
   id: string;
@@ -27,7 +29,7 @@ export interface PlayerData {
 
 /**
  * Validates that a PlayerData object has valid semantic values.
- * Returns false if any field contains old/generic values (e.g., "dog", "skin_2").
+ * Returns false if any field contains old/generic values.
  */
 function isValidPlayerData(data: unknown): data is PlayerData {
   if (!data || typeof data !== "object") return false;
@@ -46,9 +48,6 @@ function isValidPlayerData(data: unknown): data is PlayerData {
 /**
  * Creates a new player row in Supabase and saves locally.
  * Must be called after onboarding is complete.
- *
- * @param userId - The auth.uid() from anonymous sign-in
- * @param data - Player customization choices from onboarding
  */
 export async function createPlayer(
   userId: string,
@@ -57,7 +56,6 @@ export async function createPlayer(
   const player: PlayerData = { id: userId, ...data };
 
   try {
-    // Save to Supabase
     const { error } = await supabase.from("players").insert({
       id: userId,
       avatar_skin: data.avatar_skin,
@@ -70,10 +68,8 @@ export async function createPlayer(
 
     if (error) {
       console.error("[Player] Error creating player in Supabase:", error.message);
-      // Still save locally — offline-first approach
     }
 
-    // Save locally
     await storage.set(storage.keys.PLAYER_DATA, player);
     await storage.set(storage.keys.ONBOARDING_COMPLETE, true);
 
@@ -107,7 +103,6 @@ export async function updatePlayer(
       return false;
     }
 
-    // Update local cache
     const current = await storage.get<PlayerData>(storage.keys.PLAYER_DATA);
     if (current) {
       await storage.set(storage.keys.PLAYER_DATA, { ...current, ...data });
@@ -123,13 +118,10 @@ export async function updatePlayer(
 /**
  * Gets the player data from local storage (fast) or Supabase (fallback).
  * Validates that data uses current semantic values.
- * If stale/invalid data is found, clears it and returns null.
  */
 export async function getPlayer(userId: string): Promise<PlayerData | null> {
-  // Try local first (offline-first)
   const local = await storage.get<PlayerData>(storage.keys.PLAYER_DATA);
   if (local) {
-    // Validate semantic values — if stale, clear and force re-onboarding
     if (isValidPlayerData(local)) {
       return local;
     }
@@ -138,7 +130,6 @@ export async function getPlayer(userId: string): Promise<PlayerData | null> {
     return null;
   }
 
-  // Fallback to remote
   try {
     const { data, error } = await supabase
       .from("players")
@@ -158,14 +149,12 @@ export async function getPlayer(userId: string): Promise<PlayerData | null> {
       pet_name: data.pet_name,
     };
 
-    // Validate remote data too
     if (!isValidPlayerData(player)) {
       console.warn("[Player] Stale/invalid remote player data. Clearing.");
       await storage.clear();
       return null;
     }
 
-    // Cache locally
     await storage.set(storage.keys.PLAYER_DATA, player);
     return player;
   } catch {
@@ -175,14 +164,11 @@ export async function getPlayer(userId: string): Promise<PlayerData | null> {
 
 /**
  * Checks if onboarding has been completed.
- * Also validates that cached player data is still valid.
- * If data is stale (old generic values), resets onboarding.
  */
 export async function isOnboardingComplete(): Promise<boolean> {
   const complete = await storage.get<boolean>(storage.keys.ONBOARDING_COMPLETE);
   if (complete !== true) return false;
 
-  // Double-check: validate that cached player data is still valid
   const local = await storage.get<PlayerData>(storage.keys.PLAYER_DATA);
   if (local && !isValidPlayerData(local)) {
     console.warn("[Player] Onboarding marked complete but data is stale. Resetting.");

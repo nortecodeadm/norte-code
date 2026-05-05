@@ -10,7 +10,6 @@ import { getPlayer, type PlayerData } from "../lib/player";
 import { getCurrentUserId } from "../lib/auth";
 import { Avatar } from "../components/Avatar";
 import { Mascote } from "../components/Mascote";
-import type { MascoteType } from "../lib/assets/mascotes";
 
 /**
  * World screen — placeholder for Seção 1 delivery.
@@ -53,21 +52,21 @@ export default function WorldScreen() {
               Seu mundo
             </Text>
 
-            {/* Real Avatar — layered composition */}
+            {/* Pre-rendered Avatar */}
             <Avatar
               skinTone={player.avatar_skin}
               hairStyle={player.avatar_hair_style}
               hairColor={player.avatar_hair_color}
               outfit={player.avatar_outfit}
-              size={180}
+              size={150}
             />
 
-            {/* Real Mascot */}
+            {/* Mascot */}
             <View className="mt-4 items-center">
               <Mascote
-                type={player.pet_type as MascoteType}
-                state="feliz"
-                width={140}
+                type={player.pet_type}
+                state="padrao"
+                size={120}
               />
               <Text
                 className="text-garden-green-600 text-center mt-2"

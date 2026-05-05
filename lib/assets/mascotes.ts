@@ -1,56 +1,49 @@
 /**
- * Mascote asset mapping
- * 
- * Each mascot has 5 states: padrao, atento, feliz, pensativo, dormindo
- * For MVP, we use only "padrao" state.
- * Structure supports easy swap between states for Sprint 2.
+ * Mascote (Pet) asset mapping — Flat structure (MVP)
+ *
+ * 3 mascotes × 4 states = 12 images total.
+ * MVP uses only 'padrao' state. Other states ready for Sprint 2 gameplay.
+ *
+ * Naming convention: {petType}_{petState}.png
  */
 
-export type MascoteType = 'cachorro' | 'gato' | 'coelho';
-export type MascoteState = 'padrao' | 'atento' | 'feliz' | 'pensativo' | 'dormindo';
+import type { PetType, PetState } from "../player";
 
-type MascoteAssets = {
-  [key in MascoteState]: ReturnType<typeof require>;
+// Re-export for convenience
+export type { PetType, PetState };
+
+// ─── Asset map (12 mascotes) ─────────────────────────────────────────────────
+
+type MascoteKey = `${PetType}_${PetState}`;
+
+const MASCOTE_ASSETS: Record<MascoteKey, ReturnType<typeof require>> = {
+  'cachorro_padrao': require('../../assets/mascotes/cachorro_padrao.png'),
+  'cachorro_atento': require('../../assets/mascotes/cachorro_atento.png'),
+  'cachorro_feliz': require('../../assets/mascotes/cachorro_feliz.png'),
+  'cachorro_dormindo': require('../../assets/mascotes/cachorro_dormindo.png'),
+  'gato_padrao': require('../../assets/mascotes/gato_padrao.png'),
+  'gato_atento': require('../../assets/mascotes/gato_atento.png'),
+  'gato_feliz': require('../../assets/mascotes/gato_feliz.png'),
+  'gato_dormindo': require('../../assets/mascotes/gato_dormindo.png'),
+  'coelho_padrao': require('../../assets/mascotes/coelho_padrao.png'),
+  'coelho_atento': require('../../assets/mascotes/coelho_atento.png'),
+  'coelho_feliz': require('../../assets/mascotes/coelho_feliz.png'),
+  'coelho_dormindo': require('../../assets/mascotes/coelho_dormindo.png'),
 };
 
-type MascoteMap = {
-  [key in MascoteType]: MascoteAssets;
-};
-
-export const MASCOTE_ASSETS: MascoteMap = {
-  cachorro: {
-    padrao: require('../../assets/mascotes/cachorro/cachorro_padrao.png'),
-    atento: require('../../assets/mascotes/cachorro/cachorro_atento.png'),
-    feliz: require('../../assets/mascotes/cachorro/cachorro_feliz.png'),
-    pensativo: require('../../assets/mascotes/cachorro/cachorro_pensativo.png'),
-    dormindo: require('../../assets/mascotes/cachorro/cachorro_dormindo.png'),
-  },
-  gato: {
-    padrao: require('../../assets/mascotes/gato/gato_padrao.png'),
-    atento: require('../../assets/mascotes/gato/gato_atento.png'),
-    feliz: require('../../assets/mascotes/gato/gato_feliz.png'),
-    pensativo: require('../../assets/mascotes/gato/gato_pensativo.png'),
-    dormindo: require('../../assets/mascotes/gato/gato_dormindo.png'),
-  },
-  coelho: {
-    padrao: require('../../assets/mascotes/coelho/coelho_padrao.png'),
-    atento: require('../../assets/mascotes/coelho/coelho_atento.png'),
-    feliz: require('../../assets/mascotes/coelho/coelho_feliz.png'),
-    pensativo: require('../../assets/mascotes/coelho/coelho_pensativo.png'),
-    dormindo: require('../../assets/mascotes/coelho/coelho_dormindo.png'),
-  },
-};
+// ─── Public API ──────────────────────────────────────────────────────────────
 
 /**
  * Get the asset source for a specific mascot in a specific state.
  * Defaults to 'padrao' if no state is specified.
  */
-export function getMascoteAsset(type: MascoteType, state: MascoteState = 'padrao') {
-  return MASCOTE_ASSETS[type][state];
+export function getMascoteAsset(type: PetType, state: PetState = 'padrao') {
+  const key: MascoteKey = `${type}_${state}`;
+  return MASCOTE_ASSETS[key];
 }
 
 /** Display names for the pet choice screen */
-export const MASCOTE_NAMES: Record<MascoteType, string> = {
+export const PET_TYPE_LABELS: Record<PetType, string> = {
   cachorro: 'Cachorro',
   gato: 'Gato',
   coelho: 'Coelho',

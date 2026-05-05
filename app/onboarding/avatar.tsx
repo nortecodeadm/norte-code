@@ -147,7 +147,6 @@ export default function AvatarScreen() {
     setIsSubmitting(true);
 
     try {
-      // Ensure we have a session
       const userId = await ensureAnonymousSession();
       if (!userId) {
         console.error("[Avatar] Failed to get user session");
@@ -155,7 +154,6 @@ export default function AvatarScreen() {
         return;
       }
 
-      // Create player in Supabase + local storage
       await createPlayer(userId, {
         avatar_skin: avatarSkin,
         avatar_hair_style: avatarHairStyle,
@@ -165,10 +163,7 @@ export default function AvatarScreen() {
         pet_name: petName.trim(),
       });
 
-      // Reset onboarding state (no longer needed in memory)
       reset();
-
-      // Navigate to the world
       router.replace("/world");
     } catch (error) {
       console.error("[Avatar] Error completing onboarding:", error);
@@ -195,14 +190,14 @@ export default function AvatarScreen() {
             Como você se parece?
           </Text>
 
-          {/* Avatar Preview — Real layered composition */}
+          {/* Avatar Preview — Single pre-rendered image */}
           <Animated.View style={avatarStyle} className="mb-8">
             <Avatar
               skinTone={avatarSkin}
               hairStyle={avatarHairStyle}
               hairColor={avatarHairColor}
               outfit={avatarOutfit}
-              size={220}
+              size={160}
             />
           </Animated.View>
 

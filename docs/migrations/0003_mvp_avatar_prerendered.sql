@@ -1,0 +1,24 @@
+-- Migration 0003: MVP Avatar Pre-rendered System
+-- Date: 2026-05-04
+-- Status: Schema already correct — no changes needed
+--
+-- The table `players` already has the correct columns:
+--   id              uuid (PK, references auth.users)
+--   avatar_skin     text  -- 'clara' | 'media-escura'
+--   avatar_hair_style text -- 'lisocurto' | 'lisomedio' | 'cacheado'
+--   avatar_hair_color text -- 'castanhomedio' | 'castanhoescuro' | 'loiro'
+--   avatar_outfit   text  -- 'verde' | 'amarelo'
+--   pet_type        text  -- 'cachorro' | 'gato' | 'coelho'
+--   pet_name        text
+--   created_at      timestamptz
+--
+-- Changes from previous iteration:
+--   - SkinTone reduced: 4 → 2 (removed 'media-clara', renamed 'escura' to 'media-escura')
+--   - HairStyle changed: 'curtoliso'→'lisocurto', 'curtobaguncado'→removed, 'longoliso'→'lisomedio', 'cacheado'→kept
+--   - HairColor changed: 'castanho-escuro'→'castanhoescuro', 'castanho-medio'→'castanhomedio', 'castanho-claro'→removed, 'loiro-mel'→'loiro'
+--   - Outfit changed: 'azul'→removed, 'amarela'→'amarelo'
+--
+-- No data migration needed — table was empty at time of this change.
+-- The old test record (4ff56ffe...) was already deleted by migration 0002.
+
+-- Nothing to execute. This file exists for documentation only.

@@ -1,7 +1,7 @@
 # Arquitetura — Norte Code MVP
 
 **Última atualização:** 03/05/2026
-**Versão:** 0.3.0 (Assets v3 — Gemini Pro + Avatar 3-Layer)
+**Versão:** 0.4.0 (MVP Visual — Avatar Pré-renderizado + Mascotes 4 estados)
 
 ---
 
@@ -128,86 +128,73 @@ Documentação detalhada em `docs/INTERPRETER.md`.
 - **Estilo**: flat-design contemporâneo com toques orgânicos
 - **Animações**: suaves, contemplativas, ease-in-out
 
-### 7.1. Sistema de Avatar (3 Layers)
+### 7.1. Sistema de Avatar (Pré-renderizado)
 
-O avatar é renderizado por composição de **3 camadas** PNG transparentes (1024×1024px) sobrepostas no mesmo canvas:
+O avatar é uma **imagem única pré-renderizada** por combinação. Sem composição em runtime.
 
-| Layer | Ordem (z-index) | Variações | Exemplo de arquivo |
-|-------|-----------------|-----------|--------------------|
-| Corpo (pele) | 1 (base) | 4 tons de pele | `corpo_pele1_clara.png` |
-| Roupa (camiseta) | 2 (meio) | 3 cores | `roupa_verde.png` |
-| Cabelo | 3 (topo) | 16 combos (4 estilos × 4 cores) | `cabelo_curtoliso_castanho-escuro.png` |
+| Atributo | Opções | Quantidade |
+|----------|--------|------------|
+| Cor de pele (SkinTone) | `clara`, `media-escura` | 2 |
+| Estilo do cabelo (HairStyle) | `lisocurto`, `lisomedio`, `cacheado` | 3 |
+| Cor do cabelo (HairColor) | `castanhomedio`, `castanhoescuro`, `loiro` | 3 |
+| Camiseta (Outfit) | `verde`, `amarelo` | 2 |
 
-**Nota:** Todas as layers compartilham o mesmo canvas 1024×1024 com o personagem na mesma posição e escala. As layers se sobrepõem perfeitamente quando empilhadas com `position: absolute` no mesmo container.
-
-**Total de combinações:** 4 skins × 3 outfits × 4 estilos × 4 cores = **192 avatares possíveis**.
-**Total de imagens:** 4 corpos + 3 roupas + 16 cabelos = **23 PNGs** (~5MB).
+**Total de combinações:** 2 × 3 × 3 × 2 = **36 avatares**.
+**Total de imagens:** 36 PNGs (~14MB).
+**Dimensões:** 1024×1024px, RGBA com transparência real.
 
 **Props do componente `<Avatar />`:**
-- `skinTone`: `'clara'` | `'media-clara'` | `'media-escura'` | `'escura'`
-- `hairStyle`: `'curtoliso'` | `'curtobaguncado'` | `'longoliso'` | `'cacheado'`
-- `hairColor`: `'castanho-escuro'` | `'castanho-medio'` | `'castanho-claro'` | `'loiro-mel'`
-- `outfit`: `'verde'` | `'azul'` | `'amarela'`
-- `size`: número (largura/altura em px)
+- `skinTone`: `'clara'` | `'media-escura'`
+- `hairStyle`: `'lisocurto'` | `'lisomedio'` | `'cacheado'`
+- `hairColor`: `'castanhomedio'` | `'castanhoescuro'` | `'loiro'`
+- `outfit`: `'verde'` | `'amarelo'`
+- `size`: número (largura em px, altura auto-calculada)
 
 **API de assets (`lib/assets/avatar.ts`):**
-- `getBodyAsset(skinTone)` → retorna require() do corpo (só pele)
-- `getOutfitAsset(outfit)` → retorna require() da roupa
-- `getHairAsset(style, color)` → retorna require() do cabelo
+- `getAvatarAsset(skin, hairStyle, hairColor, outfit)` → retorna require() da imagem pré-renderizada
+- Nomenclatura: `avatar_{skin}_{hairStyle}_{hairColor}_{outfit}.png`
 
 ### 7.2. Mascotes
 
-3 mascotes disponíveis, cada um com 5 estados emocionais:
+3 mascotes disponíveis, cada um com 4 estados emocionais:
 
 | Mascote | Estados | Tamanho |
 |---------|---------|----------|
-| Cachorro | padrão, atento, feliz, pensativo, dormindo | 1024×1024px |
-| Gato | padrão, atento, feliz, pensativo, dormindo | 1024×1024px |
-| Coelho | padrão, atento, feliz, pensativo, dormindo | 1024×1024px |
+| Cachorro | padrao, atento, feliz, dormindo | 1024×1024px |
+| Gato | padrao, atento, feliz, dormindo | 1024×1024px |
+| Coelho | padrao, atento, feliz, dormindo | 1024×1024px |
 
-**Total:** 15 PNGs (~7MB)
+**Total:** 12 PNGs
+**MVP:** Usa apenas estado `padrao`. Outros 3 prontos para Sprint 2 (gameplay).
 
 **Props do componente `<Mascote />`:**
 - `type`: `'cachorro'` | `'gato'` | `'coelho'`
-- `state`: `'padrao'` | `'atento'` | `'feliz'` | `'pensativo'` | `'dormindo'` (default: `'padrao'`)
-- `width`: número (altura calculada automaticamente)
+- `state`: `'padrao'` | `'atento'` | `'feliz'` | `'dormindo'` (default: `'padrao'`)
+- `size`: número (square, default 200)
 
 ### 7.3. Estrutura de Assets
 
 ```
 assets/
-├── mascotes/
-│   ├── cachorro/
-│   │   ├── cachorro_padrao.png
-│   │   ├── cachorro_atento.png
-│   │   ├── cachorro_feliz.png
-│   │   ├── cachorro_pensativo.png
-│   │   └── cachorro_dormindo.png
-│   ├── gato/
-│   │   └── ... (5 estados)
-│   └── coelho/
-│       └── ... (5 estados)
-├── avatar/
-│   ├── corpos/                          # Body layer (só pele)
-│   │   ├── corpo_pele1_clara.png
-│   │   ├── corpo_pele2_media-clara.png
-│   │   ├── corpo_pele3_media-escura.png
-│   │   └── corpo_pele4_escura.png
-│   ├── roupas/                          # Outfit layer (camiseta)
-│   │   ├── roupa_verde.png
-│   │   ├── roupa_azul.png
-│   │   └── roupa_amarela.png
-│   └── cabelos/                         # Hair layer (pré-posicionado no canvas)
-│       ├── cabelo_curtoliso_castanho-escuro.png
-│       ├── cabelo_curtoliso_castanho-medio.png
-│       ├── ... (16 combinações: 4 estilos × 4 cores)
-│       └── cabelo_cacheado_loiro-mel.png
+├── mascotes/                            # Flat structure (sem subpastas)
+│   ├── cachorro_padrao.png
+│   ├── cachorro_atento.png
+│   ├── cachorro_feliz.png
+│   ├── cachorro_dormindo.png
+│   ├── gato_padrao.png
+│   ├── ... (4 estados × 3 tipos = 12 PNGs)
+│   └── coelho_dormindo.png
+├── avatares/                            # Pré-renderizados (sem subpastas)
+│   ├── avatar_clara_lisocurto_castanhomedio_verde.png
+│   ├── avatar_clara_lisocurto_castanhomedio_amarelo.png
+│   ├── ... (36 combinações)
+│   └── avatar_media-escura_cacheado_loiro_amarelo.png
 └── fonts/
     ├── Nunito-*.ttf
     └── Fraunces-*.ttf
 ```
 
-**Total de assets visuais:** 38 PNGs (~12MB)
+**Total de assets visuais:** 48 PNGs (36 avatares + 12 mascotes)
 
 ## 8. Build e Distribuição
 
