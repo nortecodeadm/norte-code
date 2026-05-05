@@ -18,28 +18,23 @@ import Animated, {
   Easing,
 } from "react-native-reanimated";
 import { useOnboardingState } from "../../lib/onboarding-state";
-import { ensureAnonymousSession } from "../../lib/auth";
-import { createPlayer } from "../../lib/player";
-import { Mascote } from "../../components/Mascote";
+import { Avatar } from "../../components/Avatar";
 
-const MAX_NAME_LENGTH = 12;
+const MAX_NAME_LENGTH = 20;
+const NAME_REGEX = /^[a-zA-ZÀ-ÿ0-9\s]*$/;
 
-export default function PetNameScreen() {
+export default function PlayerNameScreen() {
   const router = useRouter();
   const {
-    petType,
-    petName,
-    setPetName,
     playerName,
+    setPlayerName,
     avatarSkin,
     avatarHairStyle,
     avatarHairColor,
     avatarOutfit,
-    reset,
   } = useOnboardingState();
   const inputRef = useRef<TextInput>(null);
   const [isFocused, setIsFocused] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Animations
   const headerOpacity = useSharedValue(0);
@@ -63,7 +58,6 @@ export default function PetNameScreen() {
   }));
 
   useEffect(() => {
-    // Header entrance
     headerOpacity.value = withTiming(1, {
       duration: 500,
       easing: Easing.out(Easing.cubic),
@@ -73,13 +67,11 @@ export default function PetNameScreen() {
       easing: Easing.out(Easing.cubic),
     });
 
-    // Input entrance (delayed)
     inputOpacity.value = withDelay(
       300,
       withTiming(1, { duration: 400, easing: Easing.out(Easing.cubic) })
     );
 
-    // Auto-focus the input after animation
     const timer = setTimeout(() => {
       inputRef.current?.focus();
     }, 700);
@@ -89,41 +81,24 @@ export default function PetNameScreen() {
 
   // Show button when name has content
   useEffect(() => {
-    const hasName = petName.trim().length > 0;
+    const hasName = playerName.trim().length > 0;
     buttonOpacity.value = withTiming(hasName ? 1 : 0, { duration: 250 });
     buttonTranslateY.value = hasName
       ? withSpring(0, { damping: 12 })
       : withTiming(10, { duration: 200 });
-  }, [petName]);
+  }, [playerName]);
 
-  const handleConfirm = async () => {
-    if (petName.trim().length === 0 || isSubmitting) return;
-    setIsSubmitting(true);
-    Keyboard.dismiss();
+  const handleTextChange = (text: string) => {
+    // Only allow letters, numbers, spaces, accents
+    if (text.length <= MAX_NAME_LENGTH && NAME_REGEX.test(text)) {
+      setPlayerName(text);
+    }
+  };
 
-    try {
-      const userId = await ensureAnonymousSession();
-      if (!userId) {
-        console.error("[PetName] Failed to get user session");
-        setIsSubmitting(false);
-        return;
-      }
-
-      await createPlayer(userId, {
-        player_name: playerName.trim(),
-        avatar_skin: avatarSkin,
-        avatar_hair_style: avatarHairStyle,
-        avatar_hair_color: avatarHairColor,
-        avatar_outfit: avatarOutfit,
-        pet_type: petType ?? "cachorro",
-        pet_name: petName.trim(),
-      });
-
-      reset();
-      router.replace("/onboarding/transition");
-    } catch (error) {
-      console.error("[PetName] Error completing onboarding:", error);
-      setIsSubmitting(false);
+  const handleConfirm = () => {
+    if (playerName.trim().length > 0) {
+      Keyboard.dismiss();
+      router.push("/onboarding/pet-choice");
     }
   };
 
@@ -133,7 +108,18 @@ export default function PetNameScreen() {
       className="flex-1 bg-warm-white"
     >
       <View className="flex-1 items-center justify-center px-8">
-        {/* Header */}
+        {/* Avatar preview */}
+        <Animated.View style={headerStyle} className="mb-6">
+          <Avatar
+            skinTone={avatarSkin}
+            hairStyle={avatarHairStyle}
+            hairColor={avatarHairColor}
+            outfit={avatarOutfit}
+            size={120}
+          />
+        </Animated.View>
+
+        {/* Title */}
         <Animated.View style={headerStyle} className="mb-8">
           <Text
             className="text-garden-green text-center"
@@ -143,30 +129,21 @@ export default function PetNameScreen() {
               lineHeight: 32,
             }}
           >
-            Qual vai ser o nome{"\n"}dele(a)?
+            Como vou te chamar?
           </Text>
-        </Animated.View>
-
-        {/* Pet mascot reminder */}
-        <Animated.View style={inputStyle} className="mb-6">
-          {petType && <Mascote type={petType} width={80} />}
         </Animated.View>
 
         {/* Name input */}
         <Animated.View style={inputStyle} className="w-full max-w-xs">
           <TextInput
             ref={inputRef}
-            value={petName}
-            onChangeText={(text) => {
-              if (text.length <= MAX_NAME_LENGTH) {
-                setPetName(text);
-              }
-            }}
+            value={playerName}
+            onChangeText={handleTextChange}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
             onSubmitEditing={handleConfirm}
             returnKeyType="done"
-            placeholder="Digite o nome..."
+            placeholder="Digite seu nome..."
             placeholderTextColor="#8FD1AB"
             maxLength={MAX_NAME_LENGTH}
             autoCapitalize="words"
@@ -187,12 +164,12 @@ export default function PetNameScreen() {
               fontFamily: "Nunito",
               fontSize: 12,
               color:
-                petName.length >= MAX_NAME_LENGTH
+                playerName.length >= MAX_NAME_LENGTH
                   ? "#B8892E"
                   : "rgba(31, 95, 63, 0.4)",
             }}
           >
-            {petName.length}/{MAX_NAME_LENGTH}
+            {playerName.length}/{MAX_NAME_LENGTH}
           </Text>
         </Animated.View>
 
@@ -200,18 +177,17 @@ export default function PetNameScreen() {
         <Animated.View style={buttonStyle} className="mt-10">
           <Pressable
             onPress={handleConfirm}
-            disabled={petName.trim().length === 0 || isSubmitting}
+            disabled={playerName.trim().length === 0}
             className="bg-garden-green rounded-2xl px-10 py-4 active:opacity-80"
             style={({ pressed }) => ({
               transform: [{ scale: pressed ? 0.96 : 1 }],
-              opacity: isSubmitting ? 0.6 : 1,
             })}
           >
             <Text
               className="text-warm-white text-center"
               style={{ fontFamily: "Nunito-Bold", fontSize: 17 }}
             >
-              {isSubmitting ? "Preparando..." : "Pronto!"}
+              Continuar
             </Text>
           </Pressable>
         </Animated.View>

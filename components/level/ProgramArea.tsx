@@ -85,16 +85,28 @@ export function ProgramArea({
         contentContainerStyle={{ gap: 6, paddingBottom: 8 }}
       >
         {blocks.length === 0 ? (
-          <View className="items-center justify-center py-8">
+          <View className="items-center justify-center py-6">
+            <Text
+              style={{
+                fontFamily: "Nunito-SemiBold",
+                fontSize: 14,
+                color: "#7A9E7E",
+                textAlign: "center",
+                lineHeight: 20,
+              }}
+            >
+              👆 Toque nos blocos coloridos acima{"\n"}para montar seu programa!
+            </Text>
             <Text
               style={{
                 fontFamily: "Nunito-Regular",
-                fontSize: 13,
+                fontSize: 11,
                 color: "#A0B8A4",
                 textAlign: "center",
+                marginTop: 6,
               }}
             >
-              Toque nos blocos acima{"\n"}para montar seu programa
+              Depois aperte ▶ para rodar
             </Text>
           </View>
         ) : (

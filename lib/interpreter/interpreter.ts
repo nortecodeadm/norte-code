@@ -210,7 +210,7 @@ function executeAction(node: ActionNode, ctx: ExecutionContext): void {
 
     case "plant": {
       const cell = world.grid[player.position.y][player.position.x];
-      if (cell.content === "empty") {
+      if (cell.content === "empty" || cell.content === "flowerbed") {
         worldChanges = [
           {
             position: { ...player.position },
@@ -352,8 +352,13 @@ function checkGoal(world: WorldState): boolean {
       );
 
     case "plant_all_seeds": {
-      // Check if there are no more empty cells that should have seeds
-      // (this depends on level design — for now, check if any seed was planted)
+      // All flowerbeds must have been planted (converted to seed)
+      // AND at least one seed must exist
+      const hasUnplantedFlowerbed = world.grid.some((row) =>
+        row.some((cell) => cell.content === "flowerbed")
+      );
+      if (hasUnplantedFlowerbed) return false;
+
       const hasSeed = world.grid.some((row) =>
         row.some((cell) => cell.content === "seed")
       );

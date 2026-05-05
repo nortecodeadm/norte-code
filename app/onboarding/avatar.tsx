@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { View, Text, Pressable, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
 import Animated, {
@@ -9,8 +9,6 @@ import Animated, {
   Easing,
 } from "react-native-reanimated";
 import { useOnboardingState } from "../../lib/onboarding-state";
-import { ensureAnonymousSession } from "../../lib/auth";
-import { createPlayer } from "../../lib/player";
 import type { SkinTone, HairStyle, HairColor, Outfit } from "../../lib/player";
 import { Avatar } from "../../components/Avatar";
 import {
@@ -96,8 +94,6 @@ function StyleButton({
 export default function AvatarScreen() {
   const router = useRouter();
   const {
-    petType,
-    petName,
     avatarSkin,
     avatarHairStyle,
     avatarHairColor,
@@ -106,10 +102,9 @@ export default function AvatarScreen() {
     setAvatarHairStyle,
     setAvatarHairColor,
     setAvatarOutfit,
-    reset,
   } = useOnboardingState();
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
 
   // Animations
   const contentOpacity = useSharedValue(0);
@@ -142,33 +137,8 @@ export default function AvatarScreen() {
     avatarScale.value = withSpring(1, { damping: 8, stiffness: 200 });
   }, [avatarSkin, avatarHairStyle, avatarHairColor, avatarOutfit]);
 
-  const handleConfirm = async () => {
-    if (isSubmitting) return;
-    setIsSubmitting(true);
-
-    try {
-      const userId = await ensureAnonymousSession();
-      if (!userId) {
-        console.error("[Avatar] Failed to get user session");
-        setIsSubmitting(false);
-        return;
-      }
-
-      await createPlayer(userId, {
-        avatar_skin: avatarSkin,
-        avatar_hair_style: avatarHairStyle,
-        avatar_hair_color: avatarHairColor,
-        avatar_outfit: avatarOutfit,
-        pet_type: petType ?? "cachorro",
-        pet_name: petName.trim(),
-      });
-
-      reset();
-      router.replace("/onboarding/transition");
-    } catch (error) {
-      console.error("[Avatar] Error completing onboarding:", error);
-      setIsSubmitting(false);
-    }
+  const handleConfirm = () => {
+    router.push("/onboarding/player-name");
   };
 
   return (
@@ -287,18 +257,16 @@ export default function AvatarScreen() {
       <View className="absolute bottom-0 left-0 right-0 pb-10 pt-4 px-6 bg-warm-white">
         <Pressable
           onPress={handleConfirm}
-          disabled={isSubmitting}
           className="bg-garden-green rounded-2xl py-4 active:opacity-80"
           style={({ pressed }) => ({
             transform: [{ scale: pressed ? 0.96 : 1 }],
-            opacity: isSubmitting ? 0.6 : 1,
           })}
         >
           <Text
             className="text-warm-white text-center"
             style={{ fontFamily: "Nunito-Bold", fontSize: 17 }}
           >
-            {isSubmitting ? "Preparando..." : "É esse!"}
+            É esse!
           </Text>
         </Pressable>
       </View>

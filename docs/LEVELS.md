@@ -37,10 +37,23 @@ Cada nível ensina **uma única coisa**. Não acumular conceitos novos por níve
 
 **Implementação técnica:**
 - Grid: 3×1, player em (0,0) facing east
-- Condição de vitória: `plant_all_seeds`
+- Célula (1,0) marcada como `flowerbed` (alvo visual com borda pontilhada verde)
+- Condição de vitória: `plant_all_seeds` (nenhum flowerbed restante sem semente)
 - Max blocos: 4
 - Reward key: `seed_lvl1`
 - Arquivo: `lib/levels/index.ts` → `createLevel1()`
+
+**UX implementada:**
+- Objetivo claro no topo: "🌱 Plante no canteiro marcado"
+- Instrução: "Toque nos blocos para montar seu programa"
+- Hint após 5s de inatividade: "Dica: toque em 'Andar' e depois em 'Plantar' — nessa ordem!"
+- Feedback de erro contextual (não plantou, plantou no lugar errado, não andou)
+- Animação de sucesso: 1.2s delay → navega pro Level Summary
+
+**Comportamento de recompensa pós-nível:**
+- Level Summary salva `seed_lvl1` em `WORLD_ELEMENTS` (AsyncStorage)
+- Ao voltar pra Tela Mundo, se `seed_lvl1` está em `WORLD_ELEMENTS`, renderiza `mundo_sementinha.png` na posição definida em `WORLD_LAYOUT`
+- Persistência: local (AsyncStorage) + remoto (Supabase `world_elements` quando online)
 
 ## Nível 2 — Sequência mais longa (3-4 passos)
 

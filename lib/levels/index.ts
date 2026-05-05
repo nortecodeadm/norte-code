@@ -6,6 +6,7 @@
  * - Available blocks for the palette
  * - Expected solution (for reference, not enforced)
  * - Reward on completion
+ * - Instructional hints for the child
  */
 
 import type { WorldState, Cell, Position, BlockType } from "../interpreter";
@@ -13,12 +14,15 @@ import type { WorldState, Cell, Position, BlockType } from "../interpreter";
 export interface LevelDefinition {
   id: number;
   title: string;
-  description: string; // Child-friendly instruction
+  description: string; // Child-friendly instruction shown at the top
+  hint: string; // More specific hint shown after 5s of inactivity
+  objective: string; // Short objective text (e.g., "Plante a semente no canteiro")
   gridWidth: number;
   gridHeight: number;
   initialWorld: WorldState;
   availableBlocks: BlockType[];
   maxBlocks: number; // Max blocks the child can use
+  errorMessages: Record<string, string>; // Contextual error messages
   reward: {
     elementKey: string; // Key for world_elements storage
     message: string; // Success message shown to child
@@ -29,7 +33,8 @@ export interface LevelDefinition {
 
 function createLevel1(): LevelDefinition {
   // Simple 3x1 grid: player starts at (0,0) facing east
-  // Goal: walk to (1,0) and plant a seed
+  // Target: walk to (1,0) and plant a seed there
+  // Cell (1,0) has "flowerbed" content to visually mark the target
   const gridWidth = 3;
   const gridHeight = 1;
 
@@ -41,6 +46,9 @@ function createLevel1(): LevelDefinition {
     }
     grid.push(row);
   }
+
+  // Mark the target cell as a flowerbed (visual cue for "plant here")
+  grid[0][1].content = "flowerbed";
 
   const initialWorld: WorldState = {
     grid,
@@ -58,11 +66,18 @@ function createLevel1(): LevelDefinition {
     id: 1,
     title: "Primeira semente",
     description: "Ande até o canteiro e plante uma semente!",
+    hint: "Dica: toque em \"Andar\" e depois em \"Plantar\" — nessa ordem!",
+    objective: "🌱 Plante no canteiro marcado",
     gridWidth,
     gridHeight,
     initialWorld,
     availableBlocks: ["move_forward", "plant"],
     maxBlocks: 4,
+    errorMessages: {
+      no_seed: "Nenhuma semente foi plantada. Tente usar o bloco \"Plantar\"!",
+      wrong_position: "Você plantou no lugar errado. Ande até o canteiro primeiro!",
+      didnt_move: "Você precisa andar até o canteiro antes de plantar!",
+    },
     reward: {
       elementKey: "seed_lvl1",
       message: "Uma sementinha apareceu no seu mundo!",

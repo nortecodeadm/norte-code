@@ -19,6 +19,7 @@ const VALID_OUTFITS: string[] = ["verde", "amarelo"];
 
 export interface PlayerData {
   id: string;
+  player_name: string;
   avatar_skin: SkinTone;
   avatar_hair_style: HairStyle;
   avatar_hair_color: HairColor;
@@ -36,6 +37,7 @@ function isValidPlayerData(data: unknown): data is PlayerData {
   const d = data as Record<string, unknown>;
   return (
     typeof d.id === "string" &&
+    typeof d.player_name === "string" &&
     VALID_PET_TYPES.includes(d.pet_type as string) &&
     VALID_SKIN_TONES.includes(d.avatar_skin as string) &&
     VALID_HAIR_STYLES.includes(d.avatar_hair_style as string) &&
@@ -58,6 +60,7 @@ export async function createPlayer(
   try {
     const { error } = await supabase.from("players").insert({
       id: userId,
+      player_name: data.player_name,
       avatar_skin: data.avatar_skin,
       avatar_hair_style: data.avatar_hair_style,
       avatar_hair_color: data.avatar_hair_color,
@@ -141,6 +144,7 @@ export async function getPlayer(userId: string): Promise<PlayerData | null> {
 
     const player: PlayerData = {
       id: data.id,
+      player_name: data.player_name ?? "",
       avatar_skin: data.avatar_skin,
       avatar_hair_style: data.avatar_hair_style,
       avatar_hair_color: data.avatar_hair_color,

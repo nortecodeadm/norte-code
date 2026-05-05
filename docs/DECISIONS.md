@@ -387,3 +387,57 @@ A Gemini Pro foi usada para gerar os avatares finais como imagens completas pré
 **Alternativas:** (1) Velocidade configurável — complexidade desnecessária no MVP. (2) Animação contínua sem steps — perde a conexão bloco↔ação.
 
 **Resultado:** 500ms fixo, com possibilidade de ajuste futuro via `InterpreterConfig.stepDelay`.
+
+---
+
+### [05/05/2026] Tela Mundo: background real + posicionamento relativo
+
+**Contexto:** Assets da Tela Mundo entregues pelo Gui (mundo_terreno_vazio, pedra, tronco, sementinha). Precisava definir como posicionar elementos sobrepostos de forma responsiva.
+
+**Alternativas consideradas:**
+1. Pixels absolutos — quebra em telas diferentes
+2. Porcentagens via string — TypeScript strict não aceita em React Native style
+3. Porcentagens computadas (pctW/pctH helpers) — type-safe e responsivo
+
+**Resultado:** Opção 3. Helpers `pctW(p)` e `pctH(p)` convertem porcentagem em pixels usando `Dimensions.get("window")`. Z-order implícito pela ordem de renderização: BG → elementos estáticos → recompensas → personagens → UI.
+
+---
+
+### [05/05/2026] Nomes só em contexto narrativo
+
+**Contexto:** Gui definiu regra: nem nome do avatar nem nome do mascote devem aparecer como label/header permanente. Nomes só aparecem em textos narrativos que se referem ao personagem.
+
+**Alternativas consideradas:** Nenhuma — decisão de produto do Gui.
+
+**Resultado:** Removidos todos os labels de nome da Tela Mundo. Nomes usados apenas em: resumo pós-nível, introdução de nível, capítulos narrativos futuros. UI mais limpa, foco no cenário e ação.
+
+---
+
+### [05/05/2026] Nova tela "Nome do Avatar" no onboarding
+
+**Contexto:** App pedia nome do mascote mas não do jogador. Gui adicionou ao escopo.
+
+**Alternativas consideradas:** Nenhuma — funcionalidade necessária.
+
+**Resultado:** Nova tela `player-name.tsx` entre avatar customization e pet-choice. Validação: 1-20 chars, letras/números/espaços/acentos, trim, preserva capitalização. Persistência: coluna `player_name` (text NOT NULL DEFAULT '') na tabela `players`.
+
+---
+
+### [05/05/2026] UX do Nível 1: instrução contextual + hint + feedback de erro
+
+**Contexto:** Gui reportou que não ficava claro o que fazer no Nível 1 nem como finalizar. Criança de 7 anos precisa de orientação explícita na primeira vez.
+
+**Alternativas consideradas:**
+1. Tutorial overlay — complexo demais pro MVP
+2. Instrução contextual no topo + hint após 5s + erro explicativo — simples e eficaz
+
+**Resultado:** Opção 2. Nível 1 agora mostra: (1) objetivo claro no topo "🌱 Plante no canteiro marcado", (2) instrução "Toque nos blocos para montar seu programa", (3) dica após 5s de inatividade, (4) feedback de erro contextual ("Você precisa andar até o canteiro antes de plantar!"), (5) célula-alvo com borda pontilhada verde no grid. Bug fix: `plant` action agora funciona em células `flowerbed` (antes só funcionava em `empty`).
+
+---
+
+### [05/05/2026] Fix: botão Play na Tela Mundo
+
+**Contexto:** Botão ▶ não aparecia — `Animated.View` wrapper sem posicionamento definido fazia o botão ficar fora da viewport.
+
+**Resultado:** Movido `position: absolute` + `bottom/right` para o `Animated.View` pai. Botão agora visível e funcional.
+

@@ -10,6 +10,7 @@ import type { PetType, SkinTone, HairStyle, HairColor, Outfit } from "./player";
 interface OnboardingState {
   petType: PetType | null;
   petName: string;
+  playerName: string;
   avatarSkin: SkinTone;
   avatarHairStyle: HairStyle;
   avatarHairColor: HairColor;
@@ -17,6 +18,7 @@ interface OnboardingState {
 
   setPetType: (type: PetType) => void;
   setPetName: (name: string) => void;
+  setPlayerName: (name: string) => void;
   setAvatarSkin: (skin: SkinTone) => void;
   setAvatarHairStyle: (style: HairStyle) => void;
   setAvatarHairColor: (color: HairColor) => void;
@@ -27,6 +29,7 @@ interface OnboardingState {
 const initialState = {
   petType: null as PetType | null,
   petName: "",
+  playerName: "",
   avatarSkin: "clara" as SkinTone,
   avatarHairStyle: "lisocurto" as HairStyle,
   avatarHairColor: "castanhomedio" as HairColor,
@@ -38,6 +41,7 @@ export const useOnboardingState = create<OnboardingState>((set) => ({
 
   setPetType: (type) => set({ petType: type }),
   setPetName: (name) => set({ petName: name }),
+  setPlayerName: (name) => set({ playerName: name }),
   setAvatarSkin: (skin) => set({ avatarSkin: skin }),
   setAvatarHairStyle: (style) => set({ avatarHairStyle: style }),
   setAvatarHairColor: (color) => set({ avatarHairColor: color }),

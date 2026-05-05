@@ -1,7 +1,7 @@
 # Arquitetura — Norte Code MVP
 
 **Última atualização:** 05/05/2026
-**Versão:** 0.5.0 (Semana 3 — Interpretador + Nível 1 jogável)
+**Versão:** 0.6.0 (Semana 3 Doc2 — Tela Mundo real + Nome Avatar + UX Nível 1)
 
 ---
 
@@ -78,7 +78,7 @@ norte-code/
 Splash (index.tsx)
   │
   ├── [primeiro acesso] → Onboarding
-  │     welcome → pet-choice → pet-name → avatar → transition → world
+  │     welcome → avatar → player-name → pet-choice → pet-name → transition → world
   │
   └── [retorno] → World (home)
         │
@@ -101,7 +101,7 @@ Splash (index.tsx)
 - Sem coleta de dados pessoais (COPPA/LGPD compliance)
 
 ### 5.2. Tabelas (Supabase)
-- `players` — dados do jogador (avatar_skin, avatar_hair_style, avatar_hair_color, avatar_outfit, pet_type, pet_name)
+- `players` — dados do jogador (player_name, avatar_skin, avatar_hair_style, avatar_hair_color, avatar_outfit, pet_type, pet_name)
 - `level_progress` — progresso por nível (completed, attempts)
 - `world_elements` — elementos visuais desbloqueados no mundo
 - `narrative_chapters_viewed` — capítulos já vistos
@@ -202,12 +202,17 @@ assets/
 │   ├── avatar_clara_lisocurto_castanhomedio_amarelo.png
 │   ├── ... (36 combinações)
 │   └── avatar_media-escura_cacheado_loiro_amarelo.png
+├── mundo/                              # Cenário da Tela Mundo
+│   ├── mundo_terreno_vazio.png          # Background full-screen (912×1600)
+│   ├── mundo_pedra.png                  # Elemento decorativo (849×689, transp.)
+│   ├── mundo_tronco.png                 # Elemento decorativo (899×348, transp.)
+│   └── mundo_sementinha.png             # Recompensa nível 1 (838×580, transp.)
 └── fonts/
     ├── Nunito-*.ttf
     └── Fraunces-*.ttf
 ```
 
-**Total de assets visuais:** 48 PNGs (36 avatares + 12 mascotes)
+**Total de assets visuais:** 52 PNGs (36 avatares + 12 mascotes + 4 mundo)
 
 ## 8. Build e Distribuição
 
