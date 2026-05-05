@@ -75,7 +75,11 @@ export function ProgramArea({
             color: blocks.length >= maxBlocks ? "#D4577B" : "#7A9E7E",
           }}
         >
-          {blocks.length}/{maxBlocks}
+          {blocks.length === 0
+            ? ""
+            : blocks.length >= maxBlocks
+              ? `${blocks.length} blocos (máx.)`
+              : `${blocks.length} bloco${blocks.length > 1 ? "s" : ""}`}
         </Text>
       </View>
 

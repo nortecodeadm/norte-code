@@ -441,3 +441,66 @@ A Gemini Pro foi usada para gerar os avatares finais como imagens completas pré
 
 **Resultado:** Movido `position: absolute` + `bottom/right` para o `Animated.View` pai. Botão agora visível e funcional.
 
+---
+
+### [05/05/2026] Composição da Tela Mundo: hierarquia de profundidade estilo livro infantil
+
+**Decisão:** Reorganizar a composição visual da Tela Mundo seguindo princípios de ilustração de livro infantil: protagonistas grandes no primeiro plano, cenário pequeno ao fundo.
+
+**Contexto:** Na primeira validação visual, avatar e mascote apareciam pequenos e distantes no horizonte (avatar 20% da tela, mascote 14%), enquanto pedra e tronco competiam visualmente. O resultado era uma "grade neutra de elementos" sem hierarquia clara.
+
+**Princípios adotados:**
+1. Avatar = protagonista (~32% da largura da tela), foco visual claro
+2. Mascote ao lado/atrás do avatar, nunca afastado (24% width)
+3. Pedra esquerda (14%), tronco direita (20%) — cenário ao fundo, equilibra peso visual
+4. Topo da tela vazio (céu) é intencional
+5. Sementinha relativa ao avatar (nos pés), não absoluta na tela
+
+**Resultado:** WORLD_LAYOUT reescrito com percentuais corretos. Composição validada visualmente.
+
+**Decisor:** Gui (via documento de correções do Claude)
+
+---
+
+### [05/05/2026] Sementinha: posicionamento relativo ao avatar, não absoluto
+
+**Decisão:** A sementinha (recompensa do nível 1) é renderizada dentro do container do avatar, com coordenadas relativas a ele.
+
+**Contexto:** Se a sementinha tiver coordenadas absolutas na tela e a posição do avatar for calibrada (ex: top muda de 58% pra 60%), a sementinha fica descolada do contexto narrativo. Já aconteceu de aparecer flutuando no horizonte.
+
+**Implementação:** Avatar + sementinha compartilham o mesmo `<View>` container com `position: absolute`. Sementinha usa `bottom: '-8%'` e `left: '35%'` relativo ao container.
+
+**Resultado narrativo:** Quando a criança planta no nível 1 e volta pro Mundo, vê a sementinha literalmente onde o avatar está pisando. Faz sentido: "eu plantei aqui mesmo, na minha frente."
+
+**Decisor:** Gui (via documento de correções do Claude)
+
+---
+
+### [05/05/2026] Botão Executar: ativo com ≥1 bloco, aprendizagem por tentativa e erro
+
+**Decisão:** O botão Executar só fica desabilitado quando o programa está completamente vazio (0 blocos). Qualquer programa com ≥1 bloco é executável, mesmo que "errado".
+
+**Contexto:** Na primeira validação, o botão aparecia esmaecido/quase invisível. Análise revelou que o estilo de disabled usava cor muito clara (#B0C4B0). Além disso, o indicador "X/4" na ProgramArea sugeria que 4 blocos eram obrigatórios, quando na verdade representava capacidade máxima.
+
+**Princípio pedagógico:** Aprendizagem por tentativa e erro é fundamental no método. Se a criança coloca só "Plantar" sem "Andar", o programa executa, falha, e a criança aprende com o feedback de erro contextual. Não bloquear preventivamente.
+
+**Mudanças:**
+1. `disabled={programBlocks.length === 0}` — única condição de desativação
+2. Estilo disabled: cor mais escura (#7A9E7E) com texto legível (#D4E8D4)
+3. Label disabled: "Adicione um bloco acima" (hint contextual)
+4. Indicador na ProgramArea: removido "X/4", substituído por "X bloco(s)" ou "X blocos (máx.)" quando cheio
+
+**Decisor:** Gui (via documento de correções do Claude)
+
+---
+
+### [05/05/2026] Assets pedra/tronco: versão sem sombra
+
+**Decisão:** Substituir `mundo_pedra.png` e `mundo_tronco.png` por versões sem sombra elíptica inferior.
+
+**Contexto:** Os assets originais tinham sombra embaixo que destoa quando o elemento é posicionado em escala diferente no cenário. A sombra ficava desproporcional e descolada do chão.
+
+**Resultado:** Assets substituídos. Pedra: 1062×880px. Tronco: 1426×624px. Ambos com transparência real, sem sombra.
+
+**Decisor:** Gui
+

@@ -214,7 +214,26 @@ Limite: `MAX_EXECUTION_STEPS = 200`. Se ultrapassado:
 
 ---
 
-## 8. Como Adicionar um Novo Tipo de Bloco
+## 8. Validação de Programa e Botão Executar
+
+**Princípio pedagógico:** O interpretador NÃO valida o programa antes da execução. Qualquer programa com ≥1 bloco é executável.
+
+**Comportamento do botão Executar:**
+- `disabled = programBlocks.length === 0` — única condição de desativação
+- Programa "errado" (ex: só Plantar sem Andar) → executa, falha, criança aprende com feedback
+- Não há bloqueio preventivo — aprendizagem por tentativa e erro é fundamental
+
+**Feedback de erro contextual (pós-execução):**
+- Sem bloco de movimento: "Tente andar até o canteiro primeiro!"
+- Sem bloco de plantar: "Faltou plantar! Use o bloco Plantar."
+- Plantou no lugar errado: "Você precisa andar até o canteiro antes de plantar!"
+- Genérico: "Quase! Tente uma ordem diferente dos blocos."
+
+**Indicador de blocos:** Mostra contagem simples ("2 blocos"), não fração ("2/4") que sugere obrigatoriedade.
+
+---
+
+## 9. Como Adicionar um Novo Tipo de Bloco
 
 1. Adicionar o `name` no switch case de `executeAction()` em `interpreter.ts`
 2. Adicionar o tipo em `BlockType` (arquivo `blocks.ts`)
@@ -225,7 +244,7 @@ Limite: `MAX_EXECUTION_STEPS = 200`. Se ultrapassado:
 
 ---
 
-## 9. Como Adicionar uma Nova Condição
+## 10. Como Adicionar uma Nova Condição
 
 1. Adicionar o case em `evaluateCondition()` em `interpreter.ts`
 2. Documentar na tabela da seção 2.4 acima
@@ -233,7 +252,7 @@ Limite: `MAX_EXECUTION_STEPS = 200`. Se ultrapassado:
 
 ---
 
-## 10. Exemplo Completo — Nível 1
+## 11. Exemplo Completo — Nível 1
 
 **Objetivo:** Andar até posição (1,0) e plantar uma semente.
 
@@ -260,7 +279,7 @@ Limite: `MAX_EXECUTION_STEPS = 200`. Se ultrapassado:
 
 ---
 
-## 11. Status de Implementação
+## 12. Status de Implementação
 
 - [x] AST JSON definido (Program, Action, Loop, If)
 - [x] Engine de execução sequencial

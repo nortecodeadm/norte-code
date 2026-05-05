@@ -204,8 +204,8 @@ assets/
 │   └── avatar_media-escura_cacheado_loiro_amarelo.png
 ├── mundo/                              # Cenário da Tela Mundo
 │   ├── mundo_terreno_vazio.png          # Background full-screen (912×1600)
-│   ├── mundo_pedra.png                  # Elemento decorativo (849×689, transp.)
-│   ├── mundo_tronco.png                 # Elemento decorativo (899×348, transp.)
+│   ├── mundo_pedra.png                  # Cenário ao fundo (1062×880, sem sombra)
+│   ├── mundo_tronco.png                 # Cenário ao fundo (1426×624, sem sombra)
 │   └── mundo_sementinha.png             # Recompensa nível 1 (838×580, transp.)
 └── fonts/
     ├── Nunito-*.ttf
@@ -213,6 +213,28 @@ assets/
 ```
 
 **Total de assets visuais:** 52 PNGs (36 avatares + 12 mascotes + 4 mundo)
+
+### 7.4. Composição da Tela Mundo (WORLD_LAYOUT)
+
+A Tela Mundo segue princípios de ilustração de livro infantil com hierarquia de profundidade:
+
+| Elemento | Papel | Posição | Tamanho |
+|----------|-------|---------|----------|
+| Pedra | Cenário (fundo) | top: 52%, left: 5% | 14% width |
+| Tronco | Cenário (fundo) | top: 56%, right: 8% | 20% width |
+| Avatar | Protagonista (1º plano) | top: 58%, left: 32% | 32% width |
+| Mascote | Companheiro (1º plano) | top: 70%, left: 55% | 24% width |
+| Sementinha | Recompensa (relativa ao avatar) | bottom: -8%, left: 35% do container avatar | 30% do container |
+| Botão ▶ | UI | bottom: 6%, right: 6% | 64×64px |
+
+**Regra da sementinha:** Renderizada dentro do container do avatar (posição relativa, não absoluta). Se a posição do avatar mudar, a sementinha acompanha automaticamente.
+
+**Z-order (ordem de renderização):**
+1. Background (ImageBackground)
+2. Cenário estático (pedra, tronco)
+3. Container avatar + sementinha
+4. Mascote
+5. UI (botão play)
 
 ## 8. Build e Distribuição
 

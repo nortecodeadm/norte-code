@@ -2,10 +2,17 @@
  * ExecuteButton — The "Run" button that executes the child's program.
  *
  * States: idle, running, success, error
+ *
+ * Design decisions:
+ * - Only disabled when program is completely empty (0 blocks)
+ * - "Wrong" programs (e.g. only Plant without Walk) are still executable
+ *   → child learns from trial and error, not from being blocked
+ * - Disabled state uses a visible but muted color (not invisible gray)
+ * - Shows contextual label based on state
  */
 
 import React from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, Text } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -64,12 +71,17 @@ export function ExecuteButton({
   const config = STATE_CONFIG[state];
   const isDisabled = disabled || state === "running";
 
+  // Disabled label: helpful hint instead of just grayed out
+  const displayLabel = isDisabled && state !== "running"
+    ? "Adicione um bloco acima"
+    : config.label;
+
   return (
-    <Animated.View style={animStyle} className="mx-4 mb-4">
+    <Animated.View style={animStyle} className="mx-4 mb-4 mt-2">
       <Pressable
         onPress={() => !isDisabled && onPress()}
         style={({ pressed }) => ({
-          backgroundColor: isDisabled && state !== "running" ? "#B0C4B0" : config.bg,
+          backgroundColor: isDisabled && state !== "running" ? "#7A9E7E" : config.bg,
           borderRadius: 16,
           paddingVertical: 14,
           alignItems: "center",
@@ -77,19 +89,19 @@ export function ExecuteButton({
           transform: [{ scale: pressed && !isDisabled ? 0.97 : 1 }],
           shadowColor: config.bg,
           shadowOffset: { width: 0, height: 3 },
-          shadowOpacity: 0.3,
+          shadowOpacity: isDisabled ? 0.1 : 0.3,
           shadowRadius: 6,
-          elevation: 4,
+          elevation: isDisabled ? 2 : 4,
         })}
       >
         <Text
           style={{
             fontFamily: "Nunito-Bold",
             fontSize: 16,
-            color: config.text,
+            color: isDisabled && state !== "running" ? "#D4E8D4" : config.text,
           }}
         >
-          {config.label}
+          {displayLabel}
         </Text>
       </Pressable>
     </Animated.View>
