@@ -196,12 +196,12 @@ export default function WorldScreen() {
                 hairStyle={player.avatar_hair_style}
                 hairColor={player.avatar_hair_color}
                 outfit={player.avatar_outfit}
-                size={100}
+                size={160}
               />
             </Animated.View>
 
-            <Animated.View style={mascotStyle} className="mt-2 items-center">
-              <Mascote type={player.pet_type} state="padrao" size={70} />
+            <Animated.View style={mascotStyle} className="mt-[-16px] items-center">
+              <Mascote type={player.pet_type} state="padrao" size={72} />
               <Text
                 className="text-garden-green-700 mt-1"
                 style={{ fontFamily: "Nunito-SemiBold", fontSize: 12 }}
