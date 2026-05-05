@@ -229,28 +229,24 @@ export default function WorldScreen() {
 
       {/* Play button — bottom right */}
       <Animated.View
-        style={playBtnStyle}
-        className="absolute"
-        pointerEvents="box-none"
+        style={[playBtnStyle, { position: 'absolute', bottom: 32, right: 24 }]}
       >
-        <View className="absolute bottom-8 right-6">
-          <Pressable
-            onPress={handlePlayPress}
-            className="bg-garden-green rounded-full items-center justify-center active:opacity-80"
-            style={({ pressed }) => ({
-              width: 56,
-              height: 56,
-              transform: [{ scale: pressed ? 0.9 : 1 }],
-              shadowColor: "#1F5F3F",
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.3,
-              shadowRadius: 8,
-              elevation: 6,
-            })}
-          >
-            <Text style={{ fontSize: 24, color: "#FFFDF7" }}>▶</Text>
-          </Pressable>
-        </View>
+        <Pressable
+          onPress={handlePlayPress}
+          className="bg-garden-green rounded-full items-center justify-center active:opacity-80"
+          style={({ pressed }) => ({
+            width: 56,
+            height: 56,
+            transform: [{ scale: pressed ? 0.9 : 1 }],
+            shadowColor: "#1F5F3F",
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.3,
+            shadowRadius: 8,
+            elevation: 6,
+          })}
+        >
+          <Text style={{ fontSize: 24, color: "#FFFDF7" }}>▶</Text>
+        </Pressable>
       </Animated.View>
     </View>
   );
