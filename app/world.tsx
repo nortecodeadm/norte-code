@@ -39,9 +39,11 @@ const WORLD_LAYOUT = {
   pedra: { top: pctH(50), right: pctW(15), width: pctW(20) },
   tronco: { top: pctH(58), right: pctW(35), width: pctW(28) },
 
-  // Protagonistas — canto INFERIOR ESQUERDO, juntos
-  avatar: { bottom: pctH(5), left: pctW(8), width: pctW(35) },
-  mascote: { bottom: pctH(5), left: pctW(42), width: pctW(20) },
+  // Protagonistas — INFERIOR ESQUERDO
+  // Avatar: box GRANDE pra compensar margem do PNG (quadrado, conteúdo ocupa ~52%)
+  avatar: { bottom: pctH(2), left: pctW(0), width: pctW(60) },
+  // Mascote: PNG do cachorro tem 95% preenchimento — box menor OK
+  mascote: { bottom: pctH(5), left: pctW(50), width: pctW(20) },
 
   // Recompensa — canto INFERIOR DIREITO
   sementinha: { bottom: pctH(8), right: pctW(15), width: pctW(12) },
