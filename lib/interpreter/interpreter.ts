@@ -110,6 +110,9 @@ export function executeProgram(
   // Deep clone the initial state to avoid mutations
   const world: WorldState = JSON.parse(JSON.stringify(initialState));
 
+  // Preserve the original goalCondition reference (functions are lost during JSON clone)
+  world.goalCondition = initialState.goalCondition;
+
   const ctx: ExecutionContext = {
     world,
     steps: [],
