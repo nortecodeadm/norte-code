@@ -37,7 +37,7 @@ const pctH = (p: number) => SCREEN_HEIGHT * (p / 100);
 const WORLD_LAYOUT = {
   // Cenário — quadrante SUPERIOR DIREITO
   pedra: { top: pctH(3), right: pctW(5), width: pctW(20) },
-  tronco: { top: pctH(31.8), right: pctW(30), width: pctW(28) },
+  tronco: { top: pctH(21.5), right: pctW(68), width: pctW(28) },
 
   // Protagonistas — INFERIOR ESQUERDO
   // Avatar: box GRANDE pra compensar margem do PNG (quadrado, conteúdo ocupa ~52%)
@@ -49,7 +49,7 @@ const WORLD_LAYOUT = {
   sementinha: { bottom: pctH(4), left: pctW(38), width: pctW(25) },
 
   // Recompensa Nível 3 — flor ao lado da pedra (quadrante superior direito)
-  flor: { top: pctH(8), right: pctW(3), width: pctW(8) },
+  flor: { top: pctH(47), right: pctW(26), width: pctW(8) },
 
   // UI
   botaoPlay: { bottom: pctH(90), right: pctW(6) },
@@ -208,7 +208,7 @@ export default function WorldScreen() {
               top: WORLD_LAYOUT.tronco.top,
               right: WORLD_LAYOUT.tronco.right,
               width: WORLD_LAYOUT.tronco.width,
-              transform: [{ rotate: '-6deg' }],
+              transform: [{ rotate: '-4deg' }],
               aspectRatio: 1426 / 624,
             }}
           />
@@ -327,6 +327,7 @@ export default function WorldScreen() {
                 right: WORLD_LAYOUT.flor.right,
                 width: WORLD_LAYOUT.flor.width,
                 aspectRatio: 272 / 732,
+                transform: [{ rotate: '-3deg' }],
               },
             ]}
           >
