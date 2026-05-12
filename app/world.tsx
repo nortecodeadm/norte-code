@@ -36,20 +36,20 @@ const pctH = (p: number) => SCREEN_HEIGHT * (p / 100);
 
 const WORLD_LAYOUT = {
   // Cenário — quadrante SUPERIOR DIREITO
-  pedra: { top: pctH(50), right: pctW(15), width: pctW(20) },
-  tronco: { top: pctH(58), right: pctW(35), width: pctW(28) },
+  pedra: { top: pctH(3), right: pctW(5), width: pctW(20) },
+  tronco: { top: pctH(31.8), right: pctW(30), width: pctW(28) },
 
   // Protagonistas — INFERIOR ESQUERDO
   // Avatar: box GRANDE pra compensar margem do PNG (quadrado, conteúdo ocupa ~52%)
-  avatar: { bottom: pctH(2), left: pctW(0), width: pctW(60) },
+  avatar: { bottom: pctH(2), left: pctW(-20), width: pctW(80) },
   // Mascote: PNG do cachorro tem 95% preenchimento — box menor OK
-  mascote: { bottom: pctH(5), left: pctW(50), width: pctW(20) },
+  mascote: { bottom: pctH(7), left: pctW(65), width: pctW(30) },
 
   // Recompensa — canto INFERIOR DIREITO
-  sementinha: { bottom: pctH(8), right: pctW(15), width: pctW(12) },
+  sementinha: { bottom: pctH(4), left: pctW(38), width: pctW(25) },
 
   // UI
-  botaoPlay: { bottom: pctH(4), right: pctW(6) },
+  botaoPlay: { bottom: pctH(90), right: pctW(6) },
 };
 
 // ─── Asset requires ─────────────────────────────────────────────────────────
@@ -193,6 +193,7 @@ export default function WorldScreen() {
               top: WORLD_LAYOUT.tronco.top,
               right: WORLD_LAYOUT.tronco.right,
               width: WORLD_LAYOUT.tronco.width,
+              transform: [{ rotate: '-6deg' }],
               aspectRatio: 1426 / 624,
             }}
           />
@@ -242,15 +243,16 @@ export default function WorldScreen() {
               {
                 position: "absolute",
                 bottom: WORLD_LAYOUT.sementinha.bottom,
-                right: WORLD_LAYOUT.sementinha.right,
+                right: WORLD_LAYOUT.sementinha.left,
                 width: WORLD_LAYOUT.sementinha.width,
+                aspectRatio: 838 / 580,
               },
             ]}
           >
             <Image
               source={MUNDO_SEMENTINHA}
               resizeMode="contain"
-              style={{ width: "100%", aspectRatio: 838 / 580 }}
+              style={{ width: "100%", height: "100%" }}
             />
           </Animated.View>
         )}

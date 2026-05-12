@@ -77,45 +77,24 @@ export function ExecuteButton({
     : config.label;
 
   return (
-    <Animated.View
-      style={[
-        animStyle,
-        {
-          marginHorizontal: 16,
-          marginBottom: 16,
-          marginTop: 8,
-          alignSelf: 'stretch',
-        },
-      ]}
+    <Pressable
+      onPress={() => !isDisabled && onPress()}
+      style={{
+        backgroundColor: isDisabled && state !== "running" ? "#7A9E7E" : config.bg,
+        height: 60,
+        margin: 16,
+        borderRadius: 16,
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
     >
-      <Pressable
-        onPress={() => !isDisabled && onPress()}
-        style={({ pressed }) => ({
-          backgroundColor: isDisabled && state !== "running" ? "#7A9E7E" : config.bg,
-          borderRadius: 16,
-          paddingVertical: 16,
-          paddingHorizontal: 24,
-          alignItems: "center" as const,
-          justifyContent: "center" as const,
-          opacity: pressed && !isDisabled ? 0.8 : 1,
-          transform: [{ scale: pressed && !isDisabled ? 0.97 : 1 }],
-          shadowColor: config.bg,
-          shadowOffset: { width: 0, height: 3 },
-          shadowOpacity: isDisabled ? 0.1 : 0.3,
-          shadowRadius: 6,
-          elevation: isDisabled ? 2 : 4,
-        })}
-      >
-        <Text
-          style={{
-            fontFamily: "Nunito-Bold",
-            fontSize: 16,
-            color: isDisabled && state !== "running" ? "#D4E8D4" : config.text,
-          }}
-        >
-          {displayLabel}
-        </Text>
-      </Pressable>
-    </Animated.View>
+      <Text style={{
+        fontFamily: "Nunito-Bold",
+        fontSize: 16,
+        color: isDisabled && state !== "running" ? "#D4E8D4" : config.text,
+      }}>
+        {displayLabel}
+      </Text>
+    </Pressable>
   );
 }

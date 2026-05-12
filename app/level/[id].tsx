@@ -350,7 +350,7 @@ export default function LevelScreen() {
       />
 
       {/* Scrollable middle: ProgramArea takes remaining space */}
-      <View style={{ flex: 1, minHeight: 60 }}>
+      <View style={{ flex: 1, minHeight: 60, maxHeight: 250 }}>
         <ProgramArea
           blocks={programBlocks}
           onBlockRemove={handleRemoveBlock}
