@@ -48,6 +48,9 @@ const WORLD_LAYOUT = {
   // Recompensa — canto INFERIOR DIREITO
   sementinha: { bottom: pctH(4), left: pctW(38), width: pctW(25) },
 
+  // Recompensa Nível 3 — flor ao lado da pedra (quadrante superior direito)
+  flor: { top: pctH(8), right: pctW(3), width: pctW(8) },
+
   // UI
   botaoPlay: { bottom: pctH(90), right: pctW(6) },
 };
@@ -320,9 +323,9 @@ export default function WorldScreen() {
               fadeStyle,
               {
                 position: "absolute",
-                top: pctH(45),
-                right: pctW(2),
-                width: pctW(7),
+                top: WORLD_LAYOUT.flor.top,
+                right: WORLD_LAYOUT.flor.right,
+                width: WORLD_LAYOUT.flor.width,
                 aspectRatio: 272 / 732,
               },
             ]}
