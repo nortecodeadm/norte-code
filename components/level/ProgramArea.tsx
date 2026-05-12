@@ -24,6 +24,10 @@ interface ProgramAreaProps {
 
 const BLOCK_COLORS: Record<BlockType, string> = {
   move_forward: "#4A90D9",
+  move_right: "#4A90D9",
+  move_down: "#4A90D9",
+  move_up: "#4A90D9",
+  move_left: "#4A90D9",
   turn_left: "#7B68EE",
   turn_right: "#7B68EE",
   plant: "#5D8A3C",
@@ -39,6 +43,10 @@ const BLOCK_COLORS: Record<BlockType, string> = {
 
 const BLOCK_LABELS: Record<BlockType, string> = {
   move_forward: "Andar →",
+  move_right: "Direita →",
+  move_down: "Descer ↓",
+  move_up: "Subir ↑",
+  move_left: "Esquerda ←",
   turn_left: "↰ Esquerda",
   turn_right: "Direita ↱",
   plant: "🌱 Plantar",

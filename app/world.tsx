@@ -58,6 +58,8 @@ const MUNDO_PEDRA = require("../assets/mundo/mundo_pedra.png");
 const MUNDO_TRONCO = require("../assets/mundo/mundo_tronco.png");
 const MUNDO_SEMENTINHA = require("../assets/mundo/mundo_sementinha.png");
 const MUNDO_BROTO = require("../assets/mundo/mundo_broto.png");
+const MUNDO_BROTO_CRESCIDO = require("../assets/mundo/mundo_broto_crescido.png");
+const MUNDO_FLOR = require("../assets/mundo/mundo_flor.png");
 
 /**
  * World Screen — The player's permanent home.
@@ -71,6 +73,8 @@ export default function WorldScreen() {
   const [nextLevel, setNextLevel] = useState(1);
   const [showSeed, setShowSeed] = useState(false);
   const [showSprout, setShowSprout] = useState(false);
+  const [showGrownSprout, setShowGrownSprout] = useState(false);
+  const [showFlower, setShowFlower] = useState(false);
 
   // Animations
   const fadeIn = useSharedValue(0);
@@ -115,12 +119,16 @@ export default function WorldScreen() {
       storage.keys.WORLD_ELEMENTS
     );
     console.log('[world] worldElements loaded:', worldElements);
+    const hasGrownSprout = worldElements?.includes("grown_sprout_lvl3") ?? false;
     const hasSprout = worldElements?.includes("sprout_lvl2") ?? false;
     const hasSeed = worldElements?.includes("seed_lvl1") ?? false;
+    const hasFlower = worldElements?.includes("flower_lvl3") ?? false;
 
-    // Sprout replaces seed visually (seed only shows if sprout doesn't exist)
-    setShowSprout(hasSprout);
-    setShowSeed(hasSeed && !hasSprout);
+    // Substitution chain: grown_sprout > sprout > seed (only most evolved shows)
+    setShowGrownSprout(hasGrownSprout);
+    setShowSprout(hasSprout && !hasGrownSprout);
+    setShowSeed(hasSeed && !hasSprout && !hasGrownSprout);
+    setShowFlower(hasFlower);
   }, []);
 
   useFocusEffect(
@@ -277,6 +285,50 @@ export default function WorldScreen() {
           >
             <Image
               source={MUNDO_BROTO}
+              resizeMode="contain"
+              style={{ width: "100%", height: "100%" }}
+            />
+          </Animated.View>
+        )}
+
+        {/* Z-layer 3.7: Broto crescido (recompensa do Nível 3) — substitui broto, mesma posição */}
+        {showGrownSprout && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                bottom: WORLD_LAYOUT.sementinha.bottom,
+                left: WORLD_LAYOUT.sementinha.left,
+                width: WORLD_LAYOUT.sementinha.width,
+                aspectRatio: 534 / 774,
+              },
+            ]}
+          >
+            <Image
+              source={MUNDO_BROTO_CRESCIDO}
+              resizeMode="contain"
+              style={{ width: "100%", height: "100%" }}
+            />
+          </Animated.View>
+        )}
+
+        {/* Z-layer 3.8: Flor (recompensa do Nível 3) — ao lado da pedra */}
+        {showFlower && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                top: pctH(45),
+                right: pctW(2),
+                width: pctW(7),
+                aspectRatio: 272 / 732,
+              },
+            ]}
+          >
+            <Image
+              source={MUNDO_FLOR}
               resizeMode="contain"
               style={{ width: "100%", height: "100%" }}
             />

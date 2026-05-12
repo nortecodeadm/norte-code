@@ -67,6 +67,9 @@ export function LevelScene({ world }: LevelSceneProps) {
   const hasWateringSpot = world.grid.some((row) =>
     row.some((cell) => cell.content === "watering_spot")
   );
+  const hasRock = world.grid.some((row) =>
+    row.some((cell) => cell.content === "rock")
+  );
 
   return (
     <View
@@ -273,6 +276,27 @@ export function LevelScene({ world }: LevelSceneProps) {
               }}
             >
               Regar
+            </Text>
+          </View>
+        )}
+        {hasRock && (
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+            <View
+              style={{
+                width: 14,
+                height: 14,
+                borderRadius: 4,
+                backgroundColor: "#BCAAA4",
+              }}
+            />
+            <Text
+              style={{
+                fontSize: 11,
+                color: "#5D7A5D",
+                fontFamily: "Nunito-Regular",
+              }}
+            >
+              Pedra
             </Text>
           </View>
         )}

@@ -24,9 +24,13 @@ export interface LevelDefinition {
   maxBlocks: number; // Max blocks the child can use
   errorMessages: Record<string, string>; // Contextual error messages
   reward: {
-    elementKey: string; // Key for world_elements storage
+    elementKey?: string; // Key for world_elements storage (Levels 1-2)
     replaces?: string; // If set, this reward visually replaces the given element
     message: string; // Success message shown to child
+    elements?: Array<{
+      add: string;       // Key to add to WORLD_ELEMENTS
+      replaces?: string; // Key this element visually replaces
+    }>; // Multi-reward system (Level 3+)
   };
 }
 
@@ -153,9 +157,79 @@ function createLevel2(): LevelDefinition {
   };
 }
 
-// ─── Level Registry ────────────────────────────────────────────────────────
+// ─── Level 3: Desvio de obstáculo — Grade 2D (Descer → Direita → Direita → Subir → Plantar) ──
 
-const LEVELS: LevelDefinition[] = [createLevel1(), createLevel2()];
+function createLevel3(): LevelDefinition {
+  // 3×2 grid: player starts at (0,0)
+  // Rock at (1,0) blocks direct path
+  // Flowerbed at (2,0) is the target
+  // Solution: Descer → Direita → Direita → Subir → Plantar
+  const gridWidth = 3;
+  const gridHeight = 2;
+
+  const grid: Cell[][] = [];
+  for (let y = 0; y < gridHeight; y++) {
+    const row: Cell[] = [];
+    for (let x = 0; x < gridWidth; x++) {
+      row.push({ position: { x, y }, content: "empty" });
+    }
+    grid.push(row);
+  }
+
+  // Rock obstacle at (1,0) — blocks direct path
+  grid[0][1].content = "rock";
+  // Flowerbed at (2,0) — target
+  grid[0][2].content = "flowerbed";
+
+  const initialWorld: WorldState = {
+    grid,
+    gridWidth,
+    gridHeight,
+    player: {
+      position: { x: 0, y: 0 },
+      direction: "east",
+      inventory: { fruits: 0 },
+    },
+    goalCondition: {
+      type: "custom",
+      check: (state: WorldState) => {
+        // Flowerbed at (2,0) must have been planted (content = seed)
+        return state.grid[0][2].content === "seed";
+      },
+    },
+  };
+
+  return {
+    id: 3,
+    title: "Desviando do caminho",
+    description: "Uma pedra está no caminho! Desça, vá pra direita e suba pra chegar no canteiro.",
+    hint: "A pedra bloqueia o caminho direto. Que tal descer primeiro, andar pra direita, e depois subir?",
+    objective: "🪨 Desvie da pedra para plantar",
+    gridWidth,
+    gridHeight,
+    initialWorld,
+    availableBlocks: ["move_down", "move_right", "move_up", "plant"],
+    maxBlocks: 8,
+    errorMessages: {
+      blocked_by_rock: "Cuidado! Tem uma pedra no caminho. Você precisa desviar.",
+      not_at_planting_spot: "O canteiro está lá, mas você não chegou nele. Olha o caminho de novo.",
+      no_plant: 'Você chegou no canteiro mas esqueceu de plantar! Use o bloco "Plantar" no final.',
+      out_of_grid: "Espera! Você está tentando ir pra fora do mundo. Olha onde dá pra andar.",
+      wrong_path: "Tem uma pedra no caminho! Tente outro caminho.",
+    },
+    reward: {
+      message: "Bom! Às vezes o caminho não é reto. Programar é dar direção certa.",
+      elements: [
+        { add: "grown_sprout_lvl3", replaces: "sprout_lvl2" },
+        { add: "flower_lvl3" },
+      ],
+    },
+  };
+}
+
+// ─── Level Registry ──────────────────────────────────────────────────────────────────────────
+
+const LEVELS: LevelDefinition[] = [createLevel1(), createLevel2(), createLevel3()];
 
 export function getLevel(id: number): LevelDefinition | undefined {
   return LEVELS.find((l) => l.id === id);

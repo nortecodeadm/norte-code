@@ -21,6 +21,10 @@ const BLOCK_CONFIG: Record<
   { label: string; color: string; icon: string }
 > = {
   move_forward: { label: "Andar", color: "#4A90D9", icon: "→" },
+  move_right: { label: "Direita", color: "#4A90D9", icon: "→" },
+  move_down: { label: "Descer", color: "#4A90D9", icon: "↓" },
+  move_up: { label: "Subir", color: "#4A90D9", icon: "↑" },
+  move_left: { label: "Esquerda", color: "#4A90D9", icon: "←" },
   turn_left: { label: "Esquerda", color: "#7B68EE", icon: "↰" },
   turn_right: { label: "Direita", color: "#7B68EE", icon: "↱" },
   plant: { label: "Plantar", color: "#5D8A3C", icon: "🌱" },

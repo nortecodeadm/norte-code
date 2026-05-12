@@ -11,6 +11,10 @@
 
 export type BlockType =
   | "move_forward"
+  | "move_right"
+  | "move_down"
+  | "move_up"
+  | "move_left"
   | "turn_left"
   | "turn_right"
   | "plant"
@@ -87,6 +91,10 @@ export function createBlock(
 ): Block {
   const labels: Record<BlockType, string> = {
     move_forward: "Andar para frente",
+    move_right: "Direita",
+    move_down: "Descer",
+    move_up: "Subir",
+    move_left: "Esquerda",
     turn_left: "Virar à esquerda",
     turn_right: "Virar à direita",
     plant: "Plantar",

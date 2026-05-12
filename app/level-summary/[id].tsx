@@ -57,7 +57,6 @@ export default function LevelSummaryScreen() {
     if (!level) return;
 
     console.log('[level-summary] Saving progress for level', levelId);
-    console.log('[level-summary] reward.elementKey:', level.reward.elementKey);
 
     // Save level completion
     const progress = (await storage.get<Record<number, boolean>>(
@@ -66,15 +65,24 @@ export default function LevelSummaryScreen() {
     progress[levelId] = true;
     await storage.set(storage.keys.LEVEL_PROGRESS, progress);
 
-    // Save world element reward
+    // Save world element rewards
     const elements = (await storage.get<string[]>(
       storage.keys.WORLD_ELEMENTS
     )) ?? [];
-    if (!elements.includes(level.reward.elementKey)) {
+
+    if (level.reward.elements && level.reward.elements.length > 0) {
+      // Multi-reward system (Level 3+)
+      for (const el of level.reward.elements) {
+        if (!elements.includes(el.add)) {
+          elements.push(el.add);
+        }
+      }
+    } else if (level.reward.elementKey && !elements.includes(level.reward.elementKey)) {
+      // Legacy single-reward (Levels 1-2)
       elements.push(level.reward.elementKey);
-      await storage.set(storage.keys.WORLD_ELEMENTS, elements);
     }
 
+    await storage.set(storage.keys.WORLD_ELEMENTS, elements);
     console.log('[level-summary] WORLD_ELEMENTS now:', elements);
     setSaved(true);
   };

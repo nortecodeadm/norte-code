@@ -201,7 +201,10 @@ export default function LevelScreen() {
     blocks: ProgramBlock[]
   ): string => {
     const hasPlantBlock = blocks.some((b) => b.type === "plant");
-    const hasMoveBlock = blocks.some((b) => b.type === "move_forward");
+    const hasMoveBlock = blocks.some((b) =>
+      b.type === "move_forward" || b.type === "move_right" ||
+      b.type === "move_down" || b.type === "move_up" || b.type === "move_left"
+    );
     const hasWaterBlock = blocks.some((b) => b.type === "water");
 
     if (!hasMoveBlock && !hasPlantBlock) {
@@ -217,12 +220,21 @@ export default function LevelScreen() {
       return level.errorMessages.no_water || "Faltou regar! Use o bloco \"Regar\".";
     }
 
+    // Check if player tried to move into a rock (fail_move happened)
+    // If flowerbed still exists and there's a rock in the grid, likely blocked
+    const hasRock = finalState.grid.some((row) =>
+      row.some((cell) => cell.content === "rock")
+    );
+
     // Check if flowerbed still unplanted
     const hasFlowerbedRemaining = finalState.grid.some((row) =>
       row.some((cell) => cell.content === "flowerbed")
     );
+    if (hasFlowerbedRemaining && hasRock) {
+      return level.errorMessages.blocked_by_rock || level.errorMessages.wrong_path || "Tem uma pedra no caminho! Tente outro caminho.";
+    }
     if (hasFlowerbedRemaining) {
-      return level.errorMessages.plant_wrong_spot || level.errorMessages.wrong_position || "Você precisa andar até o canteiro antes de plantar!";
+      return level.errorMessages.not_at_planting_spot || level.errorMessages.plant_wrong_spot || level.errorMessages.wrong_position || "Você precisa andar até o canteiro antes de plantar!";
     }
 
     // Check if watering_spot still unwatered

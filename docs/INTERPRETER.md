@@ -1,7 +1,7 @@
 # Interpretador de Blocos — Norte Code
 
 **Última atualização:** 05/05/2026
-**Versão:** 1.0.0 (Engine implementada — Nível 1 jogável)
+**Versão:** 1.2.0 (Engine com movimentos absolutos — Nível 3 jogável)
 
 ---
 
@@ -36,24 +36,40 @@ Ações são os blocos atômicos — cada um executa uma operação no mundo:
 
 ```json
 { "type": "action", "name": "walk_forward", "id": "blk_1" }
-{ "type": "action", "name": "plant", "id": "blk_2" }
-{ "type": "action", "name": "turn_left", "id": "blk_3" }
-{ "type": "action", "name": "water", "id": "blk_4" }
-{ "type": "action", "name": "pick_fruit", "id": "blk_5" }
+{ "type": "action", "name": "move_right", "id": "blk_2" }
+{ "type": "action", "name": "move_down", "id": "blk_3" }
+{ "type": "action", "name": "move_up", "id": "blk_4" }
+{ "type": "action", "name": "plant", "id": "blk_5" }
+{ "type": "action", "name": "water", "id": "blk_6" }
+{ "type": "action", "name": "pick_fruit", "id": "blk_7" }
 ```
 
 O campo `id` é opcional e usado para highlight visual durante execução.
 
 **Ações disponíveis:**
 
-| name | Efeito | Introduzido |
-|------|--------|-------------|
-| `walk_forward` / `move_forward` | Move 1 célula na direção atual | Nível 1 |
-| `turn_left` | Gira 90° anti-horário | Nível 3 |
-| `turn_right` | Gira 90° horário | Nível 3 |
-| `plant` | Planta semente na célula atual | Nível 1 |
-| `water` | Rega (seed→sprout, sprout→flower, watering_spot→watered) | Nível 2 |
-| `pick_fruit` | Coleta fruta da célula atual | Nível 8 |
+| name | Efeito | Tipo | Introduzido |
+|------|--------|------|-------------|
+| `walk_forward` / `move_forward` | Move 1 célula na direção atual do player | Relativo | Nível 1 |
+| `move_right` | Move 1 célula para a direita (leste, +X) | Absoluto | Nível 3 |
+| `move_down` | Move 1 célula para baixo (sul, +Y) | Absoluto | Nível 3 |
+| `move_up` | Move 1 célula para cima (norte, -Y) | Absoluto | Nível 3 |
+| `move_left` | Move 1 célula para a esquerda (oeste, -X) | Absoluto | Reservado |
+| `turn_left` | Gira 90° anti-horário | Relativo | Reservado |
+| `turn_right` | Gira 90° horário | Relativo | Reservado |
+| `plant` | Planta semente na célula atual | Ação | Nível 1 |
+| `water` | Rega (seed→sprout, sprout→flower, watering_spot→watered) | Ação | Nível 2 |
+| `pick_fruit` | Coleta fruta da célula atual | Ação | Reservado |
+
+**Movimentos relativos vs absolutos:**
+- **Relativos** (`walk_forward`, `turn_*`): dependem de `player.direction`. Usados nos Níveis 1-2.
+- **Absolutos** (`move_right`, `move_down`, `move_up`, `move_left`): ignoram `player.direction`, movem em direção fixa da tela. Usados no Nível 3+.
+- Ambos coexistem no interpretador. Cada nível define quais blocos estão disponíveis.
+
+**Validação de movimento (todos os tipos):**
+- Bounds check: se a posição destino está fora do grid → `fail_move`
+- Obstacle check: se a célula destino contém `rock` → `fail_move`
+- Sucesso: atualiza `player.position` → `move`
 
 ### 2.3 Loop (níveis 4+)
 

@@ -199,6 +199,49 @@ function executeAction(node: ActionNode, ctx: ExecutionContext): void {
       break;
     }
 
+    // ─── Absolute directional moves (Level 3+) ─────────────────────────
+    // These move in absolute screen directions, ignoring player.direction.
+    // move_right = east (+x), move_left = west (-x)
+    // move_down = south (+y), move_up = north (-y)
+    case "move_right":
+    case "move_down":
+    case "move_up":
+    case "move_left": {
+      const absoluteVectors: Record<string, Position> = {
+        move_right: { x: 1, y: 0 },
+        move_left: { x: -1, y: 0 },
+        move_down: { x: 0, y: 1 },
+        move_up: { x: 0, y: -1 },
+      };
+      const absVec = absoluteVectors[node.name];
+      const absNewPos: Position = {
+        x: player.position.x + absVec.x,
+        y: player.position.y + absVec.y,
+      };
+
+      // Bounds check
+      if (
+        absNewPos.x < 0 ||
+        absNewPos.x >= world.gridWidth ||
+        absNewPos.y < 0 ||
+        absNewPos.y >= world.gridHeight
+      ) {
+        action = "fail_move";
+        break;
+      }
+
+      // Obstacle check
+      const absTargetCell = world.grid[absNewPos.y][absNewPos.x];
+      if (absTargetCell.content === "rock") {
+        action = "fail_move";
+        break;
+      }
+
+      player.position = absNewPos;
+      action = "move";
+      break;
+    }
+
     case "turn_left": {
       player.direction = TURN_LEFT[player.direction];
       action = "turn";

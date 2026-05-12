@@ -580,3 +580,22 @@ A Gemini Pro foi usada para gerar os avatares finais como imagens completas pré
 **Resultado:** Flexibilidade para níveis futuros com condições complexas sem poluir o enum de GoalCondition.
 **Decisor:** Manus (decisão técnica alinhada com briefing)
 
+---
+### [12/05/2026] Movimentos absolutos (move_right, move_down, move_up) a partir do Nível 3
+**Decisão:** Movimentos do avatar a partir do Nível 3 usam referência ABSOLUTA da tela (direita/descer/subir). `walk_forward` dos Níveis 1-2 permanece inalterado.
+**Contexto:** Nível 3 introduz grade 2D (3×2). Movimentos relativos (frente/virar) seriam confusos para crianças de 7-10 anos em grade 2D. Movimentos absolutos (→↓↑) são intuitivos: "direita" sempre vai pra direita.
+**Alternativa descartada:** Refatorar Níveis 1-2 para usar movimentos absolutos — violaria o princípio de complexidade crescente sem retroatividade.
+**Resultado:** `move_right`, `move_down`, `move_up`, `move_left` coexistem com `move_forward` no interpretador. Cada nível usa os blocos adequados à sua mecânica.
+**Decisor:** Gui (via briefing do Claude)
+---
+### [12/05/2026] WorldState suporta grade 2D para todos os níveis (sem estrutura linear separada)
+**Decisão:** Todos os níveis usam a mesma estrutura `grid[row][col]` 2D. Níveis 1-2 são grids com `gridHeight: 1` (efetivamente lineares). Nível 3+ usa `gridHeight > 1`.
+**Contexto:** O código já usava `grid[][]` desde o início. Não há necessidade de criar uma estrutura `cells[]` linear separada — a grade 2D com 1 linha já é linear.
+**Resultado:** Sem refatoração necessária. O interpretador funciona identicamente para qualquer dimensão de grid.
+**Decisor:** Manus (decisão técnica — simplificação)
+---
+### [12/05/2026] Sistema de recompensas com múltiplas operações (elements[])
+**Decisão:** `reward.elements[]` permite múltiplas operações de add/replace por nível. Mantém compatibilidade com `reward.elementKey` dos Níveis 1-2.
+**Contexto:** Nível 3 premia com 2 elementos: broto crescido (substitui broto) + flor (novo). O formato antigo (`elementKey` + `replaces`) só suportava 1 operação.
+**Implementação:** `level-summary` detecta se `elements[]` existe e itera; senão, usa `elementKey` (legacy). `world.tsx` usa cadeia de substituição: grown_sprout > sprout > seed.
+**Decisor:** Gui (via briefing do Claude)

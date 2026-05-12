@@ -1,7 +1,7 @@
 # Níveis — Norte Code MVP
 
 **Última atualização:** 12/05/2026
-**Versão:** 1.1.0 (Nível 2 jogável)
+**Versão:** 1.2.0 (Nível 3 jogável)
 
 ---
 
@@ -89,14 +89,48 @@ Cada nível ensina **uma única coisa**. Não acumular conceitos novos por níve
 - Caminho errado: "Acho que o caminho não está certo. Olha onde está o canteiro e onde precisa regar."
 - Plantou no lugar errado: "A sementinha precisa ser plantada no canteiro marcado."
 
-## Nível 3 — Introdução à direção
+## Nível 3 — Desviando do caminho (Grade 2D) ✅ IMPLEMENTADO
 
-- **Conceito:** sequência com escolha de direção
-- **Cenário:** avatar desvia de pedra pra chegar à sementinha
-- **Blocos:** [Andar para frente] [Virar à direita] [Virar à esquerda] [Plantar]
-- **Solução:** [Andar] [Virar direita] [Andar] [Virar esquerda] [Andar] [Plantar]
-- **Recompensa visual:** flor crescendo ao lado da pedra
+- **Conceito:** movimentos direcionais absolutos + obstáculo
+- **Cenário:** avatar desvia de pedra usando movimentos absolutos (descer, direita, subir)
+- **Blocos:** [Descer ↓] [Direita →] [Subir ↑] [Plantar 🌱]
+- **Solução:** [Descer] [Direita] [Direita] [Subir] [Plantar]
+- **Recompensa visual:** broto cresce (substitui broto) + flor ao lado da pedra no Mundo
 - **Texto:** "Bom! Às vezes o caminho não é reto. Programar é dar direção certa."
+
+**Implementação técnica:**
+- Grid: 3×2, player em (0,0)
+- Célula (1,0) marcada como `rock` (obstáculo — fundo marrom, ícone 🪨)
+- Célula (2,0) marcada como `flowerbed` (canteiro — borda pontilhada verde)
+- Condição de vitória: `custom` (célula (2,0) = `seed`)
+- Max blocos: 8
+- Reward: multi-element (`grown_sprout_lvl3` replaces `sprout_lvl2` + `flower_lvl3`)
+- Arquivo: `lib/levels/index.ts` → `createLevel3()`
+
+**Mecânica nova — Movimentos absolutos:**
+- `move_right` (→): move +1 no eixo X (leste)
+- `move_down` (↓): move +1 no eixo Y (sul)
+- `move_up` (↑): move -1 no eixo Y (norte)
+- Coexistem com `move_forward` dos Níveis 1-2 (que usa direção relativa do player)
+- `move_left` (←): implementado no interpretador, reservado para níveis futuros
+
+**Mecânica nova — Obstáculo (pedra):**
+- `rock` em CellContent: bloqueia movimento (retorna `fail_move`)
+- Visual: fundo marrom (#BCAAA4) com ícone 🪨
+- Legenda dinâmica: "Pedra" aparece na legenda quando grid contém rock
+
+**Sistema de recompensas múltiplas:**
+- `reward.elements[]` com operações `add` e `replaces`
+- `grown_sprout_lvl3` substitui `sprout_lvl2` visualmente no Mundo
+- `flower_lvl3` é adicionado como novo elemento (ao lado da pedra)
+- Cadeia de substituição: grown_sprout > sprout > seed (só o mais evoluído aparece)
+- Assets: `mundo_broto_crescido.png` (534×774) e `mundo_flor.png` (272×732)
+
+**Mensagens de erro contextuais:**
+- Bloqueado por pedra: "Cuidado! Tem uma pedra no caminho. Você precisa desviar."
+- Não chegou no canteiro: "O canteiro está lá, mas você não chegou nele."
+- Esqueceu de plantar: "Você chegou no canteiro mas esqueceu de plantar!"
+- Fora do grid: "Espera! Você está tentando ir pra fora do mundo."
 
 ## Nível 4 — Primeira repetição (loop fixo simples)
 
