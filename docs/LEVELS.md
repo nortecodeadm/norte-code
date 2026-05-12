@@ -1,7 +1,7 @@
 # Níveis — Norte Code MVP
 
-**Última atualização:** 05/05/2026
-**Versão:** 1.0.0 (Nível 1 jogável)
+**Última atualização:** 12/05/2026
+**Versão:** 1.1.0 (Nível 2 jogável)
 
 ---
 
@@ -55,14 +55,39 @@ Cada nível ensina **uma única coisa**. Não acumular conceitos novos por níve
 - Ao voltar pra Tela Mundo, se `seed_lvl1` está em `WORLD_ELEMENTS`, renderiza `mundo_sementinha.png` na posição definida em `WORLD_LAYOUT`
 - Persistência: local (AsyncStorage) + remoto (Supabase `world_elements` quando online)
 
-## Nível 2 — Sequência mais longa (3-4 passos)
+## Nível 2 — Sequência mais longa (5 passos) ✅ IMPLEMENTADO
 
-- **Conceito:** sequência (reforço)
-- **Cenário:** avatar anda até sementinha, planta, anda até regador, rega
-- **Blocos:** [Andar para frente] (várias) [Plantar] [Regar]
-- **Solução:** [Andar] [Andar] [Plantar] [Andar] [Regar]
-- **Recompensa visual:** primeiro broto verde no Mundo
+- **Conceito:** sequência (reforço do Nível 1, com mais passos)
+- **Cenário:** avatar anda até canteiro, planta, anda mais um passo, rega
+- **Blocos:** [Andar para frente] [Plantar] [Regar]
+- **Solução:** [Andar] [Andar] [Plantar] [Andar] [Andar] [Regar]
+- **Recompensa visual:** broto verde **substitui** a sementinha do Nível 1
 - **Texto:** "Sequências mais longas funcionam igual. Um passo de cada vez, na ordem certa."
+
+**Implementação técnica:**
+- Grid: 5×1, player em (0,0) facing east
+- Célula (2,0) marcada como `flowerbed` (canteiro — borda pontilhada laranja)
+- Célula (4,0) marcada como `watering_spot` (destino regar — borda pontilhada azul)
+- Condição de vitória: `custom` (célula 2 = `seed` E célula 4 = `watered`)
+- Max blocos: 6
+- Reward key: `sprout_lvl2` (replaces: `seed_lvl1`)
+- Arquivo: `lib/levels/index.ts` → `createLevel2()`
+
+**Mecânica nova — Regar:**
+- Bloco `water` já existia no interpretador (transforma seed→sprout, sprout→flower)
+- Adicionado: `watering_spot` → `watered` quando o avatar executa `water` nessa célula
+- Animação: mesma cadeia de 600ms/step do Nível 1, célula muda de cor ao ser regada
+
+**Sistema de substituição de recompensas:**
+- Ambos `seed_lvl1` e `sprout_lvl2` ficam em `WORLD_ELEMENTS` (histórico)
+- Renderização decide: se `sprout_lvl2` existe, mostra broto; senão, mostra sementinha
+- Asset: `assets/mundo/mundo_broto.png` (610×625, RGBA)
+
+**Mensagens de erro contextuais:**
+- Sem plantar: "Você esqueceu de plantar! Use o bloco 'Plantar' no canteiro marcado."
+- Sem regar: "Você plantou, mas a sementinha precisa de água! Use o bloco 'Regar' no final."
+- Caminho errado: "Acho que o caminho não está certo. Olha onde está o canteiro e onde precisa regar."
+- Plantou no lugar errado: "A sementinha precisa ser plantada no canteiro marcado."
 
 ## Nível 3 — Introdução à direção
 

@@ -241,6 +241,16 @@ function executeAction(node: ActionNode, ctx: ExecutionContext): void {
         ];
         cell.content = newContent;
         action = "water";
+      } else if (cell.content === "watering_spot") {
+        worldChanges = [
+          {
+            position: { ...player.position },
+            from: "watering_spot",
+            to: "watered" as CellContent,
+          },
+        ];
+        cell.content = "watered";
+        action = "water";
       } else {
         action = "water";
       }

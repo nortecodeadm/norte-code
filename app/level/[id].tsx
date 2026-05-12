@@ -198,6 +198,7 @@ export default function LevelScreen() {
   ): string => {
     const hasPlantBlock = blocks.some((b) => b.type === "plant");
     const hasMoveBlock = blocks.some((b) => b.type === "move_forward");
+    const hasWaterBlock = blocks.some((b) => b.type === "water");
 
     if (!hasMoveBlock && !hasPlantBlock) {
       return "Monte seu programa! Toque nos blocos acima.";
@@ -205,20 +206,30 @@ export default function LevelScreen() {
     if (!hasMoveBlock) {
       return level.errorMessages.didnt_move || "Tente andar até o canteiro primeiro!";
     }
-    if (!hasPlantBlock) {
-      return level.errorMessages.no_seed || "Faltou plantar! Use o bloco \"Plantar\".";
+    if (!hasPlantBlock && level.availableBlocks.includes("plant")) {
+      return level.errorMessages.no_plant || level.errorMessages.no_seed || "Faltou plantar! Use o bloco \"Plantar\".";
+    }
+    if (!hasWaterBlock && level.availableBlocks.includes("water")) {
+      return level.errorMessages.no_water || "Faltou regar! Use o bloco \"Regar\".";
     }
 
-    // Check if planted in wrong position
-    const playerPos = finalState.player.position;
+    // Check if flowerbed still unplanted
     const hasFlowerbedRemaining = finalState.grid.some((row) =>
       row.some((cell) => cell.content === "flowerbed")
     );
     if (hasFlowerbedRemaining) {
-      return level.errorMessages.wrong_position || "Você precisa andar até o canteiro antes de plantar!";
+      return level.errorMessages.plant_wrong_spot || level.errorMessages.wrong_position || "Você precisa andar até o canteiro antes de plantar!";
     }
 
-    return "Quase! Tente uma ordem diferente dos blocos.";
+    // Check if watering_spot still unwatered
+    const hasWateringSpotRemaining = finalState.grid.some((row) =>
+      row.some((cell) => cell.content === "watering_spot")
+    );
+    if (hasWateringSpotRemaining && hasWaterBlock) {
+      return level.errorMessages.wrong_path || "Acho que o caminho não está certo. Olha onde precisa regar.";
+    }
+
+    return level.errorMessages.wrong_path || "Quase! Tente uma ordem diferente dos blocos.";
   };
 
   const animateSteps = (

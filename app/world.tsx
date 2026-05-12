@@ -57,6 +57,7 @@ const MUNDO_BG = require("../assets/mundo/mundo_terreno_vazio.png");
 const MUNDO_PEDRA = require("../assets/mundo/mundo_pedra.png");
 const MUNDO_TRONCO = require("../assets/mundo/mundo_tronco.png");
 const MUNDO_SEMENTINHA = require("../assets/mundo/mundo_sementinha.png");
+const MUNDO_BROTO = require("../assets/mundo/mundo_broto.png");
 
 /**
  * World Screen — The player's permanent home.
@@ -69,6 +70,7 @@ export default function WorldScreen() {
   const [player, setPlayer] = useState<PlayerData | null>(null);
   const [nextLevel, setNextLevel] = useState(1);
   const [showSeed, setShowSeed] = useState(false);
+  const [showSprout, setShowSprout] = useState(false);
 
   // Animations
   const fadeIn = useSharedValue(0);
@@ -108,15 +110,17 @@ export default function WorldScreen() {
       setNextLevel(next);
     }
 
-    // Check if seed reward should show (level 1 completed)
+    // Check world element rewards (with substitution logic)
     const worldElements = await storage.get<string[]>(
       storage.keys.WORLD_ELEMENTS
     );
     console.log('[world] worldElements loaded:', worldElements);
-    console.log('[world] showSeed will be:', worldElements?.includes('seed_lvl1'));
-    if (worldElements && worldElements.includes("seed_lvl1")) {
-      setShowSeed(true);
-    }
+    const hasSprout = worldElements?.includes("sprout_lvl2") ?? false;
+    const hasSeed = worldElements?.includes("seed_lvl1") ?? false;
+
+    // Sprout replaces seed visually (seed only shows if sprout doesn't exist)
+    setShowSprout(hasSprout);
+    setShowSeed(hasSeed && !hasSprout);
   }, []);
 
   useFocusEffect(
@@ -251,6 +255,28 @@ export default function WorldScreen() {
           >
             <Image
               source={MUNDO_SEMENTINHA}
+              resizeMode="contain"
+              style={{ width: "100%", height: "100%" }}
+            />
+          </Animated.View>
+        )}
+
+        {/* Z-layer 3.6: Broto (recompensa do Nível 2) — substitui sementinha, mesma posição */}
+        {showSprout && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                bottom: WORLD_LAYOUT.sementinha.bottom,
+                left: WORLD_LAYOUT.sementinha.left,
+                width: WORLD_LAYOUT.sementinha.width,
+                aspectRatio: 610 / 625,
+              },
+            ]}
+          >
+            <Image
+              source={MUNDO_BROTO}
               resizeMode="contain"
               style={{ width: "100%", height: "100%" }}
             />

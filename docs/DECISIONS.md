@@ -554,3 +554,29 @@ A Gemini Pro foi usada para gerar os avatares finais como imagens completas pré
 
 **Decisor:** Gui (via análise do Claude)
 
+
+---
+### [12/05/2026] Nível 2: watering_spot como novo CellContent
+
+**Decisão:** Adicionamos `watering_spot` e `watered` como novos tipos de `CellContent` no world-state.
+**Contexto:** O Nível 2 precisa de uma célula-alvo para a ação "Regar" que é diferente de `flowerbed` (alvo para "Plantar"). Quando o avatar executa `water` em uma célula `watering_spot`, ela se transforma em `watered`.
+**Alternativa descartada:** Usar `flowerbed` para ambos e diferenciar por posição — mais confuso e menos extensível.
+**Resultado:** LevelScene renderiza `watering_spot` com borda tracejada azul (#4A90D9) e label "regar aqui!". Interpretador trata `water` em `watering_spot` → `watered`.
+**Decisor:** Gui (via briefing)
+
+---
+### [12/05/2026] Recompensas com substituição visual (broto substitui sementinha)
+
+**Decisão:** Recompensas podem substituir umas às outras visualmente. Implementação: ambas ficam em `WORLD_ELEMENTS` (histórico), renderização decide qual mostrar.
+**Contexto:** Nível 2 premia com `sprout_lvl2` que visualmente substitui `seed_lvl1`. Manter ambos no storage preserva histórico de progressão para futuras features (galeria de progresso, timeline).
+**Implementação:** `LevelDefinition.reward.replaces?: string` indica qual elemento é substituído. Em `world.tsx`: se `sprout_lvl2` existe, renderiza broto e ignora sementinha.
+**Decisor:** Gui (via briefing do Claude)
+
+---
+### [12/05/2026] Goal condition custom para níveis com múltiplos objetivos
+
+**Decisão:** Nível 2 usa `goalCondition: { type: "custom", check: (state) => ... }` em vez de um tipo pré-definido.
+**Contexto:** O Nível 2 tem dois critérios simultâneos: célula 2 plantada E célula 4 regada. Nenhum dos tipos existentes (`plant_all_seeds`, `water_all_sprouts`) cobre esse caso composto.
+**Resultado:** Flexibilidade para níveis futuros com condições complexas sem poluir o enum de GoalCondition.
+**Decisor:** Manus (decisão técnica alinhada com briefing)
+

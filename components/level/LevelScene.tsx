@@ -28,6 +28,8 @@ const CELL_COLORS: Record<CellContent, string> = {
   puddle: "#B3E5FC",
   rock: "#BCAAA4",
   flowerbed: "#FFF3E0", // Light orange to stand out as target
+  watering_spot: "#E3F2FD", // Light blue to indicate watering target
+  watered: "#B3E5FC", // Blue when watered
   basket: "#D7CCC8",
 };
 
@@ -40,7 +42,9 @@ const CELL_ICONS: Record<CellContent, string> = {
   puddle: "💧",
   rock: "🪨",
   flowerbed: "⭕", // Target indicator
-  basket: "🧺",
+  watering_spot: "💧", // Water drop indicator
+  watered: "💦", // Splashing water (completed)
+  basket: "🧲",
 };
 
 const DIRECTION_ARROWS: Record<Direction, string> = {
@@ -55,6 +59,14 @@ export function LevelScene({ world }: LevelSceneProps) {
   const cellSize = Math.min(maxCellSize, 100);
   const gridWidth = cellSize * world.gridWidth;
   const gridHeight = cellSize * world.gridHeight;
+
+  // Determine which legend items to show based on grid content
+  const hasFlowerbed = world.grid.some((row) =>
+    row.some((cell) => cell.content === "flowerbed")
+  );
+  const hasWateringSpot = world.grid.some((row) =>
+    row.some((cell) => cell.content === "watering_spot")
+  );
 
   return (
     <View
@@ -81,6 +93,9 @@ export function LevelScene({ world }: LevelSceneProps) {
                 world.player.position.y === y;
               const isFlowerbed = cell.content === "flowerbed";
 
+              const isWateringSpot = cell.content === "watering_spot";
+              const isTargetCell = isFlowerbed || isWateringSpot;
+
               return (
                 <View
                   key={`${x}-${y}`}
@@ -88,12 +103,14 @@ export function LevelScene({ world }: LevelSceneProps) {
                     width: cellSize,
                     height: cellSize,
                     backgroundColor: CELL_COLORS[cell.content],
-                    borderWidth: isFlowerbed ? 2.5 : 1,
+                    borderWidth: isTargetCell ? 2.5 : 1,
                     borderColor: isFlowerbed
                       ? "#FF8F00"
-                      : "rgba(31, 95, 63, 0.1)",
-                    borderStyle: isFlowerbed ? "dashed" : "solid",
-                    borderRadius: isFlowerbed ? 12 : 4,
+                      : isWateringSpot
+                        ? "#4A90D9"
+                        : "rgba(31, 95, 63, 0.1)",
+                    borderStyle: isTargetCell ? "dashed" : "solid",
+                    borderRadius: isTargetCell ? 12 : 4,
                     alignItems: "center",
                     justifyContent: "center",
                   }}
@@ -117,9 +134,29 @@ export function LevelScene({ world }: LevelSceneProps) {
                     </View>
                   )}
 
-                  {/* Cell content icon (non-flowerbed, non-empty) */}
+                  {/* Watering spot target label */}
+                  {isWateringSpot && !isPlayer && (
+                    <View style={{ alignItems: "center" }}>
+                      <Text style={{ fontSize: cellSize * 0.3 }}>
+                        {CELL_ICONS.watering_spot}
+                      </Text>
+                      <Text
+                        style={{
+                          fontSize: 9,
+                          color: "#1565C0",
+                          fontFamily: "Nunito-Bold",
+                          marginTop: 2,
+                        }}
+                      >
+                        regar aqui!
+                      </Text>
+                    </View>
+                  )}
+
+                  {/* Cell content icon (non-target, non-empty) */}
                   {cell.content !== "empty" &&
                     !isFlowerbed &&
+                    !isWateringSpot &&
                     !isPlayer && (
                       <Text style={{ fontSize: cellSize * 0.35 }}>
                         {CELL_ICONS[cell.content]}
@@ -167,7 +204,9 @@ export function LevelScene({ world }: LevelSceneProps) {
           flexDirection: "row",
           alignItems: "center",
           marginTop: 8,
-          gap: 16,
+          gap: 12,
+          flexWrap: "wrap",
+          justifyContent: "center",
         }}
       >
         <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
@@ -189,28 +228,54 @@ export function LevelScene({ world }: LevelSceneProps) {
             Você
           </Text>
         </View>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-          <View
-            style={{
-              width: 14,
-              height: 14,
-              borderRadius: 4,
-              borderWidth: 1.5,
-              borderColor: "#FF8F00",
-              borderStyle: "dashed",
-              backgroundColor: "#FFF3E0",
-            }}
-          />
-          <Text
-            style={{
-              fontSize: 11,
-              color: "#5D7A5D",
-              fontFamily: "Nunito-Regular",
-            }}
-          >
-            Canteiro
-          </Text>
-        </View>
+        {hasFlowerbed && (
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+            <View
+              style={{
+                width: 14,
+                height: 14,
+                borderRadius: 4,
+                borderWidth: 1.5,
+                borderColor: "#FF8F00",
+                borderStyle: "dashed",
+                backgroundColor: "#FFF3E0",
+              }}
+            />
+            <Text
+              style={{
+                fontSize: 11,
+                color: "#5D7A5D",
+                fontFamily: "Nunito-Regular",
+              }}
+            >
+              Canteiro
+            </Text>
+          </View>
+        )}
+        {hasWateringSpot && (
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+            <View
+              style={{
+                width: 14,
+                height: 14,
+                borderRadius: 4,
+                borderWidth: 1.5,
+                borderColor: "#4A90D9",
+                borderStyle: "dashed",
+                backgroundColor: "#E3F2FD",
+              }}
+            />
+            <Text
+              style={{
+                fontSize: 11,
+                color: "#5D7A5D",
+                fontFamily: "Nunito-Regular",
+              }}
+            >
+              Regar
+            </Text>
+          </View>
+        )}
       </View>
     </View>
   );

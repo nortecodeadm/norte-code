@@ -17,6 +17,8 @@ export type CellContent =
   | "puddle"
   | "rock"
   | "flowerbed"
+  | "watering_spot"
+  | "watered"
   | "basket";
 
 export interface Position {

@@ -52,7 +52,7 @@ O campo `id` é opcional e usado para highlight visual durante execução.
 | `turn_left` | Gira 90° anti-horário | Nível 3 |
 | `turn_right` | Gira 90° horário | Nível 3 |
 | `plant` | Planta semente na célula atual | Nível 1 |
-| `water` | Rega (seed→sprout, sprout→flower) | Nível 2 |
+| `water` | Rega (seed→sprout, sprout→flower, watering_spot→watered) | Nível 2 |
 | `pick_fruit` | Coleta fruta da célula atual | Nível 8 |
 
 ### 2.3 Loop (níveis 4+)
@@ -154,7 +154,7 @@ interface WorldState {
 
 interface Cell {
   position: Position;
-  content: CellContent;    // "empty" | "seed" | "sprout" | "flower" | "fruit" | "puddle" | "rock" | "flowerbed" | "basket"
+  content: CellContent;    // "empty" | "seed" | "sprout" | "flower" | "fruit" | "puddle" | "rock" | "flowerbed" | "watering_spot" | "watered" | "basket"
 }
 
 interface PlayerState {
