@@ -139,7 +139,9 @@ export default function LevelScreen() {
   };
 
   const resetWorld = () => {
-    setWorldState(JSON.parse(JSON.stringify(level.initialWorld)));
+    const cloned = JSON.parse(JSON.stringify(level.initialWorld));
+    cloned.goalCondition = level.initialWorld.goalCondition;
+    setWorldState(cloned);
     setActiveBlockId(undefined);
   };
 
@@ -151,6 +153,8 @@ export default function LevelScreen() {
     const freshWorld: WorldState = JSON.parse(
       JSON.stringify(level.initialWorld)
     );
+    // Preserve goalCondition (functions are lost during JSON serialization)
+    freshWorld.goalCondition = level.initialWorld.goalCondition;
     setWorldState(freshWorld);
     setExecuteState("running");
     setActiveBlockId(undefined);
