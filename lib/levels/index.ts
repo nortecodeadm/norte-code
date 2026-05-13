@@ -227,9 +227,111 @@ function createLevel3(): LevelDefinition {
   };
 }
 
+// ─── Level 4: Sequência longa em U + introdução do move_left ──────────────────
+// Conceito pedagógico: criança planta 3 canteiros percorrendo um caminho em "U"
+// no sentido horário. Sem bloco repeat — sente o cansaço da repetição manual.
+// Par pedagógico com o Nível 5 (que introduz o repeat sobre o mesmo cenário).
+
+function createLevel4(): LevelDefinition {
+  // 4×4 grid: player starts at (0,0), top-left corner
+  // 6 rochas formam um bloco central (linhas 1-2, colunas 0-2) que força o
+  // caminho em U no sentido horário.
+  // 3 canteiros em (0,3), (3,3), (3,0).
+  // Solução-alvo (12 blocos):
+  //   right×3, plant, down×3, plant, left×3, plant
+  const gridWidth = 4;
+  const gridHeight = 4;
+
+  const grid: Cell[][] = [];
+  for (let y = 0; y < gridHeight; y++) {
+    const row: Cell[] = [];
+    for (let x = 0; x < gridWidth; x++) {
+      row.push({ position: { x, y }, content: "empty" });
+    }
+    grid.push(row);
+  }
+
+  // 6 rochas (bloco central)
+  grid[1][0].content = "rock";
+  grid[2][0].content = "rock";
+  grid[1][1].content = "rock";
+  grid[1][2].content = "rock";
+  grid[2][1].content = "rock";
+  grid[2][2].content = "rock";
+
+  // 3 canteiros — C1 (topo-direita), C2 (base-direita), C3 (base-esquerda)
+  grid[0][3].content = "flowerbed";
+  grid[3][3].content = "flowerbed";
+  grid[3][0].content = "flowerbed";
+
+  const initialWorld: WorldState = {
+    grid,
+    gridWidth,
+    gridHeight,
+    player: {
+      position: { x: 0, y: 0 },
+      direction: "east",
+      inventory: { fruits: 0 },
+    },
+    goalCondition: {
+      type: "custom",
+      check: (state: WorldState) => {
+        // Os 3 canteiros (C1, C2, C3) precisam estar plantados (content === "seed").
+        // A ordem e o tamanho do programa não importam.
+        const c1 = state.grid[0][3].content === "seed";
+        const c2 = state.grid[3][3].content === "seed";
+        const c3 = state.grid[3][0].content === "seed";
+        return c1 && c2 && c3;
+      },
+    },
+  };
+
+  return {
+    id: 4,
+    title: "Plantar três sementes",
+    description:
+      "Vá pela direita, desça, e volte pela esquerda. Plante em cada parada.",
+    hint:
+      "Tem três canteiros: um na direita, outro em baixo, e o último na volta. Anda até cada um e planta.",
+    objective: "🌱 Plante nos três canteiros",
+    gridWidth,
+    gridHeight,
+    initialWorld,
+    availableBlocks: ["move_right", "move_left", "move_up", "move_down", "plant"],
+    maxBlocks: 16,
+    errorMessages: {
+      blocked_by_rock: "Hmm, tem uma pedra aí. Tenta outro caminho.",
+      out_of_grid: "Esse lado não dá. O caminho continua em outra direção.",
+      plant_wrong_spot: "Aqui não tem canteiro. Procura o lugar certo pra plantar.",
+      wrong_position: "Aqui não tem canteiro. Procura o lugar certo pra plantar.",
+      not_at_planting_spot:
+        "Você ainda não chegou em todos os canteiros. Olha o caminho de novo.",
+      no_plant:
+        "Você esqueceu de plantar em algum canteiro. Cada parada precisa de um \"Plantar\".",
+      wrong_path: "Quase! Olha onde estão os canteiros e tenta outro caminho.",
+    },
+    reward: {
+      message:
+        "Você reparou que fez quase a mesma coisa três vezes? Andar pra um lado e plantar. Andar pra outro lado e plantar. Andar pra outro lado e plantar. Programar é assim mesmo — às vezes a gente repete. No próximo nível você vai descobrir um jeito mais esperto de fazer isso.",
+      elements: [
+        { add: "mini_tree_lvl4", replaces: "grown_sprout_lvl3" },
+        { add: "seed_lvl4_a" },
+        { add: "seed_lvl4_b" },
+        { add: "seed_lvl4_c" },
+        { add: "flower_lvl4" },
+      ],
+    },
+  };
+}
+
 // ─── Level Registry ──────────────────────────────────────────────────────────────────────────
 
-const LEVELS: LevelDefinition[] = [createLevel1(), createLevel2(), createLevel3()];
+const LEVELS: LevelDefinition[] = [
+  createLevel1(),
+  createLevel2(),
+  createLevel3(),
+  createLevel4(),
+];
 
 export function getLevel(id: number): LevelDefinition | undefined {
   return LEVELS.find((l) => l.id === id);
