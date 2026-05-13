@@ -191,14 +191,19 @@ export default function LevelScreen() {
     } else {
       setExecuteState("error");
       // Generate contextual error message
-      const errMsg = getContextualError(result.finalState, programBlocks);
+      const errMsg = getContextualError(
+        result.finalState,
+        programBlocks,
+        result.steps
+      );
       setErrorMessage(errMsg);
     }
   };
 
   const getContextualError = (
     finalState: WorldState,
-    blocks: ProgramBlock[]
+    blocks: ProgramBlock[],
+    steps: ExecutionStep[]
   ): string => {
     const hasPlantBlock = blocks.some((b) => b.type === "plant");
     const hasMoveBlock = blocks.some((b) =>
@@ -218,6 +223,25 @@ export default function LevelScreen() {
     }
     if (!hasWaterBlock && level.availableBlocks.includes("water")) {
       return level.errorMessages.no_water || "Faltou regar! Use o bloco \"Regar\".";
+    }
+
+    // Se houve fail_move, escolher mensagem específica baseada no motivo do primeiro
+    // fail_move (rocha ou saída da grade). Mensagens distintas dependem do nível
+    // ter as chaves configuradas — sem chave, cai pra mensagem genérica de caminho.
+    const firstFailMove = steps.find((s) => s.action === "fail_move");
+    if (firstFailMove) {
+      if (
+        firstFailMove.failReason === "out_of_grid" &&
+        level.errorMessages.out_of_grid
+      ) {
+        return level.errorMessages.out_of_grid;
+      }
+      if (
+        firstFailMove.failReason === "rock" &&
+        level.errorMessages.blocked_by_rock
+      ) {
+        return level.errorMessages.blocked_by_rock;
+      }
     }
 
     // Check if player tried to move into a rock (fail_move happened)
