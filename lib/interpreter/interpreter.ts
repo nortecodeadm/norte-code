@@ -166,6 +166,7 @@ function executeAction(node: ActionNode, ctx: ExecutionContext): void {
 
   let action: StepAction;
   let worldChanges: ExecutionStep["worldChanges"];
+  let failReason: ExecutionStep["failReason"];
 
   switch (node.name) {
     case "walk_forward":
@@ -184,6 +185,7 @@ function executeAction(node: ActionNode, ctx: ExecutionContext): void {
         newPos.y >= world.gridHeight
       ) {
         action = "fail_move";
+        failReason = "out_of_grid";
         break;
       }
 
@@ -191,6 +193,7 @@ function executeAction(node: ActionNode, ctx: ExecutionContext): void {
       const targetCell = world.grid[newPos.y][newPos.x];
       if (targetCell.content === "rock") {
         action = "fail_move";
+        failReason = "rock";
         break;
       }
 
@@ -227,6 +230,7 @@ function executeAction(node: ActionNode, ctx: ExecutionContext): void {
         absNewPos.y >= world.gridHeight
       ) {
         action = "fail_move";
+        failReason = "out_of_grid";
         break;
       }
 
@@ -234,6 +238,7 @@ function executeAction(node: ActionNode, ctx: ExecutionContext): void {
       const absTargetCell = world.grid[absNewPos.y][absNewPos.x];
       if (absTargetCell.content === "rock") {
         action = "fail_move";
+        failReason = "rock";
         break;
       }
 
@@ -336,6 +341,7 @@ function executeAction(node: ActionNode, ctx: ExecutionContext): void {
     toState,
     worldChanges,
     blockId: node.id ?? "",
+    failReason,
   });
 }
 

@@ -76,6 +76,7 @@ export interface ExecutionStep {
     to: CellContent;
   }[];
   blockId: string; // Which block produced this step
+  failReason?: "rock" | "out_of_grid"; // Only set when action === "fail_move"
 }
 
 export interface ExecutionResult {
