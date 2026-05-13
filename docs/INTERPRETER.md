@@ -1,7 +1,7 @@
 # Interpretador de Blocos — Norte Code
 
-**Última atualização:** 05/05/2026
-**Versão:** 1.2.0 (Engine com movimentos absolutos — Nível 3 jogável)
+**Última atualização:** 13/05/2026
+**Versão:** 1.3.0 (Mapeamento completo do estado do motor — Nível 3 jogável)
 
 ---
 
@@ -46,30 +46,40 @@ Ações são os blocos atômicos — cada um executa uma operação no mundo:
 
 O campo `id` é opcional e usado para highlight visual durante execução.
 
-**Ações disponíveis:**
+**Ações disponíveis (implementadas no engine):**
 
 | name | Efeito | Tipo | Introduzido |
 |------|--------|------|-------------|
 | `walk_forward` / `move_forward` | Move 1 célula na direção atual do player | Relativo | Nível 1 |
 | `move_right` | Move 1 célula para a direita (leste, +X) | Absoluto | Nível 3 |
+| `move_left` | Move 1 célula para a esquerda (oeste, -X) | Absoluto | Nível 3 |
 | `move_down` | Move 1 célula para baixo (sul, +Y) | Absoluto | Nível 3 |
 | `move_up` | Move 1 célula para cima (norte, -Y) | Absoluto | Nível 3 |
-| `move_left` | Move 1 célula para a esquerda (oeste, -X) | Absoluto | Reservado |
-| `turn_left` | Gira 90° anti-horário | Relativo | Reservado |
-| `turn_right` | Gira 90° horário | Relativo | Reservado |
-| `plant` | Planta semente na célula atual | Ação | Nível 1 |
+| `turn_left` | Gira 90° anti-horário (atualiza `player.direction`) | Relativo | Disponível |
+| `turn_right` | Gira 90° horário (atualiza `player.direction`) | Relativo | Disponível |
+| `plant` | Planta semente em célula `empty` ou `flowerbed` | Ação | Nível 1 |
 | `water` | Rega (seed→sprout, sprout→flower, watering_spot→watered) | Ação | Nível 2 |
-| `pick_fruit` | Coleta fruta da célula atual | Ação | Reservado |
+| `pick_fruit` | Coleta fruta da célula atual (incrementa `inventory.fruits`) | Ação | Disponível |
+
+> **Nota sobre aliases:** `walk_forward` e `move_forward` apontam para o mesmo handler (fall-through no switch de `executeAction`). Os níveis novos usam `move_forward` por consistência com os movimentos absolutos; `walk_forward` é mantido por compatibilidade com a nomenclatura original alinhada com Claude.
+
+> **"Disponível" vs "Introduzido":** ações marcadas como "Disponível" estão implementadas no engine mas ainda não são usadas por nenhum nível em produção. Não há barreira técnica para incluí-las num nível novo.
 
 **Movimentos relativos vs absolutos:**
 - **Relativos** (`walk_forward`, `turn_*`): dependem de `player.direction`. Usados nos Níveis 1-2.
 - **Absolutos** (`move_right`, `move_down`, `move_up`, `move_left`): ignoram `player.direction`, movem em direção fixa da tela. Usados no Nível 3+.
-- Ambos coexistem no interpretador. Cada nível define quais blocos estão disponíveis.
+- Ambos coexistem no interpretador. Cada nível define quais blocos estão disponíveis na paleta.
 
 **Validação de movimento (todos os tipos):**
-- Bounds check: se a posição destino está fora do grid → `fail_move`
-- Obstacle check: se a célula destino contém `rock` → `fail_move`
-- Sucesso: atualiza `player.position` → `move`
+- Bounds check: se a posição destino está fora do grid → `fail_move` (step registrado, posição não muda).
+- Obstacle check: se a célula destino contém `rock` → `fail_move`.
+- Sucesso: atualiza `player.position` → step com `action: "move"`.
+
+**Validação de ações de mordomia:**
+- `plant` em célula não-vazia e não-`flowerbed` → step registrado com `action: "plant"`, mas **nenhuma mudança no mundo**. A criança vê o avatar tentar plantar e nada acontece — feedback implícito.
+- `water` em célula que não seja `seed`/`sprout`/`watering_spot` → idem (no-op silencioso).
+- `pick_fruit` em célula sem fruta → idem.
+- O engine não falha nem aborta — a aprendizagem por tentativa e erro é fundamental no método (ver decisão "Botão Executar: ativo com ≥1 bloco" em DECISIONS.md).
 
 ### 2.3 Loop (níveis 4+)
 
@@ -111,13 +121,16 @@ O campo `else` é opcional. Se omitido, nada acontece quando a condição é fal
 
 **Condições disponíveis:**
 
-| condition | Verdadeiro quando... |
-|-----------|---------------------|
-| `has_seed` | Célula atual contém semente |
-| `has_sprout` | Célula atual contém broto |
-| `has_puddle` | Célula atual contém poça |
-| `has_fruit` | Célula atual contém fruta |
-| `has_flowerbed` | Célula atual contém canteiro |
+| condition | Verdadeiro quando... | Status no engine |
+|-----------|---------------------|------------------|
+| `has_seed` | Célula atual contém semente | Implementada |
+| `has_sprout` | Célula atual contém broto | Implementada |
+| `has_puddle` | Célula atual contém poça | Implementada |
+| `has_fruit` | Célula atual contém fruta | Implementada |
+| `has_flowerbed` | Célula atual contém canteiro | Implementada |
+| `fruits_equal` | `player.inventory.fruits` igual a N (`conditionValue`) | **Declarada em `ConditionType` mas não implementada em `evaluateCondition` — sempre retorna `false`.** Ver dívida técnica em DECISIONS.md. |
+
+Todas as condições implementadas hoje olham a **célula atual do player**. Condições que dependem de inventário ou estado global do mundo (como `fruits_equal`) exigem extensão do `evaluateCondition`.
 
 ---
 
@@ -297,14 +310,46 @@ Limite: `MAX_EXECUTION_STEPS = 200`. Se ultrapassado:
 
 ## 12. Status de Implementação
 
+**Engine (lib/interpreter/):**
 - [x] AST JSON definido (Program, Action, Loop, If)
-- [x] Engine de execução sequencial
+- [x] Engine de execução sequencial recursiva
+- [x] Movimentação relativa (`walk_forward`/`move_forward`, `turn_left`, `turn_right`)
+- [x] Movimentação absoluta (`move_right`, `move_left`, `move_up`, `move_down`)
+- [x] Ações de mordomia (`plant`, `water`, `pick_fruit`)
 - [x] Suporte a loops (simples e aninhados)
-- [x] Suporte a condicionais (if e if/else)
+- [x] Suporte a condicionais `if` e `if/else` no AST
+- [x] 5 das 6 condições declaradas implementadas (`fruits_equal` falta)
 - [x] Detecção de loop infinito (200 steps)
 - [x] Geração de ExecutionSteps para animação
+- [x] GoalCondition: todos os 6 tipos cobertos no `checkGoal`, incluindo `custom`
+- [x] Preservação da função `goalCondition.check` após deep clone JSON
+
+**Camada de UI (fora de lib/interpreter/):**
 - [x] Componentes visuais (BlockPalette, ProgramArea, ExecuteButton, LevelScene)
-- [x] Nível 1 jogável (ciclo completo)
-- [ ] Suporte a funções (definir/chamar) — Nível 9
+- [x] Tap-to-add (MVP — drag-and-drop pós-MVP)
+- [x] Níveis 1, 2 e 3 jogáveis
+
+**Não implementado / pendente:**
+- [ ] Suporte a funções (definir/chamar) — `BlockType` declarado, AST e executor faltam (Nível 9)
+- [ ] Condição `fruits_equal` no `evaluateCondition`
+- [ ] Bloco `stop` (declarado em `BlockType` sem semântica de runtime definida)
 - [ ] Testes unitários
-- [ ] Drag-and-drop de blocos (MVP usa tap-to-add)
+- [ ] Drag-and-drop de blocos
+
+Ver seção 13 abaixo e o bloco "Dívida Técnica Conhecida" em DECISIONS.md para detalhes dos gaps.
+
+---
+
+## 13. Gaps e pontos de atenção do motor
+
+Esta seção lista o que o engine **declara** mas ainda **não executa**, para evitar surpresas em quem for usar uma feature pela primeira vez. A análise completa de cada item (impacto, intencionalidade, plano) está em DECISIONS.md sob "Dívida Técnica Conhecida".
+
+1. **Funções (`define_function` / `call_function`):** existem como `FunctionDefBlock` e `FunctionCallBlock` em `blocks.ts`, mas não há `FunctionDefNode`/`FunctionCallNode` no AST nem case correspondente em `executeBlock`. Tentar executar um programa que use esses blocos hoje cai no nada (são tratados como `Block` genérico sem handler). Endereçar antes do Nível 9.
+
+2. **Condição `fruits_equal`:** declarada em `ConditionType` mas não tratada em `evaluateCondition`. Hoje retorna sempre `false`. Quem usar essa condição num nível não vai conseguir entrar no ramo `then`.
+
+3. **Conversão `IfElseBlock` → `IfNode`:** o AST `IfNode` aceita `else?`. A camada que converte `Block[]` (UI) em `ProgramNode` (AST) está fora de `lib/interpreter/` e ainda não foi validada para `if_else`. Verificar antes de ativar `if_else` num nível.
+
+4. **Bloco `stop`:** existe em `BlockType` mas sem semântica de runtime. No `executeAction` cai no `default` (sem efeito, gera step com `action: "stop"` mas não interrompe execução). Precisa de decisão de produto antes de aparecer num nível: parar programa? abortar bloco atual? saída de loop?
+
+5. **Comentário de cabeçalho desatualizado em `interpreter.ts`:** o doc-comment do topo do arquivo cita só `walk_forward` como exemplo de ação. Como `move_forward` e os absolutos foram adicionados depois, o comentário ficou anacrônico. Sem impacto em runtime — só ruído de documentação no código.
