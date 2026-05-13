@@ -53,16 +53,16 @@ const WORLD_LAYOUT = {
 
   // Recompensa Nível 4 — mini-árvore SUBSTITUI o broto crescido, mais ao fundo
   // pra abrir espaço pras 3 sementes na frente. Posição placeholder — Gui calibra.
-  miniArvore: { top: pctH(28), left: pctW(8), width: pctW(28) },
+  miniArvore: { top: pctH(50), left: pctW(35), width: pctW(28) },
 
   // Recompensa Nível 4 — 3 sementes plantadas neste nível, lado a lado na frente
   // da cena. Posições placeholder — Gui calibra.
-  sementeLvl4A: { bottom: pctH(6), left: pctW(8), width: pctW(10) },
-  sementeLvl4B: { bottom: pctH(7), left: pctW(20), width: pctW(10) },
-  sementeLvl4C: { bottom: pctH(6), left: pctW(32), width: pctW(10) },
+  sementeLvl4A: { bottom: pctH(4), left: pctW(32), width: pctW(10) },
+  sementeLvl4B: { bottom: pctH(5), left: pctW(44), width: pctW(10) },
+  sementeLvl4C: { bottom: pctH(4), left: pctW(56), width: pctW(10) },
 
   // Recompensa Nível 4 — flor decorativa adicional (reusa asset da flor do Nível 3)
-  florLvl4: { top: pctH(60), left: pctW(40), width: pctW(7) },
+  florLvl4: { top: pctH(62), left: pctW(31), width: pctW(7) },
 
   // UI
   botaoPlay: { bottom: pctH(90), right: pctW(6) },
@@ -468,7 +468,6 @@ export default function WorldScreen() {
                 left: WORLD_LAYOUT.florLvl4.left,
                 width: WORLD_LAYOUT.florLvl4.width,
                 aspectRatio: 272 / 732,
-                transform: [{ rotate: '2deg' }],
               },
             ]}
           >
