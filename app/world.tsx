@@ -45,11 +45,24 @@ const WORLD_LAYOUT = {
   // Mascote: PNG do cachorro tem 95% preenchimento — box menor OK
   mascote: { bottom: pctH(7), left: pctW(65), width: pctW(30) },
 
-  // Recompensa — canto INFERIOR DIREITO
+  // Recompensa — canto INFERIOR DIREITO (planta principal: semente/broto/broto_crescido)
   sementinha: { bottom: pctH(4), left: pctW(38), width: pctW(25) },
 
   // Recompensa Nível 3 — flor ao lado da pedra (quadrante superior direito)
   flor: { top: pctH(47), right: pctW(26), width: pctW(8) },
+
+  // Recompensa Nível 4 — mini-árvore SUBSTITUI o broto crescido, mais ao fundo
+  // pra abrir espaço pras 3 sementes na frente. Posição placeholder — Gui calibra.
+  miniArvore: { top: pctH(28), left: pctW(8), width: pctW(28) },
+
+  // Recompensa Nível 4 — 3 sementes plantadas neste nível, lado a lado na frente
+  // da cena. Posições placeholder — Gui calibra.
+  sementeLvl4A: { bottom: pctH(6), left: pctW(8), width: pctW(10) },
+  sementeLvl4B: { bottom: pctH(7), left: pctW(20), width: pctW(10) },
+  sementeLvl4C: { bottom: pctH(6), left: pctW(32), width: pctW(10) },
+
+  // Recompensa Nível 4 — flor decorativa adicional (reusa asset da flor do Nível 3)
+  florLvl4: { top: pctH(60), left: pctW(40), width: pctW(7) },
 
   // UI
   botaoPlay: { bottom: pctH(90), right: pctW(6) },
@@ -63,6 +76,7 @@ const MUNDO_SEMENTINHA = require("../assets/mundo/mundo_sementinha.png");
 const MUNDO_BROTO = require("../assets/mundo/mundo_broto.png");
 const MUNDO_BROTO_CRESCIDO = require("../assets/mundo/mundo_broto_crescido.png");
 const MUNDO_FLOR = require("../assets/mundo/mundo_flor.png");
+const MUNDO_MINI_ARVORE = require("../assets/mundo/mundo_mini_arvore.png");
 
 /**
  * World Screen — The player's permanent home.
@@ -78,6 +92,11 @@ export default function WorldScreen() {
   const [showSprout, setShowSprout] = useState(false);
   const [showGrownSprout, setShowGrownSprout] = useState(false);
   const [showFlower, setShowFlower] = useState(false);
+  const [showMiniArvore, setShowMiniArvore] = useState(false);
+  const [showSeedLvl4A, setShowSeedLvl4A] = useState(false);
+  const [showSeedLvl4B, setShowSeedLvl4B] = useState(false);
+  const [showSeedLvl4C, setShowSeedLvl4C] = useState(false);
+  const [showFlowerLvl4, setShowFlowerLvl4] = useState(false);
 
   // Animations
   const fadeIn = useSharedValue(0);
@@ -122,16 +141,27 @@ export default function WorldScreen() {
       storage.keys.WORLD_ELEMENTS
     );
     console.log('[world] worldElements loaded:', worldElements);
+    const hasMiniArvore = worldElements?.includes("mini_tree_lvl4") ?? false;
     const hasGrownSprout = worldElements?.includes("grown_sprout_lvl3") ?? false;
     const hasSprout = worldElements?.includes("sprout_lvl2") ?? false;
     const hasSeed = worldElements?.includes("seed_lvl1") ?? false;
     const hasFlower = worldElements?.includes("flower_lvl3") ?? false;
 
-    // Substitution chain: grown_sprout > sprout > seed (only most evolved shows)
-    setShowGrownSprout(hasGrownSprout);
-    setShowSprout(hasSprout && !hasGrownSprout);
-    setShowSeed(hasSeed && !hasSprout && !hasGrownSprout);
+    // Substitution chain da planta principal:
+    //   mini_arvore (lvl4) > grown_sprout (lvl3) > sprout (lvl2) > seed (lvl1).
+    // Mini-árvore é renderizada em posição própria (mais ao fundo) e SUBSTITUI
+    // visualmente o broto crescido — quando ela aparece, broto crescido some.
+    setShowMiniArvore(hasMiniArvore);
+    setShowGrownSprout(hasGrownSprout && !hasMiniArvore);
+    setShowSprout(hasSprout && !hasGrownSprout && !hasMiniArvore);
+    setShowSeed(hasSeed && !hasSprout && !hasGrownSprout && !hasMiniArvore);
     setShowFlower(hasFlower);
+
+    // Recompensas adicionais do Nível 4: 3 sementes novas + 1 flor decorativa
+    setShowSeedLvl4A(worldElements?.includes("seed_lvl4_a") ?? false);
+    setShowSeedLvl4B(worldElements?.includes("seed_lvl4_b") ?? false);
+    setShowSeedLvl4C(worldElements?.includes("seed_lvl4_c") ?? false);
+    setShowFlowerLvl4(worldElements?.includes("flower_lvl4") ?? false);
   }, []);
 
   useFocusEffect(
@@ -339,7 +369,118 @@ export default function WorldScreen() {
           </Animated.View>
         )}
 
-        {/* Z-layer 4: UI — Play button */}
+        {/* Z-layer 3.9: Mini-árvore (recompensa do Nível 4) — substitui o
+             broto crescido, posicionada mais ao fundo da cena pra abrir espaço
+             pras 3 sementes novas na frente. Posição placeholder. */}
+        {showMiniArvore && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                top: WORLD_LAYOUT.miniArvore.top,
+                left: WORLD_LAYOUT.miniArvore.left,
+                width: WORLD_LAYOUT.miniArvore.width,
+                aspectRatio: 784 / 1176,
+              },
+            ]}
+          >
+            <Image
+              source={MUNDO_MINI_ARVORE}
+              resizeMode="contain"
+              style={{ width: "100%", height: "100%" }}
+            />
+          </Animated.View>
+        )}
+
+        {/* Z-layer 4.0: 3 sementes plantadas no Nível 4 (reusa asset da
+             sementinha do Nível 1). Posições placeholder — Gui calibra. */}
+        {showSeedLvl4A && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                bottom: WORLD_LAYOUT.sementeLvl4A.bottom,
+                left: WORLD_LAYOUT.sementeLvl4A.left,
+                width: WORLD_LAYOUT.sementeLvl4A.width,
+                aspectRatio: 838 / 580,
+              },
+            ]}
+          >
+            <Image
+              source={MUNDO_SEMENTINHA}
+              resizeMode="contain"
+              style={{ width: "100%", height: "100%" }}
+            />
+          </Animated.View>
+        )}
+        {showSeedLvl4B && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                bottom: WORLD_LAYOUT.sementeLvl4B.bottom,
+                left: WORLD_LAYOUT.sementeLvl4B.left,
+                width: WORLD_LAYOUT.sementeLvl4B.width,
+                aspectRatio: 838 / 580,
+              },
+            ]}
+          >
+            <Image
+              source={MUNDO_SEMENTINHA}
+              resizeMode="contain"
+              style={{ width: "100%", height: "100%" }}
+            />
+          </Animated.View>
+        )}
+        {showSeedLvl4C && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                bottom: WORLD_LAYOUT.sementeLvl4C.bottom,
+                left: WORLD_LAYOUT.sementeLvl4C.left,
+                width: WORLD_LAYOUT.sementeLvl4C.width,
+                aspectRatio: 838 / 580,
+              },
+            ]}
+          >
+            <Image
+              source={MUNDO_SEMENTINHA}
+              resizeMode="contain"
+              style={{ width: "100%", height: "100%" }}
+            />
+          </Animated.View>
+        )}
+
+        {/* Z-layer 4.1: Flor decorativa adicional do Nível 4 (reusa asset
+             da flor do Nível 3). Posição placeholder — Gui calibra. */}
+        {showFlowerLvl4 && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                top: WORLD_LAYOUT.florLvl4.top,
+                left: WORLD_LAYOUT.florLvl4.left,
+                width: WORLD_LAYOUT.florLvl4.width,
+                aspectRatio: 272 / 732,
+                transform: [{ rotate: '2deg' }],
+              },
+            ]}
+          >
+            <Image
+              source={MUNDO_FLOR}
+              resizeMode="contain"
+              style={{ width: "100%", height: "100%" }}
+            />
+          </Animated.View>
+        )}
+
+        {/* Z-layer 5: UI — Play button */}
         <Animated.View
           style={[
             playBtnStyle,
