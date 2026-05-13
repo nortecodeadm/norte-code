@@ -673,3 +673,23 @@ Cada opção tem implicação pedagógica diferente. **Decisão necessária com 
 - **Planos futuros:** zero em runtime. Custo pequeno: confusão para quem ler o código pela primeira vez achando que `walk_forward` é a única forma de movimento.
 
 **Classificação:** **Esquecimento.** Limpeza de manutenção. Pode ser feito junto com qualquer próxima alteração em `interpreter.ts` — não justifica commit isolado.
+
+---
+
+### DT-06 — `.env` versionado no repo (risco aceito conscientemente)
+
+**O que é:** O arquivo `.env` na raiz do projeto está tracked pelo git (`git ls-files .env` retorna `.env`) e foi commitado em algum ponto da história do repo, antes desta entrada ser escrita. Contém as credenciais do projeto (chaves Supabase, Sentry DSN, qualquer secret usado em `process.env.EXPO_PUBLIC_*`). Na limpeza do `.gitignore` em 13/05/2026, `.claude/` e `build-release.bat` foram adicionados aos ignorados, mas **`.env` foi deixado de fora propositalmente** — qualquer modificação no `.env` continua rastreável pelo git.
+
+**Impacto atual:**
+- **Repo:** privado e solo (apenas Gui tem acesso ao `nortecodeadm/norte-code` no GitHub). Risco enquanto isso se mantiver: baixo — credenciais no histórico do GitHub, mas o histórico só é acessível pelo dono da conta.
+- **Operação técnica:** zero — o app funciona normalmente, o `.env` continua sendo lido em runtime, builds locais funcionam.
+- **Conflito formal com CLAUDE.md seção 6.3:** sim — a regra diz "uso obrigatório de `.env` (no `.gitignore`)". Esta DT registra a exceção consciente; a regra continua valendo como princípio, só com a observação de que está suspensa enquanto as condições atuais (privado + solo + baixo valor das credenciais atuais) se mantiverem.
+
+**Classificação:** **Intencional.** Decisão do Gui em 13/05/2026, depois que o Dev Temporário (Claude Code) detectou que `.env` estava tracked durante a limpeza do `.gitignore` e ofereceu rotacionar credenciais + limpar histórico como primeira alternativa. O Gui optou por **não rotacionar agora e não limpar histórico**, em troca de economia de tempo, aceitando o risco residual.
+
+**Revisar quando qualquer um destes ocorrer:**
+- Repo virar público (mesmo que momentaneamente, por engano de visibility no GitHub).
+- Repo ganhar colaborador externo (qualquer pessoa fora do Gui com acesso ao repositório).
+- `.env` ganhar credencial de alto risco: integração de pagamento, dados pessoais reais de usuários, ou qualquer secret cujo vazamento gere dano material além de "rotacionar a key" (ex: chave que cobra na conta antes da rotação ser detectada).
+
+**Ação no momento do gatilho:** rotacionar tudo no `.env`, `git rm --cached .env`, adicionar `.env` ao `.gitignore`, avaliar limpeza profunda do histórico (`git filter-repo` ou `bfg-repo-cleaner`). Atualizar esta DT marcando como endereçada ou removendo.
