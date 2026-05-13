@@ -1,7 +1,7 @@
 # Interpretador de Blocos — Norte Code
 
 **Última atualização:** 13/05/2026
-**Versão:** 1.3.0 (Mapeamento completo do estado do motor — Nível 3 jogável)
+**Versão:** 1.4.0 (Nível 4 jogável — `move_left` ativo em paleta + `failReason` em `ExecutionStep`)
 
 ---
 
@@ -52,7 +52,7 @@ O campo `id` é opcional e usado para highlight visual durante execução.
 |------|--------|------|-------------|
 | `walk_forward` / `move_forward` | Move 1 célula na direção atual do player | Relativo | Nível 1 |
 | `move_right` | Move 1 célula para a direita (leste, +X) | Absoluto | Nível 3 |
-| `move_left` | Move 1 célula para a esquerda (oeste, -X) | Absoluto | Nível 3 |
+| `move_left` | Move 1 célula para a esquerda (oeste, -X) | Absoluto | Nível 4 (engine: Nível 3) |
 | `move_down` | Move 1 célula para baixo (sul, +Y) | Absoluto | Nível 3 |
 | `move_up` | Move 1 célula para cima (norte, -Y) | Absoluto | Nível 3 |
 | `turn_left` | Gira 90° anti-horário (atualiza `player.direction`) | Relativo | Disponível |
@@ -227,10 +227,13 @@ interface ExecutionStep {
   toState: PlayerState;        // Estado depois
   worldChanges?: WorldChange[];// Mudanças nas células
   blockId: string;             // ID do bloco que gerou (para highlight)
+  failReason?: "rock" | "out_of_grid"; // Preenchido só quando action === "fail_move"
 }
 ```
 
 A UI reproduz os steps com 500ms de intervalo, destacando o bloco ativo na ProgramArea.
+
+**`failReason` (introduzido no Nível 4):** Quando um movimento falha, o interpretador agora diferencia se foi por colisão com `rock` ou por tentativa de sair da grade. A camada de UI (`getContextualError` em `app/level/[id].tsx`) usa o `failReason` do **primeiro** `fail_move` da execução pra escolher entre as mensagens `errorMessages.blocked_by_rock` e `errorMessages.out_of_grid` configuradas no nível. Níveis que não declaram `out_of_grid` caem no fallback anterior (`wrong_path` / `blocked_by_rock`) — sem regressão pros Níveis 1-3.
 
 ---
 

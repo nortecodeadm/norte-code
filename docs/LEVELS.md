@@ -1,7 +1,7 @@
 # Níveis — Norte Code MVP
 
-**Última atualização:** 12/05/2026
-**Versão:** 1.2.0 (Nível 3 jogável)
+**Última atualização:** 13/05/2026
+**Versão:** 1.3.0 (Nível 4 jogável)
 
 ---
 
@@ -132,15 +132,60 @@ Cada nível ensina **uma única coisa**. Não acumular conceitos novos por níve
 - Esqueceu de plantar: "Você chegou no canteiro mas esqueceu de plantar!"
 - Fora do grid: "Espera! Você está tentando ir pra fora do mundo."
 
-## Nível 4 — Primeira repetição (loop fixo simples)
+## Nível 4 — Plantar três sementes (sequência longa em U + move_left) ✅ IMPLEMENTADO
 
-- **Conceito:** loop / repetição
-- **Cenário:** avatar planta 3 sementinhas seguidas
-- **Blocos:** [Andar para frente] [Plantar] [Repetir 3 vezes [...]]
-- **Solução elegante:** [Repetir 3 vezes [Andar, Plantar]]
-- **Solução aceita (longa):** [Andar] [Plantar] [Andar] [Plantar] [Andar] [Plantar]
-- **Recompensa visual:** três brotos enfileirados no Mundo
-- **Texto:** "Quando você precisa fazer a mesma coisa várias vezes, **repetir** funciona. Programar bem é fazer mais com menos."
+- **Conceito:** sequência longa com padrão repetitivo claro + introdução do bloco `move_left`. Prepara pedagogicamente o `repeat` que entra no Nível 5.
+- **Cenário:** grade 4×4 com 6 pedras formando um bloco central que força caminho em "U" no sentido horário. Três canteiros nos cantos (topo-direita, base-direita, base-esquerda).
+- **Blocos:** [Direita →] [Esquerda ←] [Subir ↑] [Descer ↓] [Plantar 🌱]
+- **Solução-alvo (12 blocos):** `[→][→][→][🌱][↓][↓][↓][🌱][←][←][←][🌱]`
+- **Recompensa visual:** mini-árvore substitui broto crescido (Nível 3), 3 sementes adicionadas perto uma da outra, 1 flor decorativa nova.
+- **Texto de resumo:** "Você reparou que fez quase a mesma coisa três vezes? Andar pra um lado e plantar. Andar pra outro lado e plantar. Andar pra outro lado e plantar. Programar é assim mesmo — às vezes a gente repete. No próximo nível você vai descobrir um jeito mais esperto de fazer isso."
+
+**Implementação técnica:**
+- Grid: 4×4, player em (0,0)
+- 6 rochas: (0,1), (0,2), (1,1), (1,2), (2,1), (2,2) — formato xy onde grid[y][x]: `grid[1][0]`, `grid[2][0]`, `grid[1][1]`, `grid[1][2]`, `grid[2][1]`, `grid[2][2]`
+- 3 canteiros (flowerbed): grid[0][3] (C1), grid[3][3] (C2), grid[3][0] (C3)
+- Condição de vitória: `custom` (C1, C2 e C3 todos com content === "seed")
+- Max blocos: 16 (margem sobre a solução-alvo de 12)
+- Reward: multi-element
+  - `mini_tree_lvl4` replaces `grown_sprout_lvl3` (substituição visual da planta principal)
+  - `seed_lvl4_a`, `seed_lvl4_b`, `seed_lvl4_c` (3 sementes novas)
+  - `flower_lvl4` (flor decorativa adicional)
+- Arquivo: `lib/levels/index.ts` → `createLevel4()`
+
+**Layout da grade:**
+```
+Coluna:     0       1       2       3
+Linha 0:  [AVATAR] [   ]   [   ]   [C1 ]
+Linha 1:  [PEDRA]  [PEDRA] [PEDRA] [   ]
+Linha 2:  [PEDRA]  [PEDRA] [PEDRA] [   ]
+Linha 3:  [C3   ]  [   ]   [   ]   [C2 ]
+```
+
+**Decisão pedagógica — paleta com move_up "trap":**
+A paleta inclui `move_up` mesmo sem ser necessário na solução. A criança que tenta usar `move_up` no início sai da grade e recebe mensagem contextual. Aprendizagem: nem todo bloco disponível serve pra toda situação. A paleta NÃO revela a solução.
+
+**Decisão estrutural — 6 pedras forçam caminho único:**
+Sem as 2 pedras adicionais na coluna 0 (`grid[1][0]` e `grid[2][0]`), a criança poderia começar descendo e o nível teria duas soluções de 12 blocos (horário e anti-horário). Forçar caminho único garante que o Nível 5 transforme exatamente uma sequência em `[Repetir 3x [→]] [plant] [Repetir 3x [↓]] [plant] [Repetir 3x [←]] [plant]`.
+
+**Mecânica nova — `move_left`:**
+O bloco `move_left` (coluna -1, absoluto) já estava implementado no interpretador desde o Nível 3, mas só agora aparece em uma paleta. Comportamento idêntico aos outros movimentos absolutos: bounds check + obstacle check, gera step `fail_move` quando inválido. Ver `INTERPRETER.md`.
+
+**Mecânica nova — `failReason` em `ExecutionStep`:**
+`ExecutionStep` ganhou o campo opcional `failReason?: "rock" | "out_of_grid"`, preenchido pelo interpretador quando o action é `fail_move`. A camada de UI (`getContextualError` em `app/level/[id].tsx`) usa isso pra escolher entre as mensagens `blocked_by_rock` e `out_of_grid` configuradas no nível. Níveis 1-3 não declaram `out_of_grid` — caem no fallback existente, sem regressão.
+
+**Mensagens de erro contextuais (configuradas no nível):**
+- Bate em pedra: "Hmm, tem uma pedra aí. Tenta outro caminho."
+- Sai da grade: "Esse lado não dá. O caminho continua em outra direção."
+- Planta em célula sem canteiro / não chegou em todos: "Aqui não tem canteiro. Procura o lugar certo pra plantar."
+- Esqueceu de plantar: "Você esqueceu de plantar em algum canteiro. Cada parada precisa de um \"Plantar\"."
+- Genérico: "Quase! Olha onde estão os canteiros e tenta outro caminho."
+
+**Recompensas no Mundo permanente:**
+- Mini-árvore (asset `mundo_mini_arvore.png`, 784×1176) é renderizada em posição própria mais ao fundo da cena, substituindo visualmente o broto crescido do Nível 3 (cadeia de substituição: `mini_tree_lvl4 > grown_sprout_lvl3 > sprout_lvl2 > seed_lvl1`).
+- 3 sementes (`seed_lvl4_a/b/c`) reusam o asset `mundo_sementinha.png` em 3 posições placeholder lado a lado na frente da cena.
+- 1 flor decorativa (`flower_lvl4`) reusa o asset `mundo_flor.png` em posição livre.
+- Posições são placeholder — Gui calibra visualmente após implementação.
 
 ## Nível 5 — Loop com variação de quantidade
 

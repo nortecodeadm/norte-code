@@ -1,6 +1,6 @@
 # Log de Decisões Técnicas — Norte Code
 
-**Última atualização:** 13/05/2026
+**Última atualização:** 13/05/2026 (entrada do Nível 4)
 
 ---
 
@@ -599,6 +599,46 @@ A Gemini Pro foi usada para gerar os avatares finais como imagens completas pré
 **Contexto:** Nível 3 premia com 2 elementos: broto crescido (substitui broto) + flor (novo). O formato antigo (`elementKey` + `replaces`) só suportava 1 operação.
 **Implementação:** `level-summary` detecta se `elements[]` existe e itera; senão, usa `elementKey` (legacy). `world.tsx` usa cadeia de substituição: grown_sprout > sprout > seed.
 **Decisor:** Gui (via briefing do Claude)
+
+---
+
+### [13/05/2026] Decisão estratégica: Mundo permanente é narrativa visual, não decoração
+
+O Mundo permanente (Tela Mundo) não é uma vitrine de troféus, é a HISTÓRIA do projeto sendo contada visualmente, em paralelo ao gameplay. Cada nível concluído adiciona elementos que dão a sensação contínua de que o jardim está crescendo, florescendo, ficando mais vivo.
+
+Os elementos do Mundo não precisam ter coerência ficcional perfeita entre si (uma planta pode "mudar de posição" entre níveis sem explicação). O que importa é a sensação geral de progresso e vida se expandindo.
+
+**Esboço do roadmap visual (sujeito a refinamento em sessão dedicada):**
+- Níveis 1-3: foco em uma planta individual crescendo (já implementado).
+- Níveis 4-6: expansão da paisagem. Árvore central + várias plantinhas + flores. Primeiros sinais de fauna.
+- Níveis 7-9: floresta diversa. Frutos, mais animais. Auge do jardim.
+- Nível 10: serpente entra (briefing futuro define mecânica).
+
+**Cosmovisão cristã embutida, nunca explícita:** o arco geral (jardim → quebra → restauração) é a estrutura narrativa, sem que nenhum texto do app mencione Bíblia ou narrativas bíblicas. Esta é a TESE CENTRAL do Norte Code.
+
+Esta decisão governa todas as futuras escolhas de recompensas no Mundo permanente. Sessão dedicada ao Roadmap Visual completo será feita após o Nível 4 entregue.
+
+**Decisor:** Claude (Estrategista) + Gui — registrada no Briefing do Nível 4.
+
+---
+
+### [13/05/2026] Decisão técnica: Nível 4 introduz move_left + sequência longa sem loop
+
+**Justificativa pedagógica:** o Nível 4 foi desenhado como par pedagógico com o Nível 5 ("necessidade antes da ferramenta"). A criança sente o cansaço da repetição manual aqui pra que o bloco `repeat` do Nível 5 seja sentido como alívio. A grade 4×4 com 6 pedras força caminho único (U em sentido horário) pra que a transição Nível 4 → Nível 5 transforme exatamente uma solução. Paleta inclui `move_up` mesmo não sendo necessário, como "trap pedagógico" (criança aprende que nem todo bloco serve em toda situação).
+
+**Justificativa visual:** o Nível 4 é o PRIMEIRO nível de expansão visual do jardim no Mundo permanente. A planta principal (broto crescido do Nível 3) evolui pra mini-árvore, e 3 sementes novas + 1 flor decorativa são adicionadas. No Nível 5, as 3 sementes serão regadas e virarão plantinhas estágio 3 (+2 flores adicionais).
+
+**Mudanças técnicas que entraram junto:**
+1. Campo opcional `failReason?: "rock" | "out_of_grid"` em `ExecutionStep`. Permite à camada de UI diferenciar mensagens de erro contextual entre "bateu em pedra" e "saiu da grade". Não retroativo: níveis que não declaram `errorMessages.out_of_grid` continuam caindo no fallback existente.
+2. `getContextualError` em `app/level/[id].tsx` passou a receber `steps` (em vez de só `finalState` + `blocks`). Olha o primeiro `fail_move` da execução e prioriza a mensagem específica do nível antes do fallback genérico.
+3. Cadeia de substituição da planta principal estendida: `mini_tree_lvl4 > grown_sprout_lvl3 > sprout_lvl2 > seed_lvl1`. Só o estágio mais evoluído aparece no Mundo.
+4. Mini-árvore renderizada em posição própria (mais ao fundo da cena), separada da posição histórica da "planta principal" (`WORLD_LAYOUT.sementinha`), pra abrir espaço visual pras 3 sementes do Nível 4 na frente.
+
+**Princípio de não-retroatividade preservado:** Níveis 1-3 não foram tocados. O interpretador agrega o campo `failReason` mas mantém comportamento idêntico pros casos antigos. A função `getContextualError` ganhou uma branch a mais, mas o fluxo antigo continua intacto pros níveis que não declaram as novas chaves de erro.
+
+**Placeholder visual sinalizado:** o ícone do bloco `move_left` na paleta usa o caractere unicode "←" como placeholder (consistente com os outros movimentos absolutos que também usam unicode arrows). Quando o asset profissional for entregue, basta ajustar `BLOCK_CONFIG` em `components/level/BlockPalette.tsx`.
+
+**Decisor:** Claude (Estrategista) + Gui — registrado no Briefing do Nível 4. Implementação por Claude Code (Dev Temporário).
 
 ---
 
