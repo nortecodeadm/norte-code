@@ -125,6 +125,14 @@ Cada feature implementada atualiza pelo menos um destes arquivos em `docs/`:
 
 Documentação descreve **em prosa**: o que a feature faz da perspectiva do usuário, qual decisão de produto sustenta, como debugar/modificar. O Gui não lê código — esses arquivos são como ele mantém controle.
 
+### Contexto estratégico — `docs/internal/`
+
+A pasta `docs/internal/` guarda a **documentação estratégica e de protocolo** do projeto: briefing do MVP, pitch narrativo, roadmap, style guide visual, protocolos de colaboração entre IAs. Diferente de `docs/` raiz (que descreve **código**), `docs/internal/` descreve **o projeto** — intenção de produto, tom, identidade visual, jornada narrativa de longo prazo.
+
+**Quando consultar:** sempre que o briefing técnico de uma tarefa não der contexto suficiente sobre **por que** algo é do jeito que é. Exemplos: dúvida sobre tom de mensagens pra criança → `NORTECODE_Briefing_MVP_v2_5.md` e `NORTECODE_Pitch.md`. Dúvida sobre paleta, proporção ou estilo de asset → `NORTECODE_Style_Guide_Visual.md`. Dúvida sobre arco narrativo de níveis futuros → `NORTECODE_Roadmap_Narrativo.md`. Ver `docs/internal/README.md` pra o índice completo.
+
+`docs/internal/` é leitura, não escrita — não atualize esses arquivos sem alinhamento explícito com o Gui e o Claude Estrategista.
+
 ---
 
 ## 8. Fluxo de trabalho
