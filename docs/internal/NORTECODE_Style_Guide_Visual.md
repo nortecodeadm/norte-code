@@ -1,14 +1,19 @@
 # Norte Code — Style Guide Visual
 
-**Documento vivo. Versão 1.1 — Abril/2026.**
+**Documento vivo. Versão 1.2 — Maio/2026.**
+
+**Changelog v1.2:**
+- Adicionada subseção 9.2.1 "Plantas / Estágios de crescimento do Mundo permanente" com 4 prompts registrados (brotinho, broto-médio, mini-árvore, flor decorativa) e tabela de progressão de altura.
+- Workflow de geração atualizado: aceita Gemini ou Canva (ferramenta flexível, escolha do Gui no momento).
+- Princípio registrado: o Mundo permanente é narrativa visual, não decoração (ver DECISIONS.md).
 
 Este documento define a identidade visual completa do Norte Code e serve como referência única para geração de assets via IA (Gemini/Imagen) durante o MVP. O objetivo é garantir **consistência absoluta** entre todos os elementos do app — mascotes, avatar, cenários, blocos de programação, ilustrações de capítulos.
 
 **Princípio orientador:** se um asset gerado não dialoga visualmente com os outros, ele não entra no app. Consistência > velocidade.
 
 **Fluxo de trabalho dos assets visuais:**
-- **Gui** lê este Style Guide, gera os assets no Gemini, filtra e aprova.
-- **Manus** recebe os arquivos prontos e integra no código do app.
+- **Gui** lê este Style Guide, gera os assets no Gemini ou Canva, filtra e aprova.
+- **Dev Temporário (Manus ou substituto — atualmente Claude Code)** recebe os arquivos prontos e integra no código do app.
 
 **Quando consultar este documento:** antes de gerar qualquer asset visual novo. Antes de adicionar variação a um asset existente. Quando houver dúvida sobre cor, proporção, expressão ou composição.
 
@@ -190,7 +195,7 @@ Loiro-mel:        #C9A876
 
 4 (pele) × 4 (cabelo) × 4 (cor cabelo) × 3 (roupa) = **192 combinações teóricas**.
 
-**Não gerar todas.** Gerar **componentes separados em layers** (corpo+pele, cabelo, roupa) e compor em runtime no app. Manus deve consultar o briefing técnico para implementação de avatar layered.
+**Não gerar todas.** Gerar **componentes separados em layers** (corpo+pele, cabelo, roupa) e compor em runtime no app. Dev Temporário deve consultar o briefing técnico para implementação de avatar layered.
 
 ### 5.4. Estados expressivos (avatar)
 
@@ -432,6 +437,126 @@ NOT 3D, NOT photorealistic, NOT busy, NOT dark,
 high quality contemplative children's book illustration.
 ```
 
+### 9.2.1. Plantas / Estágios de crescimento do Mundo permanente
+
+Esta subseção registra os prompts usados para gerar os estágios de crescimento da planta principal e dos elementos vegetais do Mundo permanente (Tela Mundo). **Cada estágio precisa dialogar visualmente com o anterior** — mesmo estilo, mesma paleta, mesma escala relativa, mesmo ângulo. Gerar todos na mesma sessão de chat (Gemini ou Canva) sempre que possível, pra preservar contexto.
+
+**Princípio narrativo:** o Mundo permanente é narrativa visual, não decoração. A progressão das plantas conta a história do jardim crescendo ao longo dos níveis. Ver entrada correspondente em `DECISIONS.md`.
+
+**Brotinho — Nível 2 (asset `mundo_broto.png`):**
+```
+Generate a small green sprout/seedling that has grown from the seed, in
+flat-design illustration style matching the previous assets.
+DETAILS:
+- A small plant just emerged from the earth — about 2-3 cm visible above ground
+- Two small tender leaves (cotyledons) on a thin green stem
+- Stem color: vibrant fresh green (#7FB069)
+- Leaves: slightly lighter green (#A8C97A), oval/teardrop shape
+- Small soil mound at the base (warm brown #6B4423), similar to the seed asset
+- The whole plant has a delicate, young, hopeful appearance
+- This represents progress — the seed planted in level 1 has now grown into a sprout
+CANVAS: 1024x1024, transparent background
+The sprout should occupy approximately 30% of canvas height, centered horizontally.
+Most of the canvas is transparent void.
+NOT cartoonish, NOT exaggerated, NOT overly bright. Subtle and contemplative,
+matching the calm tone of the world. Same flat-design style as the previous
+mundo_sementinha.png and other world assets.
+```
+
+**Broto-médio — Nível 3 (asset `mundo_broto_medio.png`):**
+```
+Generate a more developed/grown sprout, evolved from the smaller sprout
+(previous asset: mundo_broto.png). This represents a plant that has been
+cared for and has grown.
+DETAILS:
+- A small plant clearly bigger and more developed than the previous sprout
+- About 5-7 cm visible above ground (taller than mundo_broto.png)
+- Thin green stem, vibrant fresh green (#7FB069)
+- 3-4 small leaves: 2 cotyledons at base (the original ones) + 1-2 new small
+  true leaves emerging from the stem
+- Leaf colors: slightly lighter green (#A8C97A)
+- Small soil mound at the base (warm brown #6B4423), similar to previous assets
+- The whole plant has a hopeful, growing, young appearance
+- Visually clear it has grown FROM the previous mundo_broto.png — same style,
+  same colors, just bigger and more developed
+CANVAS: 1024x1024, transparent background
+The sprout should occupy approximately 40% of canvas height (taller than the
+previous broto), centered horizontally.
+Most of the canvas is transparent void.
+NOT cartoonish, NOT exaggerated, NOT overly bright. Subtle and contemplative,
+matching the calm tone of the previous mundo_* assets. Same flat-design style.
+```
+
+**Mini-árvore — Nível 4 (asset `mundo_mini_arvore.png`):**
+```
+Generate a small young tree / sapling, evolved from the previous grown sprout
+(mundo_broto_medio.png). This represents the plant that has been consistently
+cared for across multiple levels and has now reached a new stage — beginning
+to become a tree.
+DETAILS:
+- A young sapling, clearly more developed than the previous mundo_broto_medio.png
+- About 15-20 cm visible above ground (significantly taller than the previous
+  asset, but still small — this is a YOUNG tree, not a mature one)
+- Stem is starting to become woody: lower 1/3 of the stem has light brown
+  bark texture (#8B6F47), upper 2/3 transitions to fresh green (#7FB069)
+- The transition between woody and green should be soft and natural, not a hard line
+- 6-8 small to medium leaves distributed along the stem and at the top,
+  forming a small rounded canopy
+- Leaf colors: fresh green (#7FB069), some slightly darker (#5A8A4A) for subtle depth
+- Leaves are oval/teardrop shape, slightly larger than in mundo_broto_medio.png
+- Small soil mound at the base (warm brown #6B4423), same style as previous mundo_* assets
+- The whole plant has a hopeful, vital, young-but-strong appearance
+- Visually clear it has grown FROM the previous mundo_broto_medio.png — same family,
+  same warmth, just bigger, more developed, and starting to look like a tree
+CANVAS: 1024x1024, transparent background
+The sapling should occupy approximately 50-55% of canvas height (clearly taller
+than mundo_broto_medio.png at 40%, but still leaving room for future growth stages).
+Centered horizontally. Most of the canvas above the plant is transparent void.
+NOT cartoonish, NOT exaggerated, NOT overly bright, NOT a mature/full tree
+(this is a SAPLING — still young), NOT realistic photographic style.
+Subtle and contemplative, matching the calm tone of the previous mundo_* assets.
+Same flat-design style as mundo_sementinha.png, mundo_broto.png,
+mundo_broto_medio.png, and mundo_flor.png.
+```
+
+**Flor decorativa — Nível 3 (asset `mundo_flor.png`):**
+```
+Generate a small delicate flower in flat-design style, matching previous
+mundo_* assets.
+DETAILS:
+- A single small flower on a thin stem
+- Stem: vibrant green (#7FB069), thin and straight
+- 2-3 small green leaves on the stem (#A8C97A)
+- Flower at the top: a simple round bloom with 5-6 soft petals
+- Petal color: soft warm pink or gentle yellow — YOUR CHOICE, just keep it
+  subtle and natural
+- Small center dot in golden-yellow (#D4A744)
+- Optional: tiny soil mound at the base (warm brown #6B4423)
+- The flower has a small, delicate, hopeful appearance — like the first flower
+  in a garden being cared for
+CANVAS: 1024x1024, transparent background
+The flower should occupy approximately 35% of canvas height, centered horizontally.
+Most of the canvas is transparent void.
+NOT cartoonish, NOT exaggerated, NOT overly bright. Subtle and natural,
+matching the calm tone of the previous mundo_* assets. Same flat-design style.
+```
+
+**Progressão de altura registrada (referência para próximos estágios):**
+
+| Estágio | Asset | Altura no canvas |
+|---|---|---|
+| Sementinha | `mundo_sementinha.png` | ~10-15% |
+| Brotinho (2 folhas) | `mundo_broto.png` | ~30% |
+| Broto-médio (4 folhas) | `mundo_broto_medio.png` | ~40% |
+| Mini-árvore / sapling | `mundo_mini_arvore.png` | ~50-55% |
+| (Futuro) Arbusto / planta adulta | a definir | ~60-65% |
+| (Futuro) Árvore jovem | a definir | ~70% |
+| (Futuro) Árvore com frutos | a definir | ~80% |
+
+Esses números são guias de continuidade visual — usar como base ao gerar próximos estágios. Cada novo estágio deve dialogar com o anterior em paleta, ângulo e estilo de folhagem.
+
+**Próximos elementos previstos (sem prompt ainda — gerar quando os níveis correspondentes forem implementados):** pássaros decorativos, esquilo, frutos pendurados em árvores, borboletas. Quando gerar, adicionar prompts a esta seção.
+
 ### 9.3. Variáveis a ajustar entre gerações
 
 Quando gerar variações ou novos assets, manter constantes:
@@ -471,72 +596,75 @@ Lista explícita do que rejeitar em qualquer asset gerado. Se o output do Gemini
 
 O fluxo dos assets visuais no Norte Code tem dois papéis claros:
 
-- **Gui:** gera os assets no Gemini, filtra qualidade, aprova, organiza arquivos.
-- **Manus:** recebe os arquivos prontos do Gui e integra no código do app.
+- **Gui:** gera os assets no Gemini ou Canva (escolha do Gui no momento), filtra qualidade, aprova, organiza arquivos.
+- **Dev Temporário (Manus, ou substituto ativo no momento — atualmente Claude Code):** recebe os arquivos prontos do Gui e integra no código do app.
 
-Manus **não gera assets** — só integra. Gui **não escreve código** — só entrega arquivos.
+Dev Temporário **não gera assets** — só integra. Gui **não escreve código** — só entrega arquivos.
 
 ### 11.1. Para o Gui — gerando os assets
 
 Quando precisar gerar um asset novo:
 
-1. **Identificar a categoria** — é mascote? cenário? bloco? capítulo? Localizar a seção específica deste Style Guide (Seções 4, 5, 6, 7 ou 8).
-2. **Pegar o prompt modelo da Seção 9.2** correspondente. Se não existir prompt pronto pra esse asset específico, adaptar um existente da mesma categoria.
-3. **Abrir o Gemini** (https://gemini.google.com).
+1. **Identificar a categoria** — é mascote? cenário? bloco? capítulo? planta do Mundo? Localizar a seção específica deste Style Guide (Seções 4, 5, 6, 7, 8, 9.2.1).
+2. **Pegar o prompt modelo da Seção 9.2 / 9.2.1** correspondente. Se não existir prompt pronto pra esse asset específico, adaptar um existente da mesma categoria.
+3. **Escolher a ferramenta:**
+   - **Gemini** (https://gemini.google.com) — prompts longos descritivos em inglês funcionam bem; mantém contexto entre gerações da mesma sessão (útil pra consistência de personagem).
+   - **Canva (Magic Media)** — prompts mais curtos, palavras-chave fortes; bom pra geração rápida e quando se quer aproveitar templates de composição.
+   - Tanto faz qual usar, contanto que o resultado dialogue com os assets já aprovados.
 4. **Colar o prompt** e gerar. Pedir múltiplas variações se a primeira não convencer.
 5. **Filtrar contra anti-padrões da Seção 10.** Descartar qualquer geração que viole princípios estéticos invioláveis.
 6. **Comparar com assets já aprovados** da mesma categoria. A nova geração dialoga visualmente com o que já existe? Paleta, estilo, atmosfera batem?
-7. **Selecionar a melhor versão.** Salvar no computador com nome claro (ex: `cachorro_padrao.png`, `jardim_fase1_background.png`).
-8. **Documentar o prompt usado** em arquivo próprio (sugestão: criar uma planilha simples ou doc anotando "asset → prompt usado → data"). Ajuda quando precisar gerar variação ou regenerar depois com mesma direção.
+7. **Selecionar a melhor versão.** Salvar no computador com nome claro (ex: `cachorro_padrao.png`, `mundo_mini_arvore.png`).
+8. **Documentar o prompt usado** — se for um novo estágio/asset de uma categoria já registrada (ex: nova planta), adicionar o prompt à seção correspondente deste Style Guide (Seção 9.2 ou 9.2.1). Mantém o repositório de prompts vivo.
 
-**Dica de iteração no Gemini:** se o resultado quase acertou mas falhou em algum detalhe (ex: "ficou bom mas a cor está saturada demais"), em vez de mandar um prompt novo, peça ajuste em linguagem natural no chat: *"Mesma imagem mas com paleta menos saturada, mais terrosa"*. O Gemini mantém contexto da conversa e refina.
+**Dica de iteração:** se o resultado quase acertou mas falhou em algum detalhe (ex: "ficou bom mas a cor está saturada demais"), em vez de mandar um prompt novo, peça ajuste em linguagem natural no chat: *"Mesma imagem mas com paleta menos saturada, mais terrosa"*. Tanto Gemini quanto Canva mantêm contexto da conversa e refinam.
 
-**Dica de consistência:** quando gerar todos os estados de um mesmo personagem (ex: 5 estados do cachorro), faça **na mesma sessão de chat com o Gemini**, em sequência. Isso ajuda o modelo a manter o personagem visualmente consistente entre estados.
+**Dica de consistência:** quando gerar uma sequência de assets relacionados (ex: 5 estados do cachorro, ou os estágios de crescimento de plantas), faça **na mesma sessão de chat**, em sequência. Isso ajuda o modelo a manter o asset visualmente consistente entre versões.
 
-### 11.2. Para o Gui — entregando os assets pro Manus
+### 11.2. Para o Gui — entregando os assets pro Dev Temporário
 
-Quando tiver um lote de assets aprovados, organize numa pasta clara e envie pro Manus em mensagem direta. Estrutura sugerida de mensagem:
+Quando tiver um lote de assets aprovados, organize numa pasta clara e envie pro Dev Temporário ativo via chat (Claude Code via filesystem, ou Manus via mensagem direta, conforme quem estiver atuando). Estrutura sugerida de mensagem:
 
 ```
-Manus, segue lote novo de assets aprovados pra integrar no app.
+Segue lote novo de assets aprovados pra integrar no app.
 
 Conteúdo:
-- 5 estados do mascote cachorro (padrao, atento, feliz, pensativo, dormindo)
-- Estado padrão do avatar (4 tons de pele × 4 cabelos × 3 roupas)
+- mundo_mini_arvore.png (estágio novo da planta principal — Nível 4)
+- (outros assets do lote)
 
-Anexos: [arquivos]
+Localização: [pasta no filesystem ou anexos]
 
 Instruções:
 - Estrutura de pastas conforme Seção 12 do Style Guide.
-- Substituir os emojis placeholder atuais pelos assets reais.
-- Sistema de avatar deve compor em layers (corpo + cabelo + roupa) em runtime, não usar imagens combinadas.
+- Substituir placeholders atuais pelos assets reais.
 - Documentar a integração em ARCHITECTURE.md.
 
-Quando terminar, gera novo build .apk pra eu testar.
+Quando terminar, validar via Fast Refresh ou build local pra eu testar.
 ```
 
-### 11.3. Para o Manus — integrando os assets
+### 11.3. Para o Dev Temporário — integrando os assets
 
 Quando receber assets do Gui:
 
 1. **Não modificar arquivos.** Use exatamente como entregues. Se precisar redimensionar ou recortar, alinhar antes com o Gui.
 2. **Organizar conforme Seção 12** deste Style Guide (estrutura de pastas).
-3. **Substituir placeholders** (emojis, ícones genéricos) pelos assets reais nas telas correspondentes.
-4. **Implementar sistema de composição** quando aplicável (avatar layered, mascote com swap de estado).
+3. **Substituir placeholders** (emojis, ícones genéricos, quadrados de cor) pelos assets reais nas telas correspondentes.
+4. **Implementar sistema de composição** quando aplicável (avatar layered, mascote com swap de estado, plantas com substituição entre níveis).
 5. **Documentar em ARCHITECTURE.md** como assets estão organizados, como são carregados, como são compostos em runtime.
-6. **Gerar build .apk** após integração e enviar link pro Gui validar visualmente.
+6. **Validar via Fast Refresh** ou gerar build local de teste após integração, e sinalizar ao Gui que está pronto pra teste no celular.
 
 Se um asset entregue causar problema técnico (formato errado, resolução baixa demais, transparência mal exportada), comunicar ao Gui pra ele regenerar — não tentar "consertar" o asset sozinho.
 
 ### 11.4. Validação visual final
 
-Quando Manus entregar build com assets integrados, Gui valida no celular:
+Quando o Dev Temporário sinalizar que a integração está pronta, Gui valida no celular:
 
 - Sensação contemplativa está presente?
 - Paleta entre assets parece coerente?
 - Mascote mantém personalidade entre estados?
 - Avatar componentizado renderiza limpo (sem "costuras" visíveis)?
 - Cenários funcionam visualmente em diferentes tamanhos de tela?
+- Plantas do Mundo permanente mostram progressão visual coerente entre níveis?
 
 Se algum asset não funcionar bem no contexto do app (ex: ficou pequeno demais, contraste ruim com o fundo), Gui ajusta o asset (regenera ou edita) antes de pedir nova integração.
 
@@ -606,4 +734,4 @@ Mas os **princípios estéticos invioláveis (Seção 1.2)**, a **paleta primár
 ---
 
 *Documento criado por Claude em colaboração com Gui. Abril/2026.*
-*Versão 1.1 — Style Guide Visual completo do Norte Code para geração via Gemini/Imagen. Workflow corrigido: Gui gera os assets, Manus integra no app.*
+*Versão 1.2 — Maio/2026. Adicionada subseção 9.2.1 (Plantas / Estágios de crescimento) com prompts registrados pra brotinho, broto-médio, mini-árvore e flor decorativa. Workflow flexibilizado: Gemini ou Canva, escolha do Gui no momento. Workflow de integração de assets adaptado pra ambiente atual (Dev Temporário ativo no lugar do Manus).*

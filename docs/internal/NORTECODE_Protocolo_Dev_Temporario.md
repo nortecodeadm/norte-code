@@ -1,8 +1,13 @@
 # Norte Code — Protocolo de Dev Temporário
 
 **Documento de referência permanente**
-**Data:** Maio/2026
+**Versão:** 1.1 — Maio/2026
 **Objetivo:** Definir como qualquer IA pode assumir temporariamente o papel de executor (dev) do projeto, no lugar do Manus.
+
+**Changelog v1.1:**
+- Estratégia default de commits no Cenário A passa a ser **commit direto no `main`** (era branch + PR). Motivo: Gui não revisa código, então PR não agrega — confia no Relatório de Execução. Branch separada continua sendo opção, mas só quando o Gui explicitamente pedir.
+- Convenção: briefings técnicos preparados pelo Claude Estrategista são salvos em `docs/internal/` no repo (não versionado externamente, mas presente no filesystem do Gui). Dev Temporário lê de lá.
+- Mantida exigência de Relatório de Execução ao final.
 
 ---
 
@@ -26,6 +31,25 @@ Quando o Manus voltar, este documento vira referência histórica até ser ativa
 - **IAs/agentes com acesso a GitHub direto:** GitHub Copilot Workspace, Aider, Custom GPTs com conector GitHub, Claude com conector GitHub, etc.
 
 A IA dev temporário **lê este documento primeiro** e identifica em qual cenário se encaixa antes de qualquer ação.
+
+---
+
+## Onde Ficam os Briefings Técnicos
+
+Briefings de execução preparados pelo Claude Estrategista (modelo 4.2 do Protocolo de Colaboração entre IAs) vivem em:
+
+```
+docs/internal/NORTECODE_Briefing_Nivel_X.md
+docs/internal/NORTECODE_Briefing_FeatureY.md
+...
+```
+
+A pasta `docs/internal/` fica **dentro do repo** (presente no filesystem do Gui e versionada no GitHub), separada da documentação ativa do produto (`docs/LEVELS.md`, `docs/ARCHITECTURE.md` etc.) pra não poluir a raiz de `docs/` conforme briefings se acumulam.
+
+**Dev Temporário no Cenário A:** lê o briefing direto do filesystem. Gui só precisa dizer o nome do arquivo.
+**Dev Temporário no Cenário B:** Gui cola o conteúdo do briefing no chat.
+
+Relatórios de Execução produzidos pelo Dev Temporário ficam no chat (entregues ao Gui) — não são salvos como arquivo no repo, a menos que o Gui peça explicitamente.
 
 ---
 
@@ -53,11 +77,11 @@ A IA tem capacidade nativa ou via conector de:
 
 1. **Verificar se tem acesso ativo ao repo** `https://github.com/nortecodeadm/norte-code`
 2. **Se NÃO tem acesso:** guiar o Gui passo a passo pra habilitar o conector/permissão necessário. Não pular essa etapa, não fingir que tem.
-3. **Se tem acesso:** confirmar com o Gui qual estratégia de commit usar:
-   - Commit direto no `main` (mais rápido, menos controle pro Gui)
-   - Branch `claude/feature-x` (ou similar) + PR pro Gui revisar e mergear (mais controle, mais rastreabilidade)
+3. **Se tem acesso:** aplicar a estratégia de commit default (ver abaixo). Não precisa perguntar ao Gui salvo se a tarefa for excepcionalmente arriscada.
 
-**Recomendação default:** branch separada + PR. Gui mergeia quando validar. Reduz risco de quebrar o `main` sem o Gui ver.
+**Estratégia de commits default: direto no `main`.** Sem branch, sem PR. Razão: o Gui não revisa código, então PR não agrega valor — o que importa é o Relatório de Execução detalhado ao final e o teste funcional no celular. Branch separada só se o Gui pedir explicitamente, ou se a tarefa for grande/arriscada o suficiente pra justificar (ex: refatoração estrutural, mudança que pode quebrar Níveis 1-3).
+
+Quebrar a entrega em **commits lógicos** (não um único commit gigante): interpretador, levels config, world layout, paleta, docs etc. Conventional Commits sempre.
 
 ### CENÁRIO B — IA sem acesso ao GitHub (chat tradicional)
 
@@ -130,22 +154,29 @@ Antes da primeira tarefa, a IA verifica/configura acesso ao GitHub. Se for caso 
 
 ### Estratégia de Commits
 
-**Recomendação default:** branch separada + PR.
+**Default: commit direto no `main`.**
 
 ```
 Gui pede tarefa
-→ IA cria branch (ex: `claude/fix-mascote-aspectratio` ou `gpt/feat-nivel-4`)
-→ IA faz commits na branch
-→ IA abre PR
-→ Gui revisa e mergeia
+→ IA pulla main, lê código, implementa
+→ IA faz commits lógicos no main
+→ IA pusha
+→ IA produz Relatório de Execução
+→ Gui testa no celular
 ```
 
-**Quando commit direto no main faz sentido:**
-- Fix muito pequeno (1-2 linhas)
-- Documentação apenas
-- Mudanças que Gui já validou conceitualmente
+**Quando branch separada faz sentido (NÃO é o default):**
+- Refatoração estrutural grande que pode quebrar Níveis já estáveis
+- Mudança experimental que o Gui quer poder reverter sem dor
+- Tarefa que o Gui explicitamente pediu pra ir em branch
 
-**Sempre confirma com Gui antes de fazer commit direto no main.**
+**Mensagem-padrão da IA:** "Vou commitar direto no `main` conforme o protocolo. Se preferir branch separada, me avise antes."
+
+Quebrar a entrega em commits lógicos. Não fazer um único commit gigante monolítico. Exemplo bom pra uma feature de Nível novo:
+1. `feat: registra move_left no interpretador`
+2. `feat: adiciona config do Nível 4 em lib/levels`
+3. `feat: integra recompensas do Nível 4 ao Mundo permanente`
+4. `docs: atualiza LEVELS, INTERPRETER e DECISIONS pro Nível 4`
 
 ### Mensagens de Commit
 
@@ -158,20 +189,21 @@ Conventional Commits:
 
 Exemplo: `feat: implementa Nível 4 (loops fixos)`
 
-### Após cada commit/PR
+### Após os commits
 
 A IA reporta ao Gui:
 - O que foi feito (resumo)
-- Link do commit/PR
-- Como testar local (comandos `git pull`, `gradlew assembleDebug`, etc.)
+- Lista de commits (SHA + mensagem)
+- Como testar local (comandos `git pull`, `npx expo start`, etc.)
 - O que esperar visualmente quando testar
+- Entregar o **Relatório de Execução** completo (template no final deste documento)
 
 ### Iterando após teste
 
 Se o Gui reporta bug ou ajuste:
-- IA acessa de novo o código no GitHub
+- IA acessa o código no GitHub / filesystem
 - Identifica o problema
-- Faz novo commit (na mesma branch se for parte da mesma entrega)
+- Faz novo commit no `main` (ou na branch, se for o caso excepcional)
 - Reporta novamente
 
 ---
@@ -384,11 +416,12 @@ IA verifica acesso ao GitHub. Se necessário, guia setup.
 IA implementa seguindo padrões do projeto.
 
 ### Passo 4 — Entrega
-**Cenário A:** commit em branch + PR.
+**Cenário A:** commits diretos no `main` (default) ou em branch se a tarefa for excepcional.
 **Cenário B:** código formatado no chat + comandos pro Gui.
 
-### Passo 5 — Aplicação (Cenário B) ou Revisão (Cenário A)
-Gui aplica/revisa.
+### Passo 5 — Aplicação (Cenário B) ou Validação (Cenário A)
+**Cenário A:** Gui faz `git pull`, testa no celular.
+**Cenário B:** Gui aplica manualmente, commita, testa no celular.
 
 ### Passo 6 — Teste
 Gui builda local, testa no celular.
@@ -410,7 +443,7 @@ Ao final, IA produz relatório com:
 Quando a tarefa estiver concluída:
 
 1. Dev Temporário produz **Relatório de Execução final**
-2. **Cenário A:** PRs mergeados pelo Gui
+2. **Cenário A:** commits já estão no `main` (default). Se foi uma exceção em branch, Gui mergeia.
 3. **Cenário B:** Gui aplica todas as mudanças no repo manualmente
 4. Briefing v2.5 (estado de implementação) é atualizado (Claude pode ajudar nessa atualização)
 5. Quando Manus voltar, Gui pode passar o relatório pra ele tomar pé
@@ -422,16 +455,18 @@ Quando a tarefa estiver concluída:
 Quando você é Dev Temporário:
 
 1. **Verifica seu acesso aos documentos do projeto.** Se tem, lê automaticamente. Se não, pede pro Gui colar.
-2. **Identifica seu cenário de execução** (A: acesso ao GitHub, ou B: chat tradicional).
-3. **Se Cenário A:** confirma acesso, ou guia Gui pra habilitar conector. Trabalha via branch + PR.
-4. **Se Cenário B:** entrega código formatado no chat. Gui aplica.
-5. **Você substitui o Manus.** Faz o que ele faria, com as adaptações do cenário.
-6. **Documenta tudo.** ARCHITECTURE, INTERPRETER, LEVELS, DECISIONS.
-7. **Não chuta. Não inventa. Não floreia.** Faz o que o briefing pede.
-8. **Confidencial.** Projeto secreto.
-9. **Relatório de Execução no final.** Sempre.
+2. **Lê o briefing técnico da tarefa** em `docs/internal/` (Cenário A) ou pede pro Gui colar (Cenário B).
+3. **Identifica seu cenário de execução** (A: acesso ao GitHub, ou B: chat tradicional).
+4. **Se Cenário A:** confirma acesso ou guia Gui pra habilitar conector. Trabalha com commits diretos no `main` (default), em commits lógicos não-monolíticos.
+5. **Se Cenário B:** entrega código formatado no chat. Gui aplica.
+6. **Você substitui o Manus.** Faz o que ele faria, com as adaptações do cenário.
+7. **Documenta tudo.** ARCHITECTURE, INTERPRETER, LEVELS, DECISIONS no repo.
+8. **Não chuta. Não inventa. Não floreia.** Faz o que o briefing pede.
+9. **Confidencial.** Projeto secreto.
+10. **Relatório de Execução no final.** Sempre.
 
 ---
 
 *Documento criado por Claude (Estrategista) — Maio/2026.*
+*Versão 1.1 — Atualizado para refletir adoção do Claude Code como Dev Temporário ativo, commit direto no `main` como default, e convenção de briefings em `docs/internal/`.*
 *Aplicável sempre que o Manus estiver fora ou quando o Gui escolher trabalhar com outra IA.*
