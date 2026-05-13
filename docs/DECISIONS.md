@@ -1,6 +1,6 @@
 # Log de Decisões Técnicas — Norte Code
 
-**Última atualização:** 02/05/2026
+**Última atualização:** 13/05/2026
 
 ---
 
@@ -599,3 +599,77 @@ A Gemini Pro foi usada para gerar os avatares finais como imagens completas pré
 **Contexto:** Nível 3 premia com 2 elementos: broto crescido (substitui broto) + flor (novo). O formato antigo (`elementKey` + `replaces`) só suportava 1 operação.
 **Implementação:** `level-summary` detecta se `elements[]` existe e itera; senão, usa `elementKey` (legacy). `world.tsx` usa cadeia de substituição: grown_sprout > sprout > seed.
 **Decisor:** Gui (via briefing do Claude)
+
+---
+
+## Dívida Técnica Conhecida
+
+Esta seção registra gaps confirmados entre o que o código **declara** e o que ele **executa**, ou pontos que precisam de verificação antes de serem usados. Diferente do log de decisões acima (que é cronológico e imutável), esta seção é mantida viva — itens entram quando descobertos e saem quando endereçados.
+
+Cada item indica: **o que é**, **impacto atual** (em níveis existentes e planos futuros), e se é **dívida intencional** (preparação consciente para algo futuro), **esquecimento** (algo que deveria ter sido feito junto e ficou faltando), ou **verificação pendente** (estado real ainda não confirmado).
+
+---
+
+### DT-01 — Funções (`define_function` / `call_function`) sem AST nem executor
+
+**O que é:** Os tipos `FunctionDefBlock` e `FunctionCallBlock` existem em `lib/interpreter/blocks.ts` (com campos `functionName` e `children`) e são reexportados pelo barrel `index.ts`. Porém, o `ASTNode` em `interpreter.ts` cobre apenas `action | loop | if`, e o `executeBlock` não tem branch para nós de função. Não existe resolução de nome, escopo, nem call stack.
+
+**Impacto atual:**
+- **Níveis 1, 2 e 3:** zero — nenhum usa esses blocos.
+- **Planos futuros:** bloqueia o Nível 9 (introdução de funções no roadmap) e qualquer nível anterior que tente usar abstração nomeada. Quem montar um programa com `FunctionDefBlock` hoje produz um AST que o engine não sabe percorrer.
+
+**Classificação:** **Intencional.** Os tipos foram declarados na camada de blocos como preparação para o roadmap, sem o engine ainda precisar suportar. Endereçar antes do Nível 9 exige: estender `ASTNode` com `FunctionDefNode`/`FunctionCallNode`, adicionar tabela de funções no `ExecutionContext`, implementar a chamada (com proteção contra recursão infinita interagindo com `MAX_EXECUTION_STEPS`), e validar conversão Block→AST.
+
+---
+
+### DT-02 — Condição `fruits_equal` declarada mas não avaliada
+
+**O que é:** `ConditionType` em `blocks.ts` inclui `fruits_equal`, e `ConditionalBlock`/`IfElseBlock` aceitam `conditionValue?: number` justamente para esse caso. Mas `evaluateCondition` em `interpreter.ts` não tem case para `fruits_equal` — cai no `default` e retorna `false` sempre.
+
+**Impacto atual:**
+- **Níveis 1, 2 e 3:** zero — nenhum usa condicionais ainda.
+- **Planos futuros:** quem usar `fruits_equal` num nível vai ver o ramo `then` nunca executar, com o engine silenciosamente roteando pro `else` (ou ignorando se não houver `else`). Sintoma: "a condição nunca aciona" — difícil de debugar sem ler o interpretador. Pode aparecer já no Nível 6+ quando condicionais entrarem.
+
+**Classificação:** **Esquecimento.** Diferente das funções (que exigem trabalho estrutural), `fruits_equal` é uma extensão pequena: adicionar o case em `evaluateCondition` e propagar `conditionValue` da árvore AST (que hoje não carrega valor além de `condition: string`). Provavelmente foi declarado em antecipação a um nível e deixou de ser implementado junto. Endereçar quando o primeiro nível com condicionais entrar em desenvolvimento.
+
+---
+
+### DT-03 — Conversão `IfElseBlock` → `IfNode` não validada
+
+**O que é:** O AST `IfNode` aceita `else?: ASTNode[]`. A interface `IfElseBlock` na camada de UI tem `ifChildren` e `elseChildren`. A camada que converte `Block[]` (estrutura de UI) em `ProgramNode` (estrutura AST executável) está **fora** de `lib/interpreter/` e não foi inspecionada nesta passagem. Se a conversão de `IfElseBlock` não estiver implementada ou estiver mapeando errado, o ramo `else` nunca chega ao engine.
+
+**Impacto atual:**
+- **Níveis 1, 2 e 3:** zero — nenhum usa `if_else`.
+- **Planos futuros:** o engine isolado está pronto para receber `else`. A ponte UI→AST não foi confirmada. Pode estar tudo funcionando — só precisa ser olhado antes do primeiro nível com `if_else`.
+
+**Classificação:** **Verificação pendente, não dívida confirmada.** Ação: ler o conversor `Block[]` → `ProgramNode` (provavelmente em `app/level/[id].tsx` ou módulo similar) e validar que `IfElseBlock.ifChildren`/`elseChildren` viram `IfNode.then`/`else`. Quando feito, este item sai ou vira dívida real.
+
+---
+
+### DT-04 — Bloco `stop` sem semântica de runtime definida
+
+**O que é:** `stop` aparece em `BlockType` (`blocks.ts`) com label "Parar". O `executeAction` em `interpreter.ts` não tem case explícito para `stop` — cai no `default`, que registra um step com `action: "stop"` mas **não interrompe a execução**. Os blocos seguintes continuam sendo processados normalmente.
+
+**Impacto atual:**
+- **Níveis 1, 2 e 3:** zero — nenhum usa.
+- **Planos futuros:** se aparecer numa paleta, comportamento contra-intuitivo: a criança coloca "Parar" esperando o programa terminar, e o engine continua. Quebra a expectativa pedagógica.
+
+**Classificação:** **Indefinido.** A semântica pretendida não está clara — pode ser:
+1. Abortar o programa inteiro (mais provável dado o label "Parar"),
+2. Quebrar do loop atual (`break`),
+3. Sair de uma função (`return`),
+4. Pausar e esperar input.
+
+Cada opção tem implicação pedagógica diferente. **Decisão necessária com Claude Estrategista / Gui antes de implementar ou liberar o bloco para um nível.** Enquanto isso: não usar `stop` em paletas de níveis novos.
+
+---
+
+### DT-05 — Doc-comment de cabeçalho em `interpreter.ts` desatualizado
+
+**O que é:** O comentário JSDoc no topo de `lib/interpreter/interpreter.ts` descreve o formato AST e lista `walk_forward` como exemplo de nome de ação. Os nomes adicionados depois (`move_forward`, `move_right/left/up/down`, `plant`, `water`, `pick_fruit`) não aparecem no exemplo. Não menciona como `CellContent` interage com as ações de mordomia.
+
+**Impacto atual:**
+- **Níveis 1, 2 e 3:** zero em runtime.
+- **Planos futuros:** zero em runtime. Custo pequeno: confusão para quem ler o código pela primeira vez achando que `walk_forward` é a única forma de movimento.
+
+**Classificação:** **Esquecimento.** Limpeza de manutenção. Pode ser feito junto com qualquer próxima alteração em `interpreter.ts` — não justifica commit isolado.
