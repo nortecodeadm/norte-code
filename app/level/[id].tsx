@@ -56,13 +56,16 @@ function countBlocks(blocks: ProgramBlock[]): number {
 }
 
 // Converte árvore de ProgramBlock pra AST executável (recursivo).
-// repeat_3 vira LoopNode com body recursivo. Demais blocos viram ActionNode.
+// repeat_3/repeat_5 viram LoopNode com body recursivo (N hardcoded).
+// Demais blocos viram ActionNode — inclusive condicional embutido
+// (if_canteiro_vazio_then_plantar), cuja lógica condicional mora no
+// interpreter (executeAction), não no AST.
 function blocksToAST(blocks: ProgramBlock[]): ASTNode[] {
   return blocks.map((b): ASTNode => {
-    if (b.type === "repeat_3") {
+    if (b.type === "repeat_3" || b.type === "repeat_5") {
       return {
         type: "loop",
-        times: 3,
+        times: b.type === "repeat_3" ? 3 : 5,
         body: blocksToAST(b.children ?? []),
         id: b.id,
       };
@@ -134,6 +137,12 @@ export default function LevelScreen() {
   const [programBlocks, setProgramBlocks] = useState<ProgramBlock[]>([]);
   const [executeState, setExecuteState] = useState<ExecuteState>("idle");
   const [activeBlockId, setActiveBlockId] = useState<string | undefined>();
+  // Resultado da condição do step ativo (apenas blocos condicionais
+  // embutidos emitem). UI usa isso pra colorir o destaque do bloco —
+  // verde quando true (executou), cinza quando false (ignorou).
+  const [activeConditionResult, setActiveConditionResult] = useState<
+    boolean | undefined
+  >(undefined);
   const [worldState, setWorldState] = useState<WorldState | null>(
     level ? JSON.parse(JSON.stringify(level.initialWorld)) : null
   );
@@ -283,6 +292,7 @@ export default function LevelScreen() {
     cloned.goalCondition = level.initialWorld.goalCondition;
     setWorldState(cloned);
     setActiveBlockId(undefined);
+    setActiveConditionResult(undefined);
   };
 
   const handleExecute = async () => {
@@ -304,6 +314,7 @@ export default function LevelScreen() {
     setWorldState(freshWorld);
     setExecuteState("running");
     setActiveBlockId(undefined);
+    setActiveConditionResult(undefined);
     setErrorMessage(null);
 
     // Build AST from program blocks (recursivo — suporta repeat_3 com filhos)
@@ -323,6 +334,7 @@ export default function LevelScreen() {
     // Set final state
     setWorldState(result.finalState);
     setActiveBlockId(undefined);
+    setActiveConditionResult(undefined);
 
     if (result.success) {
       setExecuteState("success");
@@ -462,8 +474,9 @@ export default function LevelScreen() {
 
         const step = steps[stepIndex];
 
-        // Highlight the active block
+        // Highlight the active block + propaga resultado condicional (se houver)
         setActiveBlockId(step.blockId);
+        setActiveConditionResult(step.conditionResult);
 
         // Update world state to show this step's result
         currentWorld = {
@@ -523,7 +536,9 @@ export default function LevelScreen() {
 
       {/* Indicador de "modo edição" FIXO logo abaixo do header — fica sempre
           visível mesmo quando criança rola pra baixo editando dentro do
-          envelope. Ver decisão de UX em DECISIONS.md (modo via toque). */}
+          envelope. Ver decisão de UX em DECISIONS.md (modo via toque).
+          Texto dinâmico baseado no tipo do container em edição (Repetir 3×,
+          Repetir 5×, etc). */}
       {editingContainerId && (
         <View className="px-6 pt-1">
           <View
@@ -544,7 +559,12 @@ export default function LevelScreen() {
                 textAlign: "center",
               }}
             >
-              ✎ Adicionando blocos dentro de Repetir 3×
+              ✎ Adicionando blocos dentro de{" "}
+              {(() => {
+                const container = findBlockById(programBlocks, editingContainerId);
+                if (container?.type === "repeat_5") return "Repetir 5×";
+                return "Repetir 3×";
+              })()}
             </Text>
           </View>
         </View>
@@ -625,6 +645,7 @@ export default function LevelScreen() {
             onContainerToggle={handleContainerToggle}
             onContainerDone={handleContainerDone}
             activeBlockId={activeBlockId}
+            activeConditionResult={activeConditionResult}
             maxBlocks={level.maxBlocks}
             totalCount={countBlocks(programBlocks)}
             disabled={executeState === "running"}

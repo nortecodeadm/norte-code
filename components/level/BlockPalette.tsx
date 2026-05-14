@@ -32,8 +32,17 @@ const BLOCK_CONFIG: Record<
   pick_fruit: { label: "Pegar", color: "#F5A623", icon: "🍎" },
   repeat: { label: "Repetir", color: "#E8853D", icon: "🔄" },
   repeat_3: { label: "Repetir 3×", color: "#E8853D", icon: "🔄" },
+  repeat_5: { label: "Repetir 5×", color: "#E8853D", icon: "🔄" },
   if_condition: { label: "Se...", color: "#D4577B", icon: "?" },
   if_else: { label: "Se/Senão", color: "#D4577B", icon: "?!" },
+  // Bloco "tudo em um" do Nível 6 (categoria condicional). Cor roxa clara
+  // distinta dos demais blocos. Label textual "Se vazio, plantar" é o que
+  // a criança lê — ícone 🌱 reforça a ação embutida.
+  if_canteiro_vazio_then_plantar: {
+    label: "Se vazio, plantar",
+    color: "#A88FD9",
+    icon: "🌱",
+  },
   define_function: { label: "Definir", color: "#8E44AD", icon: "📦" },
   call_function: { label: "Fazer", color: "#8E44AD", icon: "▶" },
   stop: { label: "Parar", color: "#95A5A6", icon: "⏹" },

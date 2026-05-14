@@ -77,6 +77,11 @@ export interface ExecutionStep {
   }[];
   blockId: string; // Which block produced this step
   failReason?: "rock" | "out_of_grid"; // Only set when action === "fail_move"
+  // Resultado da avaliação condicional, quando o bloco é condicional embutido
+  // (ex: if_canteiro_vazio_then_plantar). Permanece undefined em ações comuns.
+  // A UI usa este campo pra dar feedback visual (verde quando true, cinza
+  // quando false). Aditivo — Níveis 1-5 não emitem, comportamento preservado.
+  conditionResult?: boolean;
 }
 
 export interface ExecutionResult {

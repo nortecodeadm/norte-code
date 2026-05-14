@@ -167,6 +167,7 @@ function executeAction(node: ActionNode, ctx: ExecutionContext): void {
   let action: StepAction;
   let worldChanges: ExecutionStep["worldChanges"];
   let failReason: ExecutionStep["failReason"];
+  let conditionResult: boolean | undefined;
 
   switch (node.name) {
     case "walk_forward":
@@ -278,6 +279,32 @@ function executeAction(node: ActionNode, ctx: ExecutionContext): void {
       break;
     }
 
+    // Bloco "tudo em um" do Nível 6: condicional embutido. Verifica se a
+    // célula atual é canteiro vazio (flowerbed); se for, planta; senão,
+    // ignora. Emite conditionResult pra UI dar feedback visual diferente
+    // de verdadeiro/falso. Conceitualmente é if-sem-else colado num plant.
+    case "if_canteiro_vazio_then_plantar": {
+      const cell = world.grid[player.position.y][player.position.x];
+      if (cell.content === "flowerbed") {
+        worldChanges = [
+          {
+            position: { ...player.position },
+            from: cell.content,
+            to: "seed" as CellContent,
+          },
+        ];
+        cell.content = "seed";
+        action = "plant";
+        conditionResult = true;
+      } else {
+        // Condição falsa: SC ('empty') ou CP ('seed') ou qualquer outro
+        // conteúdo. Não emite worldChanges — célula intocada.
+        action = "plant";
+        conditionResult = false;
+      }
+      break;
+    }
+
     case "water": {
       const cell = world.grid[player.position.y][player.position.x];
       if (cell.content === "seed" || cell.content === "sprout") {
@@ -342,6 +369,7 @@ function executeAction(node: ActionNode, ctx: ExecutionContext): void {
     worldChanges,
     blockId: node.id ?? "",
     failReason,
+    conditionResult,
   });
 }
 

@@ -22,8 +22,10 @@ export type BlockType =
   | "pick_fruit"
   | "repeat"
   | "repeat_3"
+  | "repeat_5"
   | "if_condition"
   | "if_else"
+  | "if_canteiro_vazio_then_plantar"
   | "define_function"
   | "call_function"
   | "stop";
@@ -103,8 +105,10 @@ export function createBlock(
     pick_fruit: "Pegar fruta",
     repeat: "Repetir",
     repeat_3: "Repetir 3×",
+    repeat_5: "Repetir 5×",
     if_condition: "Se...",
     if_else: "Se... senão...",
+    if_canteiro_vazio_then_plantar: "Se vazio, plantar",
     define_function: "Definir",
     call_function: "Fazer",
     stop: "Parar",

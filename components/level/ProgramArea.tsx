@@ -33,6 +33,14 @@ interface ProgramAreaProps {
   /** Botão "Pronto ✓" — sai do modo edição. */
   onContainerDone?: () => void;
   activeBlockId?: string; // Block currently being executed (for highlight)
+  /**
+   * Resultado da avaliação condicional do bloco atualmente ativo. Quando o
+   * bloco ativo é um condicional embutido (ex: if_canteiro_vazio_then_plantar),
+   * essa prop muda a cor do destaque: verde quando true (executou ação),
+   * cinza quando false (ignorou). undefined em blocos sem condicional —
+   * destaque normal preservado.
+   */
+  activeConditionResult?: boolean;
   maxBlocks: number;
   disabled?: boolean;
   /** Conta plana de blocos (incluindo filhos), usada pra exibir contador. */
@@ -52,8 +60,10 @@ const BLOCK_COLORS: Record<BlockType, string> = {
   pick_fruit: "#F5A623",
   repeat: "#E8853D",
   repeat_3: "#E8853D",
+  repeat_5: "#E8853D",
   if_condition: "#D4577B",
   if_else: "#D4577B",
+  if_canteiro_vazio_then_plantar: "#A88FD9",
   define_function: "#8E44AD",
   call_function: "#8E44AD",
   stop: "#95A5A6",
@@ -72,8 +82,10 @@ const BLOCK_LABELS: Record<BlockType, string> = {
   pick_fruit: "🍎 Pegar",
   repeat: "🔄 Repetir",
   repeat_3: "🔄 Repetir 3×",
+  repeat_5: "🔄 Repetir 5×",
   if_condition: "? Se...",
   if_else: "?! Se/Senão",
+  if_canteiro_vazio_then_plantar: "🌱 Se vazio, plantar",
   define_function: "📦 Definir",
   call_function: "▶ Fazer",
   stop: "⏹ Parar",
@@ -81,7 +93,15 @@ const BLOCK_LABELS: Record<BlockType, string> = {
 
 const CONTAINER_TYPES: ReadonlySet<BlockType> = new Set<BlockType>([
   "repeat_3",
+  "repeat_5",
 ]);
+
+// Cores do feedback visual condicional (Nível 6+). Usadas APENAS quando o
+// bloco ativo tem conditionResult definido. Verde reusa a cor do `plant`
+// (associação: a ação embutida no condicional é plantar). Cinza claro pra
+// "ignorou" — sem ser punitivo. Ver DECISIONS.md.
+const CONDITION_TRUE_COLOR = "#5D8A3C";
+const CONDITION_FALSE_COLOR = "#BDBDBD";
 
 export function isContainerBlock(type: BlockType): boolean {
   return CONTAINER_TYPES.has(type);
@@ -104,6 +124,7 @@ function SimpleBlockRow({
   block,
   index,
   isActive,
+  conditionResult,
   onRemove,
   disabled,
   indent = 0,
@@ -111,20 +132,34 @@ function SimpleBlockRow({
   block: ProgramBlock;
   index: number;
   isActive: boolean;
+  /**
+   * Quando o bloco está ativo E é um condicional embutido, vale true/false
+   * pra mostrar feedback (verde/cinza). undefined ou bloco não-ativo → cor
+   * original do bloco.
+   */
+  conditionResult?: boolean;
   onRemove: (id: string) => void;
   disabled: boolean;
   indent?: number;
 }) {
-  const color = BLOCK_COLORS[block.type];
+  const baseColor = BLOCK_COLORS[block.type];
+  // Cor efetiva do destaque: quando ativo e tem conditionResult, troca
+  // pra verde/cinza. Caso contrário usa a cor original do bloco.
+  const activeColor =
+    isActive && conditionResult !== undefined
+      ? conditionResult
+        ? CONDITION_TRUE_COLOR
+        : CONDITION_FALSE_COLOR
+      : baseColor;
   return (
     <Pressable
       onPress={() => !disabled && onRemove(block.id)}
       style={({ pressed }) => ({
         flexDirection: "row",
         alignItems: "center",
-        backgroundColor: isActive ? color : `${color}22`,
+        backgroundColor: isActive ? activeColor : `${baseColor}22`,
         borderLeftWidth: 4,
-        borderLeftColor: color,
+        borderLeftColor: isActive ? activeColor : baseColor,
         borderRadius: 8,
         paddingHorizontal: 12,
         paddingVertical: 8,
@@ -148,7 +183,7 @@ function SimpleBlockRow({
         style={{
           fontFamily: "Nunito-SemiBold",
           fontSize: 13,
-          color: isActive ? "#FFFFFF" : color,
+          color: isActive ? "#FFFFFF" : baseColor,
           flex: 1,
         }}
       >
@@ -169,6 +204,7 @@ function ContainerBlockRow({
   onRemove,
   disabled,
   activeBlockId,
+  activeConditionResult,
 }: {
   block: ProgramBlock;
   index: number;
@@ -179,6 +215,7 @@ function ContainerBlockRow({
   onRemove: (id: string) => void;
   disabled: boolean;
   activeBlockId?: string;
+  activeConditionResult?: boolean;
 }) {
   const color = BLOCK_COLORS[block.type];
   const children = block.children ?? [];
@@ -291,6 +328,9 @@ function ContainerBlockRow({
               block={child}
               index={childIdx + 1}
               isActive={activeBlockId === child.id}
+              conditionResult={
+                activeBlockId === child.id ? activeConditionResult : undefined
+              }
               onRemove={onRemove}
               disabled={disabled}
             />
@@ -343,6 +383,7 @@ export function ProgramArea({
   onContainerToggle,
   onContainerDone,
   activeBlockId,
+  activeConditionResult,
   maxBlocks,
   disabled = false,
   totalCount,
@@ -417,6 +458,7 @@ export function ProgramArea({
                   onRemove={onBlockRemove}
                   disabled={disabled}
                   activeBlockId={activeBlockId}
+                  activeConditionResult={activeConditionResult}
                 />
               );
             }
@@ -426,6 +468,9 @@ export function ProgramArea({
                 block={block}
                 index={index + 1}
                 isActive={activeBlockId === block.id}
+                conditionResult={
+                  activeBlockId === block.id ? activeConditionResult : undefined
+                }
                 onRemove={onBlockRemove}
                 disabled={disabled}
               />
