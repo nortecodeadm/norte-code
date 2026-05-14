@@ -60,7 +60,7 @@ const WORLD_LAYOUT = {
   // do Nível 6 conforme decisão tomada na entrega do Nível 5). Mais alta
   // que a mini-árvore (PNG 606×903 vs 784×1176), top um pouco mais baixo
   // pra ficar bem posicionada. Posição placeholder — Gui calibra.
-  arvoreJovem: { top: pctH(16), left: pctW(28), width: pctW(50) },
+  arvoreJovem: { top: pctH(11), left: pctW(25), width: pctW(55) },
 
   // Recompensa Nível 4 — 3 sementes plantadas neste nível, lado a lado na frente
   // da cena. Posições placeholder — Gui calibra.
@@ -69,7 +69,7 @@ const WORLD_LAYOUT = {
   sementeLvl4C: { bottom: pctH(4), left: pctW(56), width: pctW(10) },
 
   // Recompensa Nível 4 — flor decorativa adicional (reusa asset da flor do Nível 3)
-  florLvl4: { top: pctH(40), left: pctW(42), width: pctW(7) },
+  florLvl4: { top: pctH(38), left: pctW(40), width: pctW(7) },
 
   // Recompensa Nível 5 — 3 plantinhas estágio 3 SUBSTITUEM as 3 sementes
   // plantadas no Nível 4 (mesmas posições). Pulam estágio 2 (broto) —
@@ -81,7 +81,7 @@ const WORLD_LAYOUT = {
   // Recompensa Nível 5 — +2 flores decorativas (reuso do asset da flor do
   // Nível 3). Posições placeholder — Gui calibra.
   florLvl5A: { top: pctH(55), left: pctW(32), width: pctW(7) },
-  florLvl5B: { top: pctH(41), right: pctW(33), width: pctW(7) },
+  florLvl5B: { top: pctH(39), right: pctW(29), width: pctW(7) },
 
   // Recompensa Nível 5 "flor no tronco": SUBSTITUI o tronco (não sobrepõe).
   // Posição/proporção idênticas ao `tronco` — asset novo (1426×624) entra
@@ -91,23 +91,23 @@ const WORLD_LAYOUT = {
   // Recompensa Nível 6 — 3 mini-árvores SUBSTITUEM as 3 plantinhas estágio 3
   // do Nível 5 (asset reusa o mundo_mini_arvore que era da planta principal
   // no Nível 4). Posições idênticas às plantinhas — continuidade narrativa.
-  miniArvoreLvl6A: { bottom: pctH(4), left: pctW(32), width: pctW(13) },
-  miniArvoreLvl6B: { bottom: pctH(5), left: pctW(44), width: pctW(13) },
-  miniArvoreLvl6C: { bottom: pctH(4), left: pctW(56), width: pctW(13) },
+  miniArvoreLvl6A: { bottom: pctH(55), left: pctW(1), width: pctW(25) },
+  miniArvoreLvl6B: { bottom: pctH(54.5), left: pctW(16), width: pctW(25) },
+  miniArvoreLvl6C: { bottom: pctH(54), left: pctW(74), width: pctW(25) },
 
   // Recompensa Nível 6 — 2 pássaros (primeira fauna do MVP). Asset
   // mundo_passaro_pousado (850×736). bird_lvl6_a pousa no tronco caído com
   // flor; bird_lvl6_b pousa na pedra (espelhado horizontalmente via
   // scaleX -1 no render, pra parecer um "casal" virado em direções opostas).
   // Posições placeholder — Gui calibra.
-  passaroLvl6A: { top: pctH(28), right: pctW(50), width: pctW(12) },
-  passaroLvl6B: { top: pctH(6), right: pctW(15), width: pctW(10) },
+  passaroLvl6A: { top: pctH(54), right: pctW(82), width: pctW(10) },
+  passaroLvl6B: { top: pctH(50), right: pctW(15), width: pctW(10) },
 
   // Recompensa Nível 6 — 3 flores amarelas decorativas espalhadas pelo
   // jardim. Asset mundo_flor_amarela (458×855). Posições placeholder.
-  florAmarelaLvl6A: { top: pctH(50), left: pctW(10), width: pctW(6) },
-  florAmarelaLvl6B: { top: pctH(58), right: pctW(15), width: pctW(6) },
-  florAmarelaLvl6C: { bottom: pctH(20), left: pctW(70), width: pctW(6) },
+  florAmarelaLvl6A: { top: pctH(82), left: pctW(54), width: pctW(10) },
+  florAmarelaLvl6B: { top: pctH(80), right: pctW(45), width: pctW(10) },
+  florAmarelaLvl6C: { bottom: pctH(10), left: pctW(35), width: pctW(10) },
 
   // UI
   botaoPlay: { bottom: pctH(90), right: pctW(6) },
@@ -546,6 +546,7 @@ export default function WorldScreen() {
                 left: WORLD_LAYOUT.arvoreJovem.left,
                 width: WORLD_LAYOUT.arvoreJovem.width,
                 aspectRatio: 606 / 903,
+                zIndex: 10,
               },
             ]}
           >
