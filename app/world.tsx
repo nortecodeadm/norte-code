@@ -64,12 +64,29 @@ const WORLD_LAYOUT = {
   // Recompensa Nível 4 — flor decorativa adicional (reusa asset da flor do Nível 3)
   florLvl4: { top: pctH(62), left: pctW(31), width: pctW(7) },
 
+  // Recompensa Nível 5 — 3 plantinhas estágio 3 SUBSTITUEM as 3 sementes
+  // plantadas no Nível 4 (mesmas posições). Pulam estágio 2 (broto) —
+  // sinal de que regar acelerou o crescimento. Posições placeholder.
+  plantinhaLvl5A: { bottom: pctH(4), left: pctW(32), width: pctW(12) },
+  plantinhaLvl5B: { bottom: pctH(5), left: pctW(44), width: pctW(12) },
+  plantinhaLvl5C: { bottom: pctH(4), left: pctW(56), width: pctW(12) },
+
+  // Recompensa Nível 5 — +2 flores decorativas (reuso do asset da flor do
+  // Nível 3). Posições placeholder — Gui calibra.
+  florLvl5A: { top: pctH(58), left: pctW(8), width: pctW(7) },
+  florLvl5B: { top: pctH(70), right: pctW(8), width: pctW(7) },
+
+  // Recompensa Nível 5 — flor brota do tronco caído. O asset tem a mesma
+  // proporção do tronco (1426×624) pra sobrepor exatamente.
+  florNoTronco: { top: pctH(21.5), right: pctW(68), width: pctW(28) },
+
   // UI
   botaoPlay: { bottom: pctH(90), right: pctW(6) },
 };
 
 // ─── Asset requires ─────────────────────────────────────────────────────────
-const MUNDO_BG = require("../assets/mundo/mundo_terreno_vazio.png");
+const MUNDO_BG_V1 = require("../assets/mundo/mundo_terreno_vazio.png");
+const MUNDO_BG_V2 = require("../assets/mundo/background_mundo_v2.png");
 const MUNDO_PEDRA = require("../assets/mundo/mundo_pedra.png");
 const MUNDO_TRONCO = require("../assets/mundo/mundo_tronco.png");
 const MUNDO_SEMENTINHA = require("../assets/mundo/mundo_sementinha.png");
@@ -77,6 +94,8 @@ const MUNDO_BROTO = require("../assets/mundo/mundo_broto.png");
 const MUNDO_BROTO_CRESCIDO = require("../assets/mundo/mundo_broto_crescido.png");
 const MUNDO_FLOR = require("../assets/mundo/mundo_flor.png");
 const MUNDO_MINI_ARVORE = require("../assets/mundo/mundo_mini_arvore.png");
+const MUNDO_PLANTINHA_LVL5 = require("../assets/mundo/plantinha_estagio3.png");
+const MUNDO_FLOR_NO_TRONCO = require("../assets/mundo/flor_no_tronco.png");
 
 /**
  * World Screen — The player's permanent home.
@@ -97,6 +116,15 @@ export default function WorldScreen() {
   const [showSeedLvl4B, setShowSeedLvl4B] = useState(false);
   const [showSeedLvl4C, setShowSeedLvl4C] = useState(false);
   const [showFlowerLvl4, setShowFlowerLvl4] = useState(false);
+  // Recompensas do Nível 5 — background v2 substitui v1; plantinhas estágio 3
+  // substituem as 3 sementes do Nível 4; +2 flores; +1 flor no tronco.
+  const [showBgV2, setShowBgV2] = useState(false);
+  const [showPlantinhaLvl5A, setShowPlantinhaLvl5A] = useState(false);
+  const [showPlantinhaLvl5B, setShowPlantinhaLvl5B] = useState(false);
+  const [showPlantinhaLvl5C, setShowPlantinhaLvl5C] = useState(false);
+  const [showFlowerLvl5A, setShowFlowerLvl5A] = useState(false);
+  const [showFlowerLvl5B, setShowFlowerLvl5B] = useState(false);
+  const [showFlorNoTronco, setShowFlorNoTronco] = useState(false);
 
   // Animations
   const fadeIn = useSharedValue(0);
@@ -157,11 +185,35 @@ export default function WorldScreen() {
     setShowSeed(hasSeed && !hasSprout && !hasGrownSprout && !hasMiniArvore);
     setShowFlower(hasFlower);
 
-    // Recompensas adicionais do Nível 4: 3 sementes novas + 1 flor decorativa
-    setShowSeedLvl4A(worldElements?.includes("seed_lvl4_a") ?? false);
-    setShowSeedLvl4B(worldElements?.includes("seed_lvl4_b") ?? false);
-    setShowSeedLvl4C(worldElements?.includes("seed_lvl4_c") ?? false);
+    // Recompensas do Nível 4: 3 sementes plantadas + 1 flor decorativa nova.
+    // Cada semente lvl4 é SUBSTITUÍDA visualmente pela plantinha estágio 3
+    // correspondente do Nível 5 (mesma posição, asset diferente).
+    const hasPlantinhaA = worldElements?.includes("plant_stage3_lvl5_a") ?? false;
+    const hasPlantinhaB = worldElements?.includes("plant_stage3_lvl5_b") ?? false;
+    const hasPlantinhaC = worldElements?.includes("plant_stage3_lvl5_c") ?? false;
+    setShowSeedLvl4A(
+      (worldElements?.includes("seed_lvl4_a") ?? false) && !hasPlantinhaA
+    );
+    setShowSeedLvl4B(
+      (worldElements?.includes("seed_lvl4_b") ?? false) && !hasPlantinhaB
+    );
+    setShowSeedLvl4C(
+      (worldElements?.includes("seed_lvl4_c") ?? false) && !hasPlantinhaC
+    );
     setShowFlowerLvl4(worldElements?.includes("flower_lvl4") ?? false);
+
+    // Recompensas do Nível 5:
+    //   1. background v2 substitui v1 (ImageBackground source decide qual usar)
+    //   2. plantinhas estágio 3 substituem sementes lvl4 (já tratado acima)
+    //   3. +2 flores decorativas
+    //   4. +1 flor brota do tronco caído
+    setShowBgV2(worldElements?.includes("background_mundo_v2") ?? false);
+    setShowPlantinhaLvl5A(hasPlantinhaA);
+    setShowPlantinhaLvl5B(hasPlantinhaB);
+    setShowPlantinhaLvl5C(hasPlantinhaC);
+    setShowFlowerLvl5A(worldElements?.includes("flower_lvl5_a") ?? false);
+    setShowFlowerLvl5B(worldElements?.includes("flower_lvl5_b") ?? false);
+    setShowFlorNoTronco(worldElements?.includes("flower_no_tronco") ?? false);
   }, []);
 
   useFocusEffect(
@@ -210,7 +262,7 @@ export default function WorldScreen() {
   return (
     <View className="flex-1">
       <ImageBackground
-        source={MUNDO_BG}
+        source={showBgV2 ? MUNDO_BG_V2 : MUNDO_BG_V1}
         resizeMode="cover"
         style={{ flex: 1 }}
       >
@@ -473,6 +525,138 @@ export default function WorldScreen() {
           >
             <Image
               source={MUNDO_FLOR}
+              resizeMode="contain"
+              style={{ width: "100%", height: "100%" }}
+            />
+          </Animated.View>
+        )}
+
+        {/* Z-layer 4.2: 3 plantinhas estágio 3 (recompensa Nível 5) —
+             substituem visualmente as 3 sementes do Nível 4, mesma posição.
+             Pulam estágio 2 (broto) — sinal de que regar acelerou crescimento. */}
+        {showPlantinhaLvl5A && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                bottom: WORLD_LAYOUT.plantinhaLvl5A.bottom,
+                left: WORLD_LAYOUT.plantinhaLvl5A.left,
+                width: WORLD_LAYOUT.plantinhaLvl5A.width,
+                aspectRatio: 534 / 774,
+              },
+            ]}
+          >
+            <Image
+              source={MUNDO_PLANTINHA_LVL5}
+              resizeMode="contain"
+              style={{ width: "100%", height: "100%" }}
+            />
+          </Animated.View>
+        )}
+        {showPlantinhaLvl5B && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                bottom: WORLD_LAYOUT.plantinhaLvl5B.bottom,
+                left: WORLD_LAYOUT.plantinhaLvl5B.left,
+                width: WORLD_LAYOUT.plantinhaLvl5B.width,
+                aspectRatio: 534 / 774,
+              },
+            ]}
+          >
+            <Image
+              source={MUNDO_PLANTINHA_LVL5}
+              resizeMode="contain"
+              style={{ width: "100%", height: "100%" }}
+            />
+          </Animated.View>
+        )}
+        {showPlantinhaLvl5C && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                bottom: WORLD_LAYOUT.plantinhaLvl5C.bottom,
+                left: WORLD_LAYOUT.plantinhaLvl5C.left,
+                width: WORLD_LAYOUT.plantinhaLvl5C.width,
+                aspectRatio: 534 / 774,
+              },
+            ]}
+          >
+            <Image
+              source={MUNDO_PLANTINHA_LVL5}
+              resizeMode="contain"
+              style={{ width: "100%", height: "100%" }}
+            />
+          </Animated.View>
+        )}
+
+        {/* Z-layer 4.3: +2 flores decorativas (recompensa Nível 5) — reuso
+             do asset da flor do Nível 3. Posições placeholder. */}
+        {showFlowerLvl5A && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                top: WORLD_LAYOUT.florLvl5A.top,
+                left: WORLD_LAYOUT.florLvl5A.left,
+                width: WORLD_LAYOUT.florLvl5A.width,
+                aspectRatio: 272 / 732,
+              },
+            ]}
+          >
+            <Image
+              source={MUNDO_FLOR}
+              resizeMode="contain"
+              style={{ width: "100%", height: "100%" }}
+            />
+          </Animated.View>
+        )}
+        {showFlowerLvl5B && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                top: WORLD_LAYOUT.florLvl5B.top,
+                right: WORLD_LAYOUT.florLvl5B.right,
+                width: WORLD_LAYOUT.florLvl5B.width,
+                aspectRatio: 272 / 732,
+              },
+            ]}
+          >
+            <Image
+              source={MUNDO_FLOR}
+              resizeMode="contain"
+              style={{ width: "100%", height: "100%" }}
+            />
+          </Animated.View>
+        )}
+
+        {/* Z-layer 4.4: Flor brota do tronco caído (recompensa Nível 5).
+             Mesma posição/proporção do tronco — sobrepõe exatamente. Símbolo:
+             vida vence até o que parecia morto. */}
+        {showFlorNoTronco && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                top: WORLD_LAYOUT.florNoTronco.top,
+                right: WORLD_LAYOUT.florNoTronco.right,
+                width: WORLD_LAYOUT.florNoTronco.width,
+                aspectRatio: 1426 / 624,
+                transform: [{ rotate: "-4deg" }],
+              },
+            ]}
+          >
+            <Image
+              source={MUNDO_FLOR_NO_TRONCO}
               resizeMode="contain"
               style={{ width: "100%", height: "100%" }}
             />
