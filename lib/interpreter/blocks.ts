@@ -21,6 +21,7 @@ export type BlockType =
   | "water"
   | "pick_fruit"
   | "repeat"
+  | "repeat_3"
   | "if_condition"
   | "if_else"
   | "define_function"
@@ -101,6 +102,7 @@ export function createBlock(
     water: "Regar",
     pick_fruit: "Pegar fruta",
     repeat: "Repetir",
+    repeat_3: "Repetir 3×",
     if_condition: "Se...",
     if_else: "Se... senão...",
     define_function: "Definir",
