@@ -15,6 +15,18 @@ interface BlockPaletteProps {
   disabled?: boolean;
 }
 
+// Decide cor do texto (escuro ou branco) baseado na luminância do fundo.
+// Usa a fórmula YIQ: cores com luminância <140 ganham texto branco; cores
+// claras ganham texto escuro. Garante contraste legível em qualquer paleta
+// futura sem precisar lembrar de ajustar pra cada cor nova.
+function getContrastTextColor(hex: string): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+  return yiq >= 140 ? "#1F2937" : "#FFFFFF";
+}
+
 // Block visual config
 const BLOCK_CONFIG: Record<
   BlockType,
@@ -98,7 +110,7 @@ export function BlockPalette({
                 style={{
                   fontFamily: "Nunito-Bold",
                   fontSize: 13,
-                  color: "#FFFFFF",
+                  color: getContrastTextColor(config.color),
                 }}
               >
                 {config.label}

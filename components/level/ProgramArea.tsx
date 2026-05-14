@@ -103,6 +103,17 @@ const CONTAINER_TYPES: ReadonlySet<BlockType> = new Set<BlockType>([
 const CONDITION_TRUE_COLOR = "#5D8A3C";
 const CONDITION_FALSE_COLOR = "#BDBDBD";
 
+// Decide cor do texto (escuro ou branco) baseado na luminância do fundo —
+// fórmula YIQ. Usado quando o bloco está ativo (fundo colorido) pra evitar
+// branco-sobre-claro de baixo contraste (ex: cinza do conditionResult false).
+function getContrastTextColor(hex: string): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+  return yiq >= 140 ? "#1F2937" : "#FFFFFF";
+}
+
 export function isContainerBlock(type: BlockType): boolean {
   return CONTAINER_TYPES.has(type);
 }
@@ -183,7 +194,7 @@ function SimpleBlockRow({
         style={{
           fontFamily: "Nunito-SemiBold",
           fontSize: 13,
-          color: isActive ? "#FFFFFF" : baseColor,
+          color: isActive ? getContrastTextColor(activeColor) : baseColor,
           flex: 1,
         }}
       >
@@ -266,7 +277,7 @@ function ContainerBlockRow({
           style={{
             fontFamily: "Nunito-Bold",
             fontSize: 14,
-            color: isHighlighted ? "#FFFFFF" : color,
+            color: isHighlighted ? getContrastTextColor(color) : color,
             flex: 1,
             backgroundColor: isHighlighted ? color : "transparent",
             paddingHorizontal: isHighlighted ? 6 : 0,
