@@ -298,26 +298,34 @@ function ContainerBlockRow({
         )}
       </View>
 
-      {/* Botão "Pronto ✓" — só aparece em modo edição. Cor de fundo
-          verde-jardim da marca (#1F5F3F) com texto branco-quente — contraste
-          ~5:1 (passa WCAG AA em qualquer tamanho de fonte). */}
+      {/* Botão "Pronto ✓" — só aparece em modo edição. Combinação dourado
+          da marca + texto verde-jardim escuro + sombra/elevation: contrasta
+          com qualquer fundo do envelope (laranja claro ou destacado) e fica
+          visualmente óbvio mesmo numa tela apertada. */}
       {isEditing && !disabled && (
         <Pressable
           onPress={onDone}
           style={({ pressed }) => ({
-            marginTop: 10,
+            marginTop: 12,
             alignSelf: "flex-end",
-            backgroundColor: pressed ? "#163F2A" : "#1F5F3F",
-            paddingHorizontal: 16,
-            paddingVertical: 8,
-            borderRadius: 10,
+            backgroundColor: pressed ? "#B88A2E" : "#D4A744",
+            paddingHorizontal: 20,
+            paddingVertical: 10,
+            borderRadius: 12,
+            borderWidth: 2,
+            borderColor: "#1F5F3F",
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.18,
+            shadowRadius: 3,
+            elevation: 3,
           })}
         >
           <Text
             style={{
               fontFamily: "Nunito-Bold",
-              fontSize: 13,
-              color: "#FAF6EE",
+              fontSize: 14,
+              color: "#1F5F3F",
             }}
           >
             Pronto ✓
