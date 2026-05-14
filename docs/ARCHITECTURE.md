@@ -1,7 +1,7 @@
 # Arquitetura — Norte Code MVP
 
 **Última atualização:** 14/05/2026
-**Versão:** 0.8.0 (Nível 6 — condicional embutido `if_canteiro_vazio_then_plantar`, `conditionResult` em ExecutionStep, primeira fauna no Mundo)
+**Versão:** 0.9.0 (Nível 7 — bloco if/else embutido `if_canteiro_com_semente_then_regar_else_if_canteiro_vazio_then_plantar`; migração `conditionResult: boolean → "plant" | "water" | "none"`; árvore frutífera + esquilos no Mundo)
 
 ---
 
@@ -123,11 +123,13 @@ O interpretador é o **núcleo do app**. Arquitetura:
 4. **GoalCondition** — Verificada ao final da execução
 
 **Tipos de nó AST:**
-- `action` — Folhas: walk_forward, plant, water, turn_left, turn_right, pick_fruit, move_right/left/up/down, **if_canteiro_vazio_then_plantar (Nível 6 — condicional embutido, comportamento condicional dentro do handler, não no AST)**
-- `loop` — Repetição N vezes (`repeat_3` da UI vira `LoopNode { times: 3 }` — Nível 5; `repeat_5` vira `LoopNode { times: 5 }` — Nível 6)
-- `if` — Condicional com then/else no AST (declarado mas usado apenas pelo Nível 7+ futuro; o Nível 6 usa condicional embutido em `action`, não `IfNode`)
+- `action` — Folhas: walk_forward, plant, water, turn_left, turn_right, pick_fruit, move_right/left/up/down, **`if_canteiro_vazio_then_plantar` (Nível 6 — condicional embutido 1 ramo)**, **`if_canteiro_com_semente_then_regar_else_if_canteiro_vazio_then_plantar` (Nível 7 — condicional embutido com 2 ramos / if/else)**. Comportamento condicional mora no handler, não no AST.
+- `loop` — Repetição N vezes (`repeat_3` da UI vira `LoopNode { times: 3 }` — Nível 5; `repeat_5` vira `LoopNode { times: 5 }` — Nível 6/7)
+- `if` — Condicional com then/else no AST (declarado mas não usado por nenhum nível atual — os Níveis 6 e 7 usam condicional embutido em `action`, não `IfNode`)
 
-**ExecutionStep** carrega campo opcional `conditionResult?: boolean` (introduzido no Nível 6) — preenchido apenas por blocos condicionais embutidos. A UI usa pra colorir o destaque do bloco ativo (verde quando true, cinza quando false). Aditivo, não-retroativo.
+**ExecutionStep** carrega campo opcional `conditionResult?: "plant" | "water" | "none"` (introduzido no Nível 6 como `boolean`, migrado pra string no Nível 7 pra acomodar o if/else) — preenchido apenas por blocos condicionais embutidos. A UI usa pra colorir o destaque do bloco ativo (verde pra "plant", azul-rio pra "water", cinza pra "none"). Aditivo, não-retroativo — Níveis 1-5 nunca emitem.
+
+**Padronização de naming pra blocos condicionais embutidos:** convenção estabelecida no Nível 6 e mantida no 7 — `if_<condição_X>_then_<ação_Y>[_else_if_<condição_Z>_then_<ação_W>]`. Nomes verbosos mas auto-descritivos. ID técnico bate com a leitura do label em PT-BR.
 
 **Estrutura do programa (camada UI):**
 A partir do Nível 5, `ProgramBlock` aceita campo opcional `children?: ProgramBlock[]`. Programa deixa de ser array linear e passa a ser árvore — blocos estruturais (containers, ex: `repeat_3`) carregam seus filhos no slot interno. Conversão `ProgramBlock[] → ASTNode[]` é recursiva: blocos com filhos viram `LoopNode` (ou `IfNode` no futuro). Blocos folha viram `ActionNode`. Princípio de não-retroatividade preservado: Níveis 1-4 não declaram `children` e continuam executando idênticos.

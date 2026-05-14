@@ -774,6 +774,42 @@ Asset `mundo_arvore_jovem.png` (606×903 RGBA) renderizado em posição própria
 
 ---
 
+### [14/05/2026] Decisão técnica: Nível 7 introduz condicional com 2 ramos (if/else) + migração do campo `conditionResult`
+
+O bloco `if_canteiro_com_semente_then_regar_else_if_canteiro_vazio_then_plantar` é bloco sólido único (igual ao condicional do Nível 6), sem slot interno. Comportamento embutido: SE célula tem semente ENTÃO rega; SENÃO SE canteiro vazio ENTÃO planta; SENÃO ignora. Mecanicamente, é uma `ActionNode` no AST — a lógica condicional mora dentro do handler do `executeAction`, ao lado dos cases de `plant`/`water`.
+
+**Decisão pedagógica:** amadurecer o discernimento estabelecido no Nível 6. Criança aprende a **escolher entre 2 ações** dependendo do contexto. Princípio "uma virada por nível" — não introduz construção do zero com slots, só o conceito de "2 ramos possíveis".
+
+**Reutilização do `CellContent` existente:** `"seed"` representa CP (precisa de rega), `"flowerbed"` representa CV (precisa ser plantado). Não foi necessário criar novo estado "planta seca" — o ciclo natural já estabelecido nos Níveis 1-2 (plantar → regar → cresce) foi reaproveitado.
+
+**Princípio "uma forma única de agir" estendido:** mesma lógica do Nível 6 (sem `plant` solto na paleta) estendida pro Nível 7 — `plant` E `water` solto não entram. Única forma de agir é via o condicional. Reforça discernimento: cada ação só acontece quando a condição correspondente é verdadeira.
+
+**MIGRAÇÃO do campo `conditionResult` em `ExecutionStep` (boolean → string):**
+- Antes (Nível 6): `conditionResult?: boolean`
+- Depois (Níveis 6 e 7): `conditionResult?: "plant" | "water" | "none"`
+- Mapeamento da migração no Nível 6: `true → "plant"`, `false → "none"`.
+- Aditivo, não-retroativo: Níveis 1-5 não emitem o campo, comportamento preservado.
+- Nenhuma persistência externa do campo (não vai pro Supabase/AsyncStorage) — a mudança é contida no runtime do interpretador.
+- Renomeação das constantes no `ProgramArea`: `CONDITION_TRUE_COLOR` → `CONDITION_PLANT_COLOR`; `CONDITION_FALSE_COLOR` → `CONDITION_NONE_COLOR`; nova `CONDITION_WATER_COLOR`. Lógica de cor reorganizada em função pura `conditionResultColor(result)`.
+
+**Glow do bloco condicional durante execução, agora com 3 estados:**
+- `"plant"` → verde `#5D8A3C` (cor do plant — Nível 6 e ramo "senão se vazio" do Nível 7)
+- `"water"` → azul-rio `#5B8AA6` (cor do regar, Style Guide v1.3 — ramo "se com semente" do Nível 7)
+- `"none"` → cinza claro `#BDBDBD` ("ignorou" sem ser punitivo)
+
+**Recompensas no Mundo permanente — 7 operações:**
+- `fruit_tree_lvl7` substitui `young_tree_lvl5` — cadeia da planta principal estendida: `seed → sprout → grown_sprout → mini_tree → young_tree → fruit_tree`. Asset `mundo_arvore_frutifera.png` (1024×1024 RGBA).
+- `fallen_log_with_flower_and_squirrel_lvl7` substitui `flower_no_tronco` — cadeia tripla do tronco consolidada: tronco original → flor_no_tronco (Nível 5) → tronco com flor+esquilo (Nível 7). Asset 3072×1344, proporção ≈2.286 idêntica ao tronco original (2.285). Símbolo amadurecido: vida vence o que parecia morto E abriga novas formas de vida.
+- `squirrel_lvl7_ground` — esquilo decorativo no chão, segunda fauna do MVP (depois dos pássaros do Nível 6).
+- `white_flower_lvl7_a/b/c/d` — 4 flores brancas decorativas espalhadas pelo jardim.
+
+**Padronização de extensão dos assets:**
+Os 4 assets do Nível 7 chegaram como `.jpg`/`.jpeg` mas conteúdo binário é PNG (mesma situação dos assets do Nível 6). Decisão: renomear todos pra `.png` antes do `require()`. Evita o risco do Metro decidir decoder pela extensão (deu certo no Nível 6 por sorte). Os 2 assets do Nível 6 ainda estão como `.jpg` — não tocados pra evitar mudança fora de escopo, mas vale incluir num cleanup futuro.
+
+**Princípio "ferramentas antecipadas" aplicado:** texto de conclusão menciona explicitamente que escolher entre caminhos vai ser importante mais pra frente — preparação narrativa pro Nível 10 onde discernimento será vital pra plantar no árido (não tratar tudo igual).
+
+---
+
 ### [14/05/2026] Decisão técnica: Nível 6 introduz condicional simples como bloco "tudo em um"
 
 O bloco `if_canteiro_vazio_then_plantar` é bloco sólido único — sem slot interno, sem modo de edição. Comportamento embutido: se célula atual tem canteiro vazio (`"flowerbed"`), planta; senão, ignora. Mecanicamente, é uma `ActionNode` no AST (não um `IfNode`), com a lógica condicional dentro do handler do `executeAction` — vive ao lado do case do `plant`.

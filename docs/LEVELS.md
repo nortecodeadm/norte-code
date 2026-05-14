@@ -1,7 +1,7 @@
 # Níveis — Norte Code MVP
 
 **Última atualização:** 14/05/2026
-**Versão:** 1.5.0 (Nível 6: condicional simples via bloco "tudo em um" + 2 pássaros + mini-árvores + flores amarelas)
+**Versão:** 1.6.0 (Nível 7: condicional if/else via bloco "tudo em um" + árvore frutífera + esquilos + flores brancas; migração conditionResult boolean→string)
 
 ---
 
@@ -383,14 +383,124 @@ será vital pra plantar no árido (não dá pra plantar em qualquer canto —
 só onde há terra fértil). Princípio "ferramentas antecipadas" registrado
 em `DECISIONS.md`.
 
-## Nível 7 — Condicional com duas ações (se/senão)
+## Nível 7 — Cuidar de jeitos diferentes (if/else) ✅ IMPLEMENTADO
 
-- **Conceito:** se / senão (else)
-- **Cenário:** avatar anda por caminho. Casas com semente (planta), casas com broto (rega).
-- **Blocos:** [Andar] [Plantar] [Regar] [Se houver semente, plantar, senão regar]
-- **Solução:** [Repetir 6 vezes [Andar, Se houver semente plantar senão regar]]
-- **Recompensa visual:** primeiro arbusto adulto com frutas
-- **Texto:** "Cada situação pede uma resposta diferente. Você está aprendendo a **escolher bem**."
+- **Conceito:** condicional com 2 ramos (se / senão). Discernimento
+  amadurecido: criança não só "age ou não", ela **escolhe entre 2 ações**.
+- **Cenário:** grade 1×6 linear. Avatar parte da coluna 0. Distribuição
+  `[Avatar][CP][CV][CP][CV][CP]`:
+  - CP = canteiro com semente plantada (`"seed"`) — precisa ser regado
+  - CV = canteiro vazio (`"flowerbed"`) — precisa ser plantado
+  3 CPs intercalados com 2 CVs forçam a criança a usar AMBOS os ramos
+  do condicional várias vezes — sem isso, ela poderia "passar batido".
+- **Blocos disponíveis:** [Direita] [Se com semente, regar; senão se vazio,
+  plantar] [Repetir 5×].
+  - `plant` e `water` solto **NÃO** entram — única forma de agir é via
+    o condicional. Esse é o ponto pedagógico do nível.
+- **Solução-alvo (3 blocos):**
+  ```
+  [Repetir 5× [Direita, Se com semente, regar; senão se vazio, plantar]]
+  ```
+- **Solução longa aceita (10 blocos):** 5 iterações manuais. Cabe em
+  `maxBlocks: 12`.
+- **Texto de conclusão (literal — não alterar):** "Agora você sabe
+  escolher entre dois caminhos. Cuidar é responder ao que cada coisa
+  precisa — não tratar tudo igual. Lembra disso — vai ser muito
+  importante mais pra frente."
+
+**Implementação técnica:**
+- Grid: 6×1, player em (0,0).
+- `grid[0][1]/[3]/[5] = "seed"` (CP), `grid[0][2]/[4] = "flowerbed"` (CV),
+  `grid[0][0] = "empty"` (avatar).
+- Condição de vitória `custom`: cols 1/3/5 viraram `"sprout"` (regadas) E
+  cols 2/4 viraram `"seed"` (plantadas, sem rega). **Não há tempo no
+  mesmo programa pra regar o que acabou de ser plantado** — esse é o
+  ponto pedagógico (a criança vai ver as CVs viraram CPs no estado final).
+- Max blocos: 12.
+- Arquivo: `lib/levels/index.ts` → `createLevel7()`.
+
+**Mecânica nova — bloco "tudo em um" if/else:**
+- ID: `if_canteiro_com_semente_then_regar_else_if_canteiro_vazio_then_plantar`.
+  Segue convenção do Nível 6 (`if_X_then_Y_else_Z_then_W`).
+- Bloco sólido único — sem slot interno, sem modo de edição (mesma UX
+  do bloco condicional simples do Nível 6).
+- Cor: roxo claro `#A88FD9` (mesma do Nível 6 — categoria visual
+  coerente "condicional").
+- Ícone: `🌱💧 ⭕🌱` — representa os 2 ramos: regar uma semente vs
+  plantar num canteiro vazio.
+- **Comportamento de execução** (em `lib/interpreter/interpreter.ts`):
+  - Se célula atual é CP (`"seed"`): rega (vira `"sprout"`), emite step
+    com `action: "water"` + `conditionResult: "water"`.
+  - Se célula atual é CV (`"flowerbed"`): planta (vira `"seed"`), emite
+    step com `action: "plant"` + `conditionResult: "plant"`.
+  - Caso contrário (SC ou outro): no-op, emite step com
+    `conditionResult: "none"`.
+
+**Migração técnica — `conditionResult: boolean → string`:**
+
+Pra acomodar os 3 resultados possíveis do if/else (`"plant"` /
+`"water"` / `"none"`), o campo `conditionResult` em `ExecutionStep`
+deixou de ser `boolean` e virou `"plant" | "water" | "none"`.
+
+- Mapeamento da migração no Nível 6:
+  - `true`  → `"plant"` (era "plantou")
+  - `false` → `"none"` (era "ignorou")
+- Cores do glow no `ProgramArea` reorganizadas em função pura
+  `conditionResultColor(result)`:
+  - `"plant"` → verde `#5D8A3C` (mesma cor de antes — Nível 6 sem regressão)
+  - `"water"` → azul-rio `#5B8AA6` (Style Guide v1.3 — novo no Nível 7)
+  - `"none"`  → cinza claro `#BDBDBD` (mesma cor de antes — Nível 6 sem regressão)
+- **Aditivo, não-retroativo:** Níveis 1-5 nunca emitem o campo,
+  comportamento preservado. Nível 6 funcional pixel a pixel após a
+  migração (só o nome interno do valor mudou).
+
+**Princípio pedagógico — "uma forma única de agir":**
+Mesma lógica do Nível 6 estendida pro Nível 7: `plant` e `water`
+soltos não estão na paleta. A criança aprende que cada ação só
+acontece quando a condição correspondente é verdadeira. Reforça o
+discernimento: olhar antes de agir, e escolher a ação certa pra
+cada contexto.
+
+**Mensagens de erro contextuais:**
+- Sai da grade: "Esse lado não dá. O caminho continua em outra direção."
+- Programa termina com canteiros sem cuidar: "Ainda há canteiros pra
+  cuidar. Olha de novo onde o avatar passou."
+- Criança usa só o condicional sem `move_right`: "O avatar precisa
+  andar pra encontrar canteiros. Use o bloco Direita." (mesma heurística
+  do Nível 6, agora cobrindo os 2 blocos condicionais embutidos).
+
+**Recompensas no Mundo permanente — 7 operações:**
+
+1. `fruit_tree_lvl7` **substitui** `young_tree_lvl5` — árvore principal
+   evolui de jovem pra frutífera. Asset `mundo_arvore_frutifera.png`
+   (1024×1024 RGBA).
+2. `fallen_log_with_flower_and_squirrel_lvl7` **substitui**
+   `flower_no_tronco` — tronco caído com flor agora abriga um esquilo
+   morando dentro. Asset `mundo_tronco_com_flor_e_esquilo.png`
+   (3072×1344). Cadeia tripla do tronco consolidada.
+3. `squirrel_lvl7_ground` — esquilo decorativo no chão (segunda fauna
+   do MVP, depois dos pássaros do Nível 6).
+4-7. `white_flower_lvl7_a/b/c/d` — 4 flores brancas decorativas com
+   matinho na base, espalhadas pelo jardim.
+
+**Cadeia da planta principal estendida:**
+`seed_lvl1 → sprout_lvl2 → grown_sprout_lvl3 → mini_tree_lvl4 → young_tree_lvl5 → fruit_tree_lvl7`.
+
+**Cadeia tripla do tronco:**
+`mundo_tronco.png → flor_no_tronco.png (Nível 5) → mundo_tronco_com_flor_e_esquilo.png (Nível 7)`.
+Cada estágio é uma substituição direta no `source` do `Image` baseada
+em qual recompensa está ativa. Mais evoluído tem prioridade.
+
+**Mini-árvores, pássaros e flores amarelas do Nível 6:** mantidos sem
+mudança. **Background do Mundo:** continua v2 (substituição pra v3
+reservada pro Nível 8).
+
+**Conexão com Nível 10 ("ferramenta antecipada"):**
+A frase final "vai ser muito importante mais pra frente" planta a
+semente: condicional + discernimento vão ser vitais no recomeço do
+árido, onde "tratar tudo igual" não funciona.
+
+---
 
 ## Nível 8 — Introdução à variável (contador simples)
 

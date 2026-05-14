@@ -1,7 +1,7 @@
 # Interpretador de Blocos — Norte Code
 
 **Última atualização:** 14/05/2026
-**Versão:** 1.6.0 (Nível 6 jogável — bloco condicional embutido `if_canteiro_vazio_then_plantar`, `repeat_5`, campo `conditionResult` em `ExecutionStep`)
+**Versão:** 1.7.0 (Nível 7 jogável — bloco if/else embutido `if_canteiro_com_semente_then_regar_else_if_canteiro_vazio_then_plantar`; migração `conditionResult: boolean → "plant" | "water" | "none"`)
 
 ---
 
@@ -60,7 +60,8 @@ O campo `id` é opcional e usado para highlight visual durante execução.
 | `plant` | Planta semente em célula `empty` ou `flowerbed` | Ação | Nível 1 |
 | `water` | Rega (seed→sprout, sprout→flower, watering_spot→watered) | Ação | Nível 2 |
 | `pick_fruit` | Coleta fruta da célula atual (incrementa `inventory.fruits`) | Ação | Disponível |
-| `if_canteiro_vazio_then_plantar` | **Condicional embutido.** Se célula atual é `flowerbed` → planta (vira `seed`) e emite `conditionResult: true`. Caso contrário → ignora e emite `conditionResult: false`. Step sempre carrega `action: "plant"`. | Condicional sólido | Nível 6 |
+| `if_canteiro_vazio_then_plantar` | **Condicional embutido (1 ramo).** Se célula atual é `flowerbed` → planta (vira `seed`) e emite `conditionResult: "plant"`. Caso contrário → ignora e emite `conditionResult: "none"`. Step sempre carrega `action: "plant"`. | Condicional sólido | Nível 6 |
+| `if_canteiro_com_semente_then_regar_else_if_canteiro_vazio_then_plantar` | **Condicional embutido (2 ramos / if/else).** Se célula é `seed` → rega (vira `sprout`), `action: "water"` + `conditionResult: "water"`. Senão se `flowerbed` → planta (vira `seed`), `action: "plant"` + `conditionResult: "plant"`. Senão → no-op, `conditionResult: "none"`. | Condicional sólido | Nível 7 |
 
 > **Nota sobre aliases:** `walk_forward` e `move_forward` apontam para o mesmo handler (fall-through no switch de `executeAction`). Os níveis novos usam `move_forward` por consistência com os movimentos absolutos; `walk_forward` é mantido por compatibilidade com a nomenclatura original alinhada com Claude.
 
@@ -82,16 +83,27 @@ O campo `id` é opcional e usado para highlight visual durante execução.
 - `pick_fruit` em célula sem fruta → idem.
 - O engine não falha nem aborta — a aprendizagem por tentativa e erro é fundamental no método (ver decisão "Botão Executar: ativo com ≥1 bloco" em DECISIONS.md).
 
-**Bloco "tudo em um" `if_canteiro_vazio_then_plantar` (Nível 6):**
-Categoria nova — condicional embutido. É uma `ActionNode` (não um `IfNode`).
-O comportamento condicional mora dentro de `executeAction`, não no AST: o
-mesmo handler que processa o `plant` verifica primeiro se a célula atual é
-`"flowerbed"`. Se for, planta e emite `conditionResult: true`; senão, não
-mexe no mundo e emite `conditionResult: false`. Decisão pedagógica: o bloco
-é sólido único na UI (sem slot, sem modo de edição) — manter a mecânica
-simples enquanto a criança aprende **o que é** condicional. A camada de UI
-usa `conditionResult` pra colorir o destaque do bloco ativo: verde quando
-true (executou ação), cinza claro quando false (ignorou). Ver seção 6
+**Blocos condicionais embutidos (Níveis 6 e 7):**
+
+Categoria de blocos onde a lógica condicional mora dentro de `executeAction`
+(não como `IfNode` no AST). São `ActionNode` na árvore — o handler verifica
+o estado da célula atual e decide o que fazer + qual `conditionResult` emitir.
+
+- **`if_canteiro_vazio_then_plantar` (Nível 6 — 1 ramo):** se `"flowerbed"`,
+  planta e emite `"plant"`; senão, não mexe no mundo e emite `"none"`.
+
+- **`if_canteiro_com_semente_then_regar_else_if_canteiro_vazio_then_plantar`
+  (Nível 7 — if/else, 2 ramos):** se `"seed"`, rega (seed→sprout) e emite
+  `"water"`; senão se `"flowerbed"`, planta (flowerbed→seed) e emite
+  `"plant"`; senão, no-op e emite `"none"`. O `action` do step reflete a
+  ação concreta executada (`"water"` / `"plant"`) — integra com a infra
+  de animação existente. Quando ignora, mantém `action: "plant"` só pra o
+  step contabilizar tempo de animação.
+
+Decisão pedagógica: bloco sólido único na UI (sem slot, sem modo de edição)
+mantém a mecânica simples enquanto a criança aprende os conceitos. A
+camada de UI usa `conditionResult` pra colorir o destaque do bloco ativo
+(verde pra `"plant"`, azul pra `"water"`, cinza pra `"none"`). Ver seção 6
 (ExecutionStep) e DECISIONS.md.
 
 ### 2.3 Loop (níveis 5+)
@@ -298,7 +310,7 @@ interface ExecutionStep {
   worldChanges?: WorldChange[];// Mudanças nas células
   blockId: string;             // ID do bloco que gerou (para highlight)
   failReason?: "rock" | "out_of_grid"; // Preenchido só quando action === "fail_move"
-  conditionResult?: boolean;   // Preenchido por blocos condicionais embutidos (ex: if_canteiro_vazio_then_plantar)
+  conditionResult?: "plant" | "water" | "none"; // Preenchido por blocos condicionais embutidos (Níveis 6 e 7)
 }
 ```
 
@@ -306,12 +318,21 @@ A UI reproduz os steps com 500ms de intervalo, destacando o bloco ativo na Progr
 
 **`failReason` (introduzido no Nível 4):** Quando um movimento falha, o interpretador agora diferencia se foi por colisão com `rock` ou por tentativa de sair da grade. A camada de UI (`getContextualError` em `app/level/[id].tsx`) usa o `failReason` do **primeiro** `fail_move` da execução pra escolher entre as mensagens `errorMessages.blocked_by_rock` e `errorMessages.out_of_grid` configuradas no nível. Níveis que não declaram `out_of_grid` caem no fallback anterior (`wrong_path` / `blocked_by_rock`) — sem regressão pros Níveis 1-3.
 
-**`conditionResult` (introduzido no Nível 6):** Campo opcional preenchido apenas por blocos condicionais embutidos — hoje só o `if_canteiro_vazio_then_plantar`. Vale `true` quando a condição foi satisfeita (ação foi executada) e `false` quando foi ignorada. **Aditivo, não-retroativo:** steps dos Níveis 1-5 nunca definem o campo, então fica `undefined` e a UI mantém o comportamento atual sem mudanças. Ver decisão pedagógica em DECISIONS.md (entrada do Nível 6). A camada de UI usa o campo pra pintar o destaque do bloco ativo:
-- `true` → verde (`#5D8A3C`, reusa cor do `plant`)
-- `false` → cinza claro (`#BDBDBD`)
+**`conditionResult` (introduzido no Nível 6, expandido no Nível 7):** Campo opcional preenchido apenas por blocos condicionais embutidos. Identifica qual ramo da condicional executou. **Aditivo, não-retroativo:** steps dos Níveis 1-5 nunca definem o campo, comportamento da UI preservado.
+
+**Migração no Nível 7:** o campo passou de `boolean` pra `"plant" | "water" | "none"`. Necessário pra acomodar 3 resultados possíveis do if/else. Mapeamento da migração no Nível 6:
+- `true`  → `"plant"` (CV virou seed)
+- `false` → `"none"` (célula não era CV — ignorou)
+
+Nenhuma persistência externa de `conditionResult` (não vai pro Supabase, não vai pro AsyncStorage) — a mudança é contida no runtime do interpretador. Comportamento do Nível 6 preservado pixel a pixel.
+
+A camada de UI usa o campo pra pintar o destaque do bloco ativo via função pura `conditionResultColor(result)` no `ProgramArea`:
+- `"plant"` → verde `#5D8A3C` (reusa cor do `plant` — Nível 6, e ramo "senão se vazio" do Nível 7)
+- `"water"` → azul-rio `#5B8AA6` (cor do regar, Style Guide v1.3 — ramo "se com semente" do Nível 7)
+- `"none"`  → cinza claro `#BDBDBD` ("ignorou" sem ser punitivo)
 - `undefined` → cor original do bloco (não condicional)
 
-O estado é propagado de `app/level/[id].tsx` (variável `activeConditionResult`) pro `ProgramArea` via prop e, recursivamente, pros filhos de containers como `repeat_5`.
+O estado é propagado de `app/level/[id].tsx` (variável `activeConditionResult: "plant" | "water" | "none" | undefined`) pro `ProgramArea` via prop e, recursivamente, pros filhos de containers como `repeat_5`.
 
 ---
 
@@ -408,9 +429,9 @@ Limite: `MAX_EXECUTION_STEPS = 200`. Se ultrapassado:
 **Camada de UI (fora de lib/interpreter/):**
 - [x] Componentes visuais (BlockPalette, ProgramArea, ExecuteButton, LevelScene)
 - [x] Tap-to-add (MVP — drag-and-drop pós-MVP)
-- [x] Níveis 1-6 jogáveis (sequência → 2D → loop → condicional embutido)
+- [x] Níveis 1-7 jogáveis (sequência → 2D → loop → condicional simples → if/else)
 - [x] Containers com filhos (`repeat_3`, `repeat_5`) + "modo edição via toque"
-- [x] Feedback visual de condicional (verde/cinza) via `conditionResult`
+- [x] Feedback visual de condicional (verde/azul/cinza) via `conditionResult` string
 
 **Não implementado / pendente:**
 - [ ] Suporte a funções (definir/chamar) — `BlockType` declarado, AST e executor faltam (Nível 9)
