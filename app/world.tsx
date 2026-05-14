@@ -37,7 +37,7 @@ const pctH = (p: number) => SCREEN_HEIGHT * (p / 100);
 
 const WORLD_LAYOUT = {
   // Cenário — quadrante SUPERIOR DIREITO
-  pedra: { top: pctH(3), right: pctW(5), width: pctW(20) },
+  pedra: { top: pctH(3), right: pctW(8), width: pctW(20) },
   tronco: { top: pctH(21.5), right: pctW(68), width: pctW(28) },
 
   // Protagonistas — INFERIOR ESQUERDO
@@ -50,7 +50,7 @@ const WORLD_LAYOUT = {
   sementinha: { bottom: pctH(4), left: pctW(38), width: pctW(25) },
 
   // Recompensa Nível 3 — flor ao lado da pedra (quadrante superior direito)
-  flor: { top: pctH(47), right: pctW(26), width: pctW(8) },
+  flor: { top: pctH(49), right: pctW(1), width: pctW(7) },
 
   // Recompensa Nível 4 — mini-árvore SUBSTITUI o broto crescido, mais ao fundo
   // pra abrir espaço pras 3 sementes na frente. Posição placeholder — Gui calibra.
@@ -60,7 +60,7 @@ const WORLD_LAYOUT = {
   // do Nível 6 conforme decisão tomada na entrega do Nível 5). Mais alta
   // que a mini-árvore (PNG 606×903 vs 784×1176), top um pouco mais baixo
   // pra ficar bem posicionada. Posição placeholder — Gui calibra.
-  arvoreJovem: { top: pctH(40), left: pctW(33), width: pctW(32) },
+  arvoreJovem: { top: pctH(16), left: pctW(28), width: pctW(50) },
 
   // Recompensa Nível 4 — 3 sementes plantadas neste nível, lado a lado na frente
   // da cena. Posições placeholder — Gui calibra.
@@ -69,7 +69,7 @@ const WORLD_LAYOUT = {
   sementeLvl4C: { bottom: pctH(4), left: pctW(56), width: pctW(10) },
 
   // Recompensa Nível 4 — flor decorativa adicional (reusa asset da flor do Nível 3)
-  florLvl4: { top: pctH(62), left: pctW(31), width: pctW(7) },
+  florLvl4: { top: pctH(40), left: pctW(42), width: pctW(7) },
 
   // Recompensa Nível 5 — 3 plantinhas estágio 3 SUBSTITUEM as 3 sementes
   // plantadas no Nível 4 (mesmas posições). Pulam estágio 2 (broto) —
@@ -80,8 +80,8 @@ const WORLD_LAYOUT = {
 
   // Recompensa Nível 5 — +2 flores decorativas (reuso do asset da flor do
   // Nível 3). Posições placeholder — Gui calibra.
-  florLvl5A: { top: pctH(58), left: pctW(8), width: pctW(7) },
-  florLvl5B: { top: pctH(70), right: pctW(8), width: pctW(7) },
+  florLvl5A: { top: pctH(55), left: pctW(32), width: pctW(7) },
+  florLvl5B: { top: pctH(41), right: pctW(33), width: pctW(7) },
 
   // Recompensa Nível 5 "flor no tronco": SUBSTITUI o tronco (não sobrepõe).
   // Posição/proporção idênticas ao `tronco` — asset novo (1426×624) entra
@@ -442,7 +442,6 @@ export default function WorldScreen() {
                 right: WORLD_LAYOUT.flor.right,
                 width: WORLD_LAYOUT.flor.width,
                 aspectRatio: 272 / 732,
-                transform: [{ rotate: '-3deg' }],
               },
             ]}
           >
