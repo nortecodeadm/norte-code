@@ -79,6 +79,21 @@
 
 ### Documentação
 
+#### 11. Redesign visual completo dos blocos antes do release do MVP
+**Origem:** decisão do Gui durante implementação do Nível 5 (Maio/2026).
+**Descrição:** os blocos atuais (movimento, plant, water, repeat_3, etc.) estão visualmente funcionais mas básicos — cores chapadas, ícones unicode/emoji ou placeholders simples, sem tratamento visual rico que combine com a identidade do Norte Code. Antes de fechar o MVP pra apresentação/release, fazer um redesign coeso de TODA a paleta de blocos.
+**O que fazer:**
+- Definir identidade visual final dos blocos (estilo, profundidade, ícones, tipografia interna)
+- Gerar/desenhar ícones profissionais pra cada tipo de bloco
+- Alinhar cores ao Style Guide v1.2 (resolve simultaneamente os itens 3 e 4 do BACKLOG — divergência de `#4A90D9` vs `#5B8AA6` nos movimentos, e `#E8853D` vs `#D4A744` no repeat)
+- Polir estados visuais (normal, hover/pressed, ativo durante execução, dentro do envelope, etc.)
+- Considerar se o envelope do `repeat_3` (e futuros containers do Nível 6+) precisa de identidade visual mais forte que a atual
+**Pré-requisito:** ter TODOS os tipos de bloco do MVP implementados (Níveis 6-10 podem trazer novos: condicional, função, variável). Fazer o redesign DEPOIS de todos os níveis prontos, pra não retrabalhar.
+**Quando fazer:** fase de polish do MVP, antes do release. Tarefa grande, não bloqueia desenvolvimento dos níveis.
+**Prioridade:** média-alta (pré-release). Bloqueia release final, mas não bloqueia desenvolvimento dos próximos níveis.
+
+---
+
 #### 10. Mover protocolos pra `docs/internal/`
 **Origem:** convenção registrada no Protocolo de Dev Temporário v1.1.
 **Descrição:** confirmar que os 3 documentos centrais (`NORTECODE_Protocolo_Dev_Temporario.md`, `NORTECODE_Protocolo_Colaboracao_IAs.md`, e `NORTECODE_Briefing_MVP.md`) estão todos em `docs/internal/`. Se algum estiver em outro lugar (raiz do repo, `docs/` direto), mover.
