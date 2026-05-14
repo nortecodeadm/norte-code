@@ -324,6 +324,121 @@ function createLevel4(): LevelDefinition {
   };
 }
 
+// ─── Level 5: Bloco de loop fixo (repeat_3) — par pedagógico do Nível 4 ───────
+// Cenário IDÊNTICO ao Nível 4. Mesmas pedras, mesmos canteiros, mesmo "U" no
+// sentido horário. Diferença: os 3 canteiros começam com sementes plantadas
+// (content === "seed") e a criança rega cada um. O bloco repeat_3 entra na
+// paleta — a solução-alvo cai de 12 pra 9 blocos (alívio pedagógico).
+
+function createLevel5(): LevelDefinition {
+  const gridWidth = 4;
+  const gridHeight = 4;
+
+  const grid: Cell[][] = [];
+  for (let y = 0; y < gridHeight; y++) {
+    const row: Cell[] = [];
+    for (let x = 0; x < gridWidth; x++) {
+      row.push({ position: { x, y }, content: "empty" });
+    }
+    grid.push(row);
+  }
+
+  // Mesmas 6 rochas do Nível 4 (bloco central que força caminho em "U")
+  grid[1][0].content = "rock";
+  grid[2][0].content = "rock";
+  grid[1][1].content = "rock";
+  grid[1][2].content = "rock";
+  grid[2][1].content = "rock";
+  grid[2][2].content = "rock";
+
+  // Os 3 canteiros já aparecem com SEMENTES plantadas (estágio 1). O objetivo
+  // é regar cada um — water em "seed" transforma em "sprout" (já implementado
+  // no interpreter desde o Nível 2).
+  grid[0][3].content = "seed";
+  grid[3][3].content = "seed";
+  grid[3][0].content = "seed";
+
+  const initialWorld: WorldState = {
+    grid,
+    gridWidth,
+    gridHeight,
+    player: {
+      position: { x: 0, y: 0 },
+      direction: "east",
+      inventory: { fruits: 0 },
+    },
+    goalCondition: {
+      type: "custom",
+      check: (state: WorldState) => {
+        // Os 3 canteiros precisam estar regados (sprout). Ordem e tamanho
+        // do programa não importam — só o estado final.
+        const c1 = state.grid[0][3].content === "sprout";
+        const c2 = state.grid[3][3].content === "sprout";
+        const c3 = state.grid[3][0].content === "sprout";
+        return c1 && c2 && c3;
+      },
+    },
+  };
+
+  return {
+    id: 5,
+    title: "Repetir é mais esperto",
+    description:
+      "Rega as três sementes que você plantou. Tenta usar o bloco \"Repetir 3×\"!",
+    hint:
+      "Em vez de [Direita][Direita][Direita], experimenta [Repetir 3× [Direita]]. Faz a mesma coisa, com menos blocos.",
+    objective: "💧 Regue os três canteiros",
+    gridWidth,
+    gridHeight,
+    initialWorld,
+    availableBlocks: [
+      "move_right",
+      "move_left",
+      "move_up",
+      "move_down",
+      "water",
+      "repeat_3",
+    ],
+    // maxBlocks: 14
+    // Margem de 5 sobre solução-alvo de 9 blocos. Permite que solução
+    // longa do Nível 4 (12 blocos sem repeat_3) ainda caiba, preservando
+    // "necessidade antes da ferramenta": criança pode escolher fazer
+    // manual e depois descobrir o repeat_3.
+    // Contagem: cada bloco conta 1, incluindo filhos dentro de repeat_3.
+    maxBlocks: 14,
+    errorMessages: {
+      blocked_by_rock: "Hmm, tem uma pedra aí. Tenta outro caminho.",
+      out_of_grid: "Esse lado não dá. O caminho continua em outra direção.",
+      no_water:
+        "Você esqueceu de regar! Cada canteiro precisa de um \"Regar\".",
+      not_at_watering_spot:
+        "Você ainda não regou todos os canteiros. Olha o caminho de novo.",
+      wrong_path: "Quase! Olha onde estão os canteiros e tenta outro caminho.",
+    },
+    reward: {
+      message:
+        "Olha que esperto! Em vez de mandar o mesmo movimento três vezes, você usou o bloco de repetir. Programar bem é fazer mais com menos. Lembra disso — vai ser útil mais pra frente.",
+      elements: [
+        // Operação 1 — substituir o background do Mundo (primeira mudança
+        // visual radical do MVP). Mesma lógica de substituição usada pra
+        // plantas. Ver DECISIONS.md ("background é substituível").
+        { add: "background_mundo_v2", replaces: "background_mundo_v1" },
+        // Operação 2 — as 3 sementes do Nível 4 viram plantinhas estágio 3.
+        // Pulam estágio 2 (broto) — sinal de que regar acelerou crescimento.
+        { add: "plant_stage3_lvl5_a", replaces: "seed_lvl4_a" },
+        { add: "plant_stage3_lvl5_b", replaces: "seed_lvl4_b" },
+        { add: "plant_stage3_lvl5_c", replaces: "seed_lvl4_c" },
+        // Operação 3 — +2 flores decorativas (total no Mundo passa de 2 pra 4).
+        { add: "flower_lvl5_a" },
+        { add: "flower_lvl5_b" },
+        // Operação 4 — flor brota do tronco caído (símbolo: vida vence até
+        // o que parecia morto).
+        { add: "flower_no_tronco" },
+      ],
+    },
+  };
+}
+
 // ─── Level Registry ──────────────────────────────────────────────────────────────────────────
 
 const LEVELS: LevelDefinition[] = [
@@ -331,6 +446,7 @@ const LEVELS: LevelDefinition[] = [
   createLevel2(),
   createLevel3(),
   createLevel4(),
+  createLevel5(),
 ];
 
 export function getLevel(id: number): LevelDefinition | undefined {
