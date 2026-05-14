@@ -64,12 +64,22 @@ export function LevelScene({ world }: LevelSceneProps) {
   const hasFlowerbed = world.grid.some((row) =>
     row.some((cell) => cell.content === "flowerbed")
   );
+  // CP (canteiro plantado) — célula com semente já plantada. Aparece desde o
+  // início no Nível 5 (3 sementes pra regar) e no Nível 6 (1 célula a ignorar).
+  // Sem isso na legenda, a criança vê os quadradinhos verdes e não sabe o que é.
+  const hasSeed = world.grid.some((row) =>
+    row.some((cell) => cell.content === "seed")
+  );
   const hasWateringSpot = world.grid.some((row) =>
     row.some((cell) => cell.content === "watering_spot")
   );
   const hasRock = world.grid.some((row) =>
     row.some((cell) => cell.content === "rock")
   );
+  // Quando os DOIS aparecem (Nível 6), a legenda precisa distinguir:
+  // "Canteiro vazio" vs "Canteiro plantado". Quando só flowerbed (Níveis
+  // 1-4), mantém o texto curto "Canteiro" — não-retroativo.
+  const flowerbedLabel = hasSeed ? "Canteiro vazio" : "Canteiro";
 
   return (
     <View
@@ -251,7 +261,32 @@ export function LevelScene({ world }: LevelSceneProps) {
                 fontFamily: "Nunito-Regular",
               }}
             >
-              Canteiro
+              {flowerbedLabel}
+            </Text>
+          </View>
+        )}
+        {hasSeed && (
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+            <View
+              style={{
+                width: 14,
+                height: 14,
+                borderRadius: 4,
+                backgroundColor: "#C8E6C9",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Text style={{ fontSize: 9 }}>🌱</Text>
+            </View>
+            <Text
+              style={{
+                fontSize: 11,
+                color: "#5D7A5D",
+                fontFamily: "Nunito-Regular",
+              }}
+            >
+              Canteiro plantado
             </Text>
           </View>
         )}

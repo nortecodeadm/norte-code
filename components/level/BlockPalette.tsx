@@ -56,8 +56,12 @@ export function BlockPalette({
   return (
     <View className="py-3 px-4">
       <Text
-        className="text-garden-green-600 mb-2"
-        style={{ fontFamily: "Nunito-SemiBold", fontSize: 12 }}
+        style={{
+          fontFamily: "Nunito-SemiBold",
+          fontSize: 12,
+          color: "#1A5035",
+          marginBottom: 8,
+        }}
       >
         Blocos disponíveis:
       </Text>
