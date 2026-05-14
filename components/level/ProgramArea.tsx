@@ -35,12 +35,14 @@ interface ProgramAreaProps {
   activeBlockId?: string; // Block currently being executed (for highlight)
   /**
    * Resultado da avaliação condicional do bloco atualmente ativo. Quando o
-   * bloco ativo é um condicional embutido (ex: if_canteiro_vazio_then_plantar),
-   * essa prop muda a cor do destaque: verde quando true (executou ação),
-   * cinza quando false (ignorou). undefined em blocos sem condicional —
-   * destaque normal preservado.
+   * bloco ativo é um condicional embutido (Nível 6+), essa prop muda a cor
+   * do destaque conforme o ramo executado:
+   *   "plant" → verde (Nível 6 plantou; ramo "senão se vazio" do Nível 7)
+   *   "water" → azul-rio (ramo "se com semente, regar" do Nível 7)
+   *   "none"  → cinza (nenhum ramo executou)
+   * undefined em blocos sem condicional — destaque normal preservado.
    */
-  activeConditionResult?: boolean;
+  activeConditionResult?: "plant" | "water" | "none";
   maxBlocks: number;
   disabled?: boolean;
   /** Conta plana de blocos (incluindo filhos), usada pra exibir contador. */
@@ -97,11 +99,26 @@ const CONTAINER_TYPES: ReadonlySet<BlockType> = new Set<BlockType>([
 ]);
 
 // Cores do feedback visual condicional (Nível 6+). Usadas APENAS quando o
-// bloco ativo tem conditionResult definido. Verde reusa a cor do `plant`
-// (associação: a ação embutida no condicional é plantar). Cinza claro pra
-// "ignorou" — sem ser punitivo. Ver DECISIONS.md.
-const CONDITION_TRUE_COLOR = "#5D8A3C";
-const CONDITION_FALSE_COLOR = "#BDBDBD";
+// bloco ativo tem conditionResult definido. Ver DECISIONS.md.
+//   "plant" → verde (reusa cor do bloco plant — Nível 6 e ramo "senão se vazio" do Nível 7)
+//   "water" → azul-rio (cor do regar do Style Guide v1.3 — ramo "se com semente" do Nível 7)
+//   "none"  → cinza claro ("ignorou" sem ser punitivo)
+const CONDITION_PLANT_COLOR = "#5D8A3C";
+const CONDITION_WATER_COLOR = "#5B8AA6";
+const CONDITION_NONE_COLOR = "#BDBDBD";
+
+function conditionResultColor(
+  result: "plant" | "water" | "none"
+): string {
+  switch (result) {
+    case "plant":
+      return CONDITION_PLANT_COLOR;
+    case "water":
+      return CONDITION_WATER_COLOR;
+    case "none":
+      return CONDITION_NONE_COLOR;
+  }
+}
 
 // Decide cor do texto (preto ou branco) baseado na luminância do fundo —
 // fórmula YIQ. Threshold 120 alinha com BlockPalette: fundos médios como
@@ -145,23 +162,22 @@ function SimpleBlockRow({
   index: number;
   isActive: boolean;
   /**
-   * Quando o bloco está ativo E é um condicional embutido, vale true/false
-   * pra mostrar feedback (verde/cinza). undefined ou bloco não-ativo → cor
-   * original do bloco.
+   * Quando o bloco está ativo E é um condicional embutido, identifica o
+   * ramo executado pra mostrar feedback (verde/azul/cinza). undefined ou
+   * bloco não-ativo → cor original do bloco.
    */
-  conditionResult?: boolean;
+  conditionResult?: "plant" | "water" | "none";
   onRemove: (id: string) => void;
   disabled: boolean;
   indent?: number;
 }) {
   const baseColor = BLOCK_COLORS[block.type];
   // Cor efetiva do destaque: quando ativo e tem conditionResult, troca
-  // pra verde/cinza. Caso contrário usa a cor original do bloco.
+  // pela cor do ramo (verde/azul/cinza). Caso contrário usa a cor
+  // original do bloco.
   const activeColor =
     isActive && conditionResult !== undefined
-      ? conditionResult
-        ? CONDITION_TRUE_COLOR
-        : CONDITION_FALSE_COLOR
+      ? conditionResultColor(conditionResult)
       : baseColor;
   return (
     <Pressable
@@ -227,7 +243,7 @@ function ContainerBlockRow({
   onRemove: (id: string) => void;
   disabled: boolean;
   activeBlockId?: string;
-  activeConditionResult?: boolean;
+  activeConditionResult?: "plant" | "water" | "none";
 }) {
   const color = BLOCK_COLORS[block.type];
   const children = block.children ?? [];

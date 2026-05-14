@@ -77,11 +77,15 @@ export interface ExecutionStep {
   }[];
   blockId: string; // Which block produced this step
   failReason?: "rock" | "out_of_grid"; // Only set when action === "fail_move"
-  // Resultado da avaliação condicional, quando o bloco é condicional embutido
-  // (ex: if_canteiro_vazio_then_plantar). Permanece undefined em ações comuns.
-  // A UI usa este campo pra dar feedback visual (verde quando true, cinza
-  // quando false). Aditivo — Níveis 1-5 não emitem, comportamento preservado.
-  conditionResult?: boolean;
+  // Resultado da avaliação condicional, quando o bloco é condicional
+  // embutido (Nível 6+). Identifica qual ramo executou. Permanece
+  // undefined em ações comuns. A UI mapeia cada valor pra uma cor de
+  // glow no bloco ativo:
+  //   "plant" → verde  (Nível 6: condicional plantou; Nível 7: ramo "senão se vazio")
+  //   "water" → azul   (Nível 7: ramo "se com semente, regar")
+  //   "none"  → cinza  (condição não satisfeita — nenhum ramo executou)
+  // Aditivo — Níveis 1-5 não emitem, comportamento preservado.
+  conditionResult?: "plant" | "water" | "none";
 }
 
 export interface ExecutionResult {

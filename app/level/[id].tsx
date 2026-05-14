@@ -138,10 +138,10 @@ export default function LevelScreen() {
   const [executeState, setExecuteState] = useState<ExecuteState>("idle");
   const [activeBlockId, setActiveBlockId] = useState<string | undefined>();
   // Resultado da condição do step ativo (apenas blocos condicionais
-  // embutidos emitem). UI usa isso pra colorir o destaque do bloco —
-  // verde quando true (executou), cinza quando false (ignorou).
+  // embutidos emitem). UI usa isso pra colorir o destaque do bloco
+  // pela cor do ramo executado (verde/azul/cinza).
   const [activeConditionResult, setActiveConditionResult] = useState<
-    boolean | undefined
+    "plant" | "water" | "none" | undefined
   >(undefined);
   const [worldState, setWorldState] = useState<WorldState | null>(
     level ? JSON.parse(JSON.stringify(level.initialWorld)) : null
