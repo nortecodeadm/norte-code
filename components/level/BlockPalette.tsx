@@ -103,19 +103,21 @@ export function BlockPalette({
               <Pressable
                 onPress={() => !disabled && onBlockTap(type)}
                 style={{
-                  paddingHorizontal: 14,
-                  paddingVertical: 10,
-                  flexDirection: "row",
+                  paddingHorizontal: 12,
+                  paddingVertical: 8,
+                  flexDirection: "column",
                   alignItems: "center",
-                  gap: 6,
+                  justifyContent: "center",
+                  gap: 2,
                 }}
               >
-                <Text style={{ fontSize: 14 }}>{config.icon}</Text>
+                <Text style={{ fontSize: 16 }}>{config.icon}</Text>
                 <Text
                   style={{
                     fontFamily: "Nunito-Bold",
                     fontSize: 11,
                     color: "#000000",
+                    textAlign: "center",
                   }}
                 >
                   {config.label}
