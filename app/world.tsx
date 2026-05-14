@@ -109,6 +109,31 @@ const WORLD_LAYOUT = {
   florAmarelaLvl6B: { top: pctH(80), right: pctW(45), width: pctW(10) },
   florAmarelaLvl6C: { bottom: pctH(10), left: pctW(35), width: pctW(10) },
 
+  // Recompensa Nível 7 — árvore frutífera SUBSTITUI a árvore jovem na
+  // cadeia da planta principal. Asset mundo_arvore_frutifera (1024×1024).
+  // Posição placeholder herda da arvoreJovem como ponto de partida —
+  // Gui calibra (a frutífera é mais cheia, pode pedir top diferente).
+  arvoreFrutifera: { top: pctH(11), left: pctW(25), width: pctW(55) },
+
+  // Recompensa Nível 7 — 1 esquilo decorativo no chão. Asset
+  // mundo_esquilo (887×878). Posição placeholder — Gui calibra
+  // (provavelmente perto da base da árvore frutífera).
+  esquiloChao: { bottom: pctH(8), left: pctW(45), width: pctW(12) },
+
+  // Recompensa Nível 7 — 4 flores brancas decorativas espalhadas pelo
+  // jardim. Asset mundo_flor_branca (373×854). Posições placeholder.
+  florBrancaLvl7A: { top: pctH(70), left: pctW(20), width: pctW(8) },
+  florBrancaLvl7B: { top: pctH(72), right: pctW(20), width: pctW(8) },
+  florBrancaLvl7C: { bottom: pctH(20), left: pctW(8), width: pctW(8) },
+  florBrancaLvl7D: { bottom: pctH(15), right: pctW(8), width: pctW(8) },
+
+  // Recompensa Nível 7 "tronco com flor e esquilo": SUBSTITUI o tronco
+  // (não sobrepõe). Mesma posição/proporção do tronco/flor-no-tronco.
+  // Asset mundo_tronco_com_flor_e_esquilo (3072×1344 ≈ 2.286, ~igual
+  // ao tronco original 1426/624 ≈ 2.285 — entra exatamente no lugar).
+  // O source do Image do tronco é trocado via state showTroncoEsquilo
+  // (que tem prioridade sobre showFlorNoTronco). Sem entrada no LAYOUT.
+
   // UI
   botaoPlay: { bottom: pctH(90), right: pctW(6) },
 };
@@ -130,6 +155,15 @@ const MUNDO_FLOR_NO_TRONCO = require("../assets/mundo/flor_no_tronco.png");
 // Gui validar visualmente que o Metro carrega corretamente).
 const MUNDO_PASSARO = require("../assets/mundo/mundo_passaro_pousado.jpg");
 const MUNDO_FLOR_AMARELA = require("../assets/mundo/mundo_flor_amarela.jpg");
+// Assets Nível 7 (todos .png após padronização — antes chegaram como
+// .jpg/.jpeg mas o binário sempre foi PNG; renomeio na Fase 2 evita
+// o risco que tivemos no Nível 6 com o Metro decidindo decoder pela
+// extensão. O tronco_com_flor_e_esquilo é colormap (sem RGBA) — Gui
+// validar visualmente se a transparência funciona corretamente).
+const MUNDO_ARVORE_FRUTIFERA = require("../assets/mundo/mundo_arvore_frutifera.png");
+const MUNDO_ESQUILO = require("../assets/mundo/mundo_esquilo.png");
+const MUNDO_FLOR_BRANCA = require("../assets/mundo/mundo_flor_branca.png");
+const MUNDO_TRONCO_FLOR_ESQUILO = require("../assets/mundo/mundo_tronco_com_flor_e_esquilo.png");
 
 /**
  * World Screen — The player's permanent home.
@@ -173,6 +207,16 @@ export default function WorldScreen() {
   const [showFlorAmarelaLvl6A, setShowFlorAmarelaLvl6A] = useState(false);
   const [showFlorAmarelaLvl6B, setShowFlorAmarelaLvl6B] = useState(false);
   const [showFlorAmarelaLvl6C, setShowFlorAmarelaLvl6C] = useState(false);
+  // Recompensas do Nível 7: árvore frutífera substitui a árvore jovem;
+  // tronco com flor+esquilo substitui o tronco-com-flor (cadeia tripla);
+  // +1 esquilo no chão; +4 flores brancas.
+  const [showArvoreFrutifera, setShowArvoreFrutifera] = useState(false);
+  const [showTroncoEsquilo, setShowTroncoEsquilo] = useState(false);
+  const [showEsquiloChao, setShowEsquiloChao] = useState(false);
+  const [showFlorBrancaLvl7A, setShowFlorBrancaLvl7A] = useState(false);
+  const [showFlorBrancaLvl7B, setShowFlorBrancaLvl7B] = useState(false);
+  const [showFlorBrancaLvl7C, setShowFlorBrancaLvl7C] = useState(false);
+  const [showFlorBrancaLvl7D, setShowFlorBrancaLvl7D] = useState(false);
 
   // Animations
   const fadeIn = useSharedValue(0);
@@ -223,6 +267,7 @@ export default function WorldScreen() {
       storage.keys.WORLD_ELEMENTS
     );
     console.log('[world] worldElements loaded:', worldElements);
+    const hasArvoreFrutifera = worldElements?.includes("fruit_tree_lvl7") ?? false;
     const hasArvoreJovem = worldElements?.includes("young_tree_lvl5") ?? false;
     const hasMiniArvore = worldElements?.includes("mini_tree_lvl4") ?? false;
     const hasGrownSprout = worldElements?.includes("grown_sprout_lvl3") ?? false;
@@ -230,23 +275,31 @@ export default function WorldScreen() {
     const hasSeed = worldElements?.includes("seed_lvl1") ?? false;
     const hasFlower = worldElements?.includes("flower_lvl3") ?? false;
 
-    // Substitution chain da planta principal (consolidada após Nível 5):
-    //   young_tree (lvl5) > mini_arvore (lvl4) > grown_sprout (lvl3)
-    //   > sprout (lvl2) > seed (lvl1).
+    // Substitution chain da planta principal (estendida no Nível 7):
+    //   fruit_tree (lvl7) > young_tree (lvl5) > mini_arvore (lvl4)
+    //   > grown_sprout (lvl3) > sprout (lvl2) > seed (lvl1).
     // Cada estágio renderiza em posição própria. Quando um estágio mais
     // evoluído aparece, os anteriores somem (só o mais evoluído brilha).
-    setShowArvoreJovem(hasArvoreJovem);
-    setShowMiniArvore(hasMiniArvore && !hasArvoreJovem);
-    setShowGrownSprout(hasGrownSprout && !hasMiniArvore && !hasArvoreJovem);
+    setShowArvoreFrutifera(hasArvoreFrutifera);
+    setShowArvoreJovem(hasArvoreJovem && !hasArvoreFrutifera);
+    setShowMiniArvore(hasMiniArvore && !hasArvoreJovem && !hasArvoreFrutifera);
+    setShowGrownSprout(
+      hasGrownSprout && !hasMiniArvore && !hasArvoreJovem && !hasArvoreFrutifera
+    );
     setShowSprout(
-      hasSprout && !hasGrownSprout && !hasMiniArvore && !hasArvoreJovem
+      hasSprout &&
+        !hasGrownSprout &&
+        !hasMiniArvore &&
+        !hasArvoreJovem &&
+        !hasArvoreFrutifera
     );
     setShowSeed(
       hasSeed &&
         !hasSprout &&
         !hasGrownSprout &&
         !hasMiniArvore &&
-        !hasArvoreJovem
+        !hasArvoreJovem &&
+        !hasArvoreFrutifera
     );
     setShowFlower(hasFlower);
 
@@ -285,6 +338,32 @@ export default function WorldScreen() {
     setShowFlowerLvl5A(worldElements?.includes("flower_lvl5_a") ?? false);
     setShowFlowerLvl5B(worldElements?.includes("flower_lvl5_b") ?? false);
     setShowFlorNoTronco(worldElements?.includes("flower_no_tronco") ?? false);
+
+    // Recompensas do Nível 7:
+    //   1. árvore frutífera substitui árvore jovem (já tratado acima na cadeia)
+    //   2. tronco com flor+esquilo substitui flor_no_tronco — cadeia tripla
+    //      do tronco: tronco original → flor_no_tronco → tronco_flor_esquilo
+    //   3. +1 esquilo no chão
+    //   4. +4 flores brancas
+    setShowTroncoEsquilo(
+      worldElements?.includes("fallen_log_with_flower_and_squirrel_lvl7") ??
+        false
+    );
+    setShowEsquiloChao(
+      worldElements?.includes("squirrel_lvl7_ground") ?? false
+    );
+    setShowFlorBrancaLvl7A(
+      worldElements?.includes("white_flower_lvl7_a") ?? false
+    );
+    setShowFlorBrancaLvl7B(
+      worldElements?.includes("white_flower_lvl7_b") ?? false
+    );
+    setShowFlorBrancaLvl7C(
+      worldElements?.includes("white_flower_lvl7_c") ?? false
+    );
+    setShowFlorBrancaLvl7D(
+      worldElements?.includes("white_flower_lvl7_d") ?? false
+    );
 
     // Recompensas do Nível 6:
     //   1. 3 mini-árvores substituem as 3 plantinhas estágio 3 do Nível 5
@@ -366,13 +445,20 @@ export default function WorldScreen() {
             }}
           />
 
-          {/* Tronco — upper right area. Quando a recompensa do Nível 5
-              `flower_no_tronco` está ativa, o asset é substituído por
-              `flor_no_tronco.png` (tronco+flor integrado, mesma proporção
-              1426×624 — substituição direta, zero calibração). Padrão de
-              substituição, igual à cadeia das plantas. */}
+          {/* Tronco — upper right area. Cadeia de substituição tripla:
+              - default: MUNDO_TRONCO (1426×624)
+              - após Nível 5: MUNDO_FLOR_NO_TRONCO (mesma proporção)
+              - após Nível 7: MUNDO_TRONCO_FLOR_ESQUILO (3072×1344, ≈mesma
+                proporção 2.286 vs 2.285 — substitui exatamente no lugar).
+              Mais evoluído tem prioridade — Nível 7 esconde flor_no_tronco. */}
           <Image
-            source={showFlorNoTronco ? MUNDO_FLOR_NO_TRONCO : MUNDO_TRONCO}
+            source={
+              showTroncoEsquilo
+                ? MUNDO_TRONCO_FLOR_ESQUILO
+                : showFlorNoTronco
+                  ? MUNDO_FLOR_NO_TRONCO
+                  : MUNDO_TRONCO
+            }
             resizeMode="contain"
             style={{
               position: "absolute",
@@ -552,6 +638,32 @@ export default function WorldScreen() {
           >
             <Image
               source={MUNDO_ARVORE_JOVEM}
+              resizeMode="contain"
+              style={{ width: "100%", height: "100%" }}
+            />
+          </Animated.View>
+        )}
+
+        {/* Z-layer 3.96: Árvore frutífera (recompensa do Nível 7) —
+             substitui a árvore jovem na cadeia da planta principal.
+             Asset 1024×1024 RGBA. Posição placeholder herda da árvore
+             jovem como ponto de partida — Gui calibra. */}
+        {showArvoreFrutifera && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                top: WORLD_LAYOUT.arvoreFrutifera.top,
+                left: WORLD_LAYOUT.arvoreFrutifera.left,
+                width: WORLD_LAYOUT.arvoreFrutifera.width,
+                aspectRatio: 1024 / 1024,
+                zIndex: 10,
+              },
+            ]}
+          >
+            <Image
+              source={MUNDO_ARVORE_FRUTIFERA}
               resizeMode="contain"
               style={{ width: "100%", height: "100%" }}
             />
@@ -923,6 +1035,114 @@ export default function WorldScreen() {
           >
             <Image
               source={MUNDO_FLOR_AMARELA}
+              resizeMode="contain"
+              style={{ width: "100%", height: "100%" }}
+            />
+          </Animated.View>
+        )}
+
+        {/* Z-layer 4.7: Esquilo no chão (recompensa Nível 7, segunda fauna
+             do MVP). Asset mundo_esquilo (887×878). Posição placeholder —
+             Gui calibra (perto da base da árvore frutífera). */}
+        {showEsquiloChao && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                bottom: WORLD_LAYOUT.esquiloChao.bottom,
+                left: WORLD_LAYOUT.esquiloChao.left,
+                width: WORLD_LAYOUT.esquiloChao.width,
+                aspectRatio: 887 / 878,
+              },
+            ]}
+          >
+            <Image
+              source={MUNDO_ESQUILO}
+              resizeMode="contain"
+              style={{ width: "100%", height: "100%" }}
+            />
+          </Animated.View>
+        )}
+
+        {/* Z-layer 4.8: 4 flores brancas decorativas (recompensa Nível 7).
+             Mesmo asset mundo_flor_branca (373×854). Posições placeholder —
+             Gui calibra. */}
+        {showFlorBrancaLvl7A && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                top: WORLD_LAYOUT.florBrancaLvl7A.top,
+                left: WORLD_LAYOUT.florBrancaLvl7A.left,
+                width: WORLD_LAYOUT.florBrancaLvl7A.width,
+                aspectRatio: 373 / 854,
+              },
+            ]}
+          >
+            <Image
+              source={MUNDO_FLOR_BRANCA}
+              resizeMode="contain"
+              style={{ width: "100%", height: "100%" }}
+            />
+          </Animated.View>
+        )}
+        {showFlorBrancaLvl7B && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                top: WORLD_LAYOUT.florBrancaLvl7B.top,
+                right: WORLD_LAYOUT.florBrancaLvl7B.right,
+                width: WORLD_LAYOUT.florBrancaLvl7B.width,
+                aspectRatio: 373 / 854,
+              },
+            ]}
+          >
+            <Image
+              source={MUNDO_FLOR_BRANCA}
+              resizeMode="contain"
+              style={{ width: "100%", height: "100%" }}
+            />
+          </Animated.View>
+        )}
+        {showFlorBrancaLvl7C && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                bottom: WORLD_LAYOUT.florBrancaLvl7C.bottom,
+                left: WORLD_LAYOUT.florBrancaLvl7C.left,
+                width: WORLD_LAYOUT.florBrancaLvl7C.width,
+                aspectRatio: 373 / 854,
+              },
+            ]}
+          >
+            <Image
+              source={MUNDO_FLOR_BRANCA}
+              resizeMode="contain"
+              style={{ width: "100%", height: "100%" }}
+            />
+          </Animated.View>
+        )}
+        {showFlorBrancaLvl7D && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                bottom: WORLD_LAYOUT.florBrancaLvl7D.bottom,
+                right: WORLD_LAYOUT.florBrancaLvl7D.right,
+                width: WORLD_LAYOUT.florBrancaLvl7D.width,
+                aspectRatio: 373 / 854,
+              },
+            ]}
+          >
+            <Image
+              source={MUNDO_FLOR_BRANCA}
               resizeMode="contain"
               style={{ width: "100%", height: "100%" }}
             />
