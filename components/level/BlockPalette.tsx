@@ -86,43 +86,51 @@ export function BlockPalette({
         {availableBlocks.map((type) => {
           const config = BLOCK_CONFIG[type];
           return (
-            <Pressable
+            // Wrapper só pra sombra/elevation. No Android, ter elevation
+            // no MESMO View que tem borderWidth pode mascarar a borda —
+            // separar resolve. O Pressable interno cuida do toque/scale
+            // e da borda; o wrapper só projeta a sombra.
+            <View
               key={type}
-              onPress={() => !disabled && onBlockTap(type)}
-              style={({ pressed }) => ({
-                backgroundColor: disabled ? "#CCC" : config.color,
-                opacity: pressed ? 0.7 : 1,
-                transform: [{ scale: pressed ? 0.95 : 1 }],
-                paddingHorizontal: 14,
-                paddingVertical: 10,
+              style={{
                 borderRadius: 12,
-                // Borda escura em volta do bloco — silhueta que dá sensação
-                // de "peça/bloco" e ajuda a destacar o item como unidade
-                // clicável. Funciona em qualquer cor de fundo via rgba
-                // (não depende de cor base do bloco).
-                borderWidth: 3,
-                borderColor: "rgba(0,0,0,0.45)",
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 6,
                 shadowColor: config.color,
                 shadowOffset: { width: 0, height: 2 },
                 shadowOpacity: 0.3,
                 shadowRadius: 4,
                 elevation: 3,
-              })}
+              }}
             >
-              <Text style={{ fontSize: 16 }}>{config.icon}</Text>
-              <Text
-                style={{
-                  fontFamily: "Nunito-Bold",
-                  fontSize: 13,
-                  color: getContrastTextColor(config.color),
-                }}
+              <Pressable
+                onPress={() => !disabled && onBlockTap(type)}
+                style={({ pressed }) => ({
+                  backgroundColor: disabled ? "#CCC" : config.color,
+                  opacity: pressed ? 0.7 : 1,
+                  transform: [{ scale: pressed ? 0.95 : 1 }],
+                  paddingHorizontal: 14,
+                  paddingVertical: 10,
+                  borderRadius: 12,
+                  // Borda escura em volta do bloco — silhueta que dá
+                  // sensação de "peça/bloco" em qualquer cor de fundo.
+                  borderWidth: 3,
+                  borderColor: "rgba(0,0,0,0.45)",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 6,
+                })}
               >
-                {config.label}
-              </Text>
-            </Pressable>
+                <Text style={{ fontSize: 16 }}>{config.icon}</Text>
+                <Text
+                  style={{
+                    fontFamily: "Nunito-Bold",
+                    fontSize: 13,
+                    color: getContrastTextColor(config.color),
+                  }}
+                >
+                  {config.label}
+                </Text>
+              </Pressable>
+            </View>
           );
         })}
       </ScrollView>
