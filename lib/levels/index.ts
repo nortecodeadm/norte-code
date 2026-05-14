@@ -444,6 +444,114 @@ function createLevel5(): LevelDefinition {
   };
 }
 
+// ─── Level 6: Condicional simples (if_canteiro_vazio_then_plantar) ──────────
+// Primeiro nível com condicional. Grade 1×6 linear:
+//   [Avatar][SC][CV][CP][CV][CV]
+// SC = sem canteiro (chão, "empty"), CV = canteiro vazio ("flowerbed"),
+// CP = canteiro já plantado ("seed").
+// Solução-alvo (3 blocos): [Repetir 5× [Direita, Se vazio, plantar]].
+// Solução longa aceita (10 blocos): 5 iterações manuais de [Direita, Se vazio, plantar].
+// O bloco condicional é o ÚNICO jeito de plantar — não há `plant` solto.
+// Esse é o ponto pedagógico: criança aprende a olhar antes de agir.
+
+function createLevel6(): LevelDefinition {
+  const gridWidth = 6;
+  const gridHeight = 1;
+
+  const grid: Cell[][] = [];
+  for (let y = 0; y < gridHeight; y++) {
+    const row: Cell[] = [];
+    for (let x = 0; x < gridWidth; x++) {
+      row.push({ position: { x, y }, content: "empty" });
+    }
+    grid.push(row);
+  }
+
+  // [Avatar][SC][CV][CP][CV][CV]
+  // col 0 e col 1 já são "empty" (SC).
+  grid[0][2].content = "flowerbed"; // CV
+  grid[0][3].content = "seed";      // CP (já plantado)
+  grid[0][4].content = "flowerbed"; // CV
+  grid[0][5].content = "flowerbed"; // CV
+
+  const initialWorld: WorldState = {
+    grid,
+    gridWidth,
+    gridHeight,
+    player: {
+      position: { x: 0, y: 0 },
+      direction: "east",
+      inventory: { fruits: 0 },
+    },
+    goalCondition: {
+      type: "custom",
+      check: (state: WorldState) => {
+        // As 3 CV (cols 2, 4, 5) devem virar "seed". O CP de col 3
+        // continua "seed" (intocado). Ordem do programa não importa.
+        const cv2 = state.grid[0][2].content === "seed";
+        const cv4 = state.grid[0][4].content === "seed";
+        const cv5 = state.grid[0][5].content === "seed";
+        return cv2 && cv4 && cv5;
+      },
+    },
+  };
+
+  return {
+    id: 6,
+    title: "Olha antes de plantar",
+    description:
+      "Plante apenas onde tiver canteiro vazio. Use 'Se vazio, plantar' dentro do Repetir.",
+    hint:
+      "O bloco roxo 'Se vazio, plantar' só age quando o lugar tem canteiro vazio. Tenta [Repetir 5× [Direita, Se vazio, plantar]].",
+    objective: "🌱 Plante só onde for canteiro vazio",
+    gridWidth,
+    gridHeight,
+    initialWorld,
+    availableBlocks: [
+      "move_right",
+      "if_canteiro_vazio_then_plantar",
+      "repeat_5",
+    ],
+    // maxBlocks: 12
+    // Solução elegante: 3 blocos (Repetir 5× + 2 dentro).
+    // Solução longa sem repeat_5: 10 blocos (5 iterações de Direita + Se vazio).
+    // Margem de 2 sobre solução longa — mesma lógica do Nível 5.
+    // Contagem inclui filhos (cada bloco conta 1).
+    maxBlocks: 12,
+    errorMessages: {
+      out_of_grid: "Esse lado não dá. O caminho continua em outra direção.",
+      // Genérica: programa terminou mas ainda há canteiros vazios não plantados.
+      // O interpretador NÃO trata o if_canteiro_vazio_then_plantar como
+      // "tentou plantar no lugar errado" — só ignora silenciosamente.
+      not_at_planting_spot:
+        "Ainda há canteiros vazios. Olha de novo onde o avatar passou.",
+      wrong_path:
+        "Ainda há canteiros vazios. Olha de novo onde o avatar passou.",
+    },
+    reward: {
+      message:
+        "Você aprendeu a olhar antes de fazer. Nem todo lugar pede a mesma ação. Saber decidir é cuidar bem. Lembra disso — vai ser muito útil mais pra frente.",
+      elements: [
+        // Operação 1 — 2 pássaros (primeira fauna do MVP). Mesmo asset, IDs
+        // distintos. O mirror do segundo é tratado direto no render do
+        // app/world.tsx (transform: scaleX -1) — schema dos rewards continua
+        // { add, replaces } sem campo "transform", preservando não-retroatividade.
+        { add: "bird_lvl6_a" },
+        { add: "bird_lvl6_b" },
+        // Operação 2 — as 3 plantinhas estágio 3 do Nível 5 viram mini-árvores.
+        // Continuidade narrativa das sementes do Nível 4 que cresceram.
+        { add: "mini_tree_lvl6_a", replaces: "plant_stage3_lvl5_a" },
+        { add: "mini_tree_lvl6_b", replaces: "plant_stage3_lvl5_b" },
+        { add: "mini_tree_lvl6_c", replaces: "plant_stage3_lvl5_c" },
+        // Operação 3 — 3 flores amarelas decorativas espalhadas.
+        { add: "yellow_flower_lvl6_a" },
+        { add: "yellow_flower_lvl6_b" },
+        { add: "yellow_flower_lvl6_c" },
+      ],
+    },
+  };
+}
+
 // ─── Level Registry ──────────────────────────────────────────────────────────────────────────
 
 const LEVELS: LevelDefinition[] = [
@@ -452,6 +560,7 @@ const LEVELS: LevelDefinition[] = [
   createLevel3(),
   createLevel4(),
   createLevel5(),
+  createLevel6(),
 ];
 
 export function getLevel(id: number): LevelDefinition | undefined {

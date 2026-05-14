@@ -369,6 +369,10 @@ export default function LevelScreen() {
       );
 
     const hasPlantBlock = anyBlock(blocks, (t) => t === "plant");
+    const hasConditionalPlant = anyBlock(
+      blocks,
+      (t) => t === "if_canteiro_vazio_then_plantar"
+    );
     const hasMoveBlock = anyBlock(
       blocks,
       (t) =>
@@ -380,8 +384,17 @@ export default function LevelScreen() {
     );
     const hasWaterBlock = anyBlock(blocks, (t) => t === "water");
 
-    if (!hasMoveBlock && !hasPlantBlock) {
+    // "Programa só com bloco condicional sem mover" cai numa msg específica
+    // — a heurística antiga falava "Monte seu programa!" mesmo com blocos
+    // presentes, o que confundiria a criança no Nível 6.
+    if (!hasMoveBlock && !hasPlantBlock && !hasConditionalPlant) {
       return "Monte seu programa! Toque nos blocos acima.";
+    }
+    if (!hasMoveBlock && hasConditionalPlant && !hasPlantBlock) {
+      return (
+        level.errorMessages.didnt_move ||
+        "O avatar precisa andar pra encontrar canteiros. Use o bloco Direita."
+      );
     }
     if (!hasMoveBlock) {
       return level.errorMessages.didnt_move || "Tente andar até o canteiro primeiro!";

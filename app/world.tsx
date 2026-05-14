@@ -88,6 +88,27 @@ const WORLD_LAYOUT = {
   // exatamente no lugar. O source do Image do tronco é trocado via state
   // `showFlorNoTronco`. Sem entrada própria no WORLD_LAYOUT.
 
+  // Recompensa Nível 6 — 3 mini-árvores SUBSTITUEM as 3 plantinhas estágio 3
+  // do Nível 5 (asset reusa o mundo_mini_arvore que era da planta principal
+  // no Nível 4). Posições idênticas às plantinhas — continuidade narrativa.
+  miniArvoreLvl6A: { bottom: pctH(4), left: pctW(32), width: pctW(13) },
+  miniArvoreLvl6B: { bottom: pctH(5), left: pctW(44), width: pctW(13) },
+  miniArvoreLvl6C: { bottom: pctH(4), left: pctW(56), width: pctW(13) },
+
+  // Recompensa Nível 6 — 2 pássaros (primeira fauna do MVP). Asset
+  // mundo_passaro_pousado (850×736). bird_lvl6_a pousa no tronco caído com
+  // flor; bird_lvl6_b pousa na pedra (espelhado horizontalmente via
+  // scaleX -1 no render, pra parecer um "casal" virado em direções opostas).
+  // Posições placeholder — Gui calibra.
+  passaroLvl6A: { top: pctH(28), right: pctW(50), width: pctW(12) },
+  passaroLvl6B: { top: pctH(6), right: pctW(15), width: pctW(10) },
+
+  // Recompensa Nível 6 — 3 flores amarelas decorativas espalhadas pelo
+  // jardim. Asset mundo_flor_amarela (458×855). Posições placeholder.
+  florAmarelaLvl6A: { top: pctH(50), left: pctW(10), width: pctW(6) },
+  florAmarelaLvl6B: { top: pctH(58), right: pctW(15), width: pctW(6) },
+  florAmarelaLvl6C: { bottom: pctH(20), left: pctW(70), width: pctW(6) },
+
   // UI
   botaoPlay: { bottom: pctH(90), right: pctW(6) },
 };
@@ -105,6 +126,10 @@ const MUNDO_MINI_ARVORE = require("../assets/mundo/mundo_mini_arvore.png");
 const MUNDO_ARVORE_JOVEM = require("../assets/mundo/mundo_arvore_jovem.png");
 const MUNDO_PLANTINHA_LVL5 = require("../assets/mundo/plantinha_estagio3.png");
 const MUNDO_FLOR_NO_TRONCO = require("../assets/mundo/flor_no_tronco.png");
+// Assets Nível 6 (extensão .jpg, mas conteúdo binário é PNG com transparência —
+// Gui validar visualmente que o Metro carrega corretamente).
+const MUNDO_PASSARO = require("../assets/mundo/mundo_passaro_pousado.jpg");
+const MUNDO_FLOR_AMARELA = require("../assets/mundo/mundo_flor_amarela.jpg");
 
 /**
  * World Screen — The player's permanent home.
@@ -138,6 +163,16 @@ export default function WorldScreen() {
   const [showFlowerLvl5A, setShowFlowerLvl5A] = useState(false);
   const [showFlowerLvl5B, setShowFlowerLvl5B] = useState(false);
   const [showFlorNoTronco, setShowFlorNoTronco] = useState(false);
+  // Recompensas do Nível 6: 2 pássaros + 3 mini-árvores (substituem as 3
+  // plantinhas estágio 3 do Nível 5) + 3 flores amarelas decorativas.
+  const [showMiniArvoreLvl6A, setShowMiniArvoreLvl6A] = useState(false);
+  const [showMiniArvoreLvl6B, setShowMiniArvoreLvl6B] = useState(false);
+  const [showMiniArvoreLvl6C, setShowMiniArvoreLvl6C] = useState(false);
+  const [showPassaroLvl6A, setShowPassaroLvl6A] = useState(false);
+  const [showPassaroLvl6B, setShowPassaroLvl6B] = useState(false);
+  const [showFlorAmarelaLvl6A, setShowFlorAmarelaLvl6A] = useState(false);
+  const [showFlorAmarelaLvl6B, setShowFlorAmarelaLvl6B] = useState(false);
+  const [showFlorAmarelaLvl6C, setShowFlorAmarelaLvl6C] = useState(false);
 
   // Animations
   const fadeIn = useSharedValue(0);
@@ -237,13 +272,34 @@ export default function WorldScreen() {
     //   2. plantinhas estágio 3 substituem sementes lvl4 (já tratado acima)
     //   3. +2 flores decorativas
     //   4. +1 flor brota do tronco caído
+    //
+    // Cadeia de substituição: cada plantinha lvl5 é por sua vez SUBSTITUÍDA
+    // pela mini-árvore lvl6 correspondente (mesma posição, asset diferente).
+    const hasMiniArvore6A = worldElements?.includes("mini_tree_lvl6_a") ?? false;
+    const hasMiniArvore6B = worldElements?.includes("mini_tree_lvl6_b") ?? false;
+    const hasMiniArvore6C = worldElements?.includes("mini_tree_lvl6_c") ?? false;
     setShowBgV2(worldElements?.includes("background_mundo_v2") ?? false);
-    setShowPlantinhaLvl5A(hasPlantinhaA);
-    setShowPlantinhaLvl5B(hasPlantinhaB);
-    setShowPlantinhaLvl5C(hasPlantinhaC);
+    setShowPlantinhaLvl5A(hasPlantinhaA && !hasMiniArvore6A);
+    setShowPlantinhaLvl5B(hasPlantinhaB && !hasMiniArvore6B);
+    setShowPlantinhaLvl5C(hasPlantinhaC && !hasMiniArvore6C);
     setShowFlowerLvl5A(worldElements?.includes("flower_lvl5_a") ?? false);
     setShowFlowerLvl5B(worldElements?.includes("flower_lvl5_b") ?? false);
     setShowFlorNoTronco(worldElements?.includes("flower_no_tronco") ?? false);
+
+    // Recompensas do Nível 6:
+    //   1. 3 mini-árvores substituem as 3 plantinhas estágio 3 do Nível 5
+    //      (sementes do Nível 4 → plantinhas do Nível 5 → mini-árvores do Nível 6)
+    //   2. 2 pássaros (primeira fauna) — bird_lvl6_b é espelhado horizontalmente
+    //      no render (transform scaleX: -1)
+    //   3. 3 flores amarelas decorativas
+    setShowMiniArvoreLvl6A(hasMiniArvore6A);
+    setShowMiniArvoreLvl6B(hasMiniArvore6B);
+    setShowMiniArvoreLvl6C(hasMiniArvore6C);
+    setShowPassaroLvl6A(worldElements?.includes("bird_lvl6_a") ?? false);
+    setShowPassaroLvl6B(worldElements?.includes("bird_lvl6_b") ?? false);
+    setShowFlorAmarelaLvl6A(worldElements?.includes("yellow_flower_lvl6_a") ?? false);
+    setShowFlorAmarelaLvl6B(worldElements?.includes("yellow_flower_lvl6_b") ?? false);
+    setShowFlorAmarelaLvl6C(worldElements?.includes("yellow_flower_lvl6_c") ?? false);
   }, []);
 
   useFocusEffect(
@@ -697,6 +753,180 @@ export default function WorldScreen() {
         {/* Recompensa Nível 5 "flor no tronco": NÃO renderiza nada aqui.
              A substituição é feita direto no source do tronco lá em cima
              (mesma proporção 1426×624 — asset novo entra no lugar). */}
+
+        {/* Z-layer 4.4: 3 mini-árvores (recompensa Nível 6) — substituem
+             visualmente as 3 plantinhas estágio 3 do Nível 5, mesma posição.
+             Cadeia: semente lvl4 → plantinha lvl5 → mini-árvore lvl6.
+             Asset reusa mundo_mini_arvore.png (784×1176). */}
+        {showMiniArvoreLvl6A && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                bottom: WORLD_LAYOUT.miniArvoreLvl6A.bottom,
+                left: WORLD_LAYOUT.miniArvoreLvl6A.left,
+                width: WORLD_LAYOUT.miniArvoreLvl6A.width,
+                aspectRatio: 784 / 1176,
+              },
+            ]}
+          >
+            <Image
+              source={MUNDO_MINI_ARVORE}
+              resizeMode="contain"
+              style={{ width: "100%", height: "100%" }}
+            />
+          </Animated.View>
+        )}
+        {showMiniArvoreLvl6B && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                bottom: WORLD_LAYOUT.miniArvoreLvl6B.bottom,
+                left: WORLD_LAYOUT.miniArvoreLvl6B.left,
+                width: WORLD_LAYOUT.miniArvoreLvl6B.width,
+                aspectRatio: 784 / 1176,
+              },
+            ]}
+          >
+            <Image
+              source={MUNDO_MINI_ARVORE}
+              resizeMode="contain"
+              style={{ width: "100%", height: "100%" }}
+            />
+          </Animated.View>
+        )}
+        {showMiniArvoreLvl6C && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                bottom: WORLD_LAYOUT.miniArvoreLvl6C.bottom,
+                left: WORLD_LAYOUT.miniArvoreLvl6C.left,
+                width: WORLD_LAYOUT.miniArvoreLvl6C.width,
+                aspectRatio: 784 / 1176,
+              },
+            ]}
+          >
+            <Image
+              source={MUNDO_MINI_ARVORE}
+              resizeMode="contain"
+              style={{ width: "100%", height: "100%" }}
+            />
+          </Animated.View>
+        )}
+
+        {/* Z-layer 4.5: 2 pássaros (recompensa Nível 6, primeira fauna do MVP).
+             Mesmo asset (850×736). bird_lvl6_b é espelhado horizontalmente
+             via transform scaleX: -1 — parece um "casal" virado em direções
+             opostas. Posições placeholder — Gui calibra. */}
+        {showPassaroLvl6A && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                top: WORLD_LAYOUT.passaroLvl6A.top,
+                right: WORLD_LAYOUT.passaroLvl6A.right,
+                width: WORLD_LAYOUT.passaroLvl6A.width,
+                aspectRatio: 850 / 736,
+              },
+            ]}
+          >
+            <Image
+              source={MUNDO_PASSARO}
+              resizeMode="contain"
+              style={{ width: "100%", height: "100%" }}
+            />
+          </Animated.View>
+        )}
+        {showPassaroLvl6B && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                top: WORLD_LAYOUT.passaroLvl6B.top,
+                right: WORLD_LAYOUT.passaroLvl6B.right,
+                width: WORLD_LAYOUT.passaroLvl6B.width,
+                aspectRatio: 850 / 736,
+                transform: [{ scaleX: -1 }],
+              },
+            ]}
+          >
+            <Image
+              source={MUNDO_PASSARO}
+              resizeMode="contain"
+              style={{ width: "100%", height: "100%" }}
+            />
+          </Animated.View>
+        )}
+
+        {/* Z-layer 4.6: 3 flores amarelas decorativas (recompensa Nível 6).
+             Mesmo asset (458×855). Posições placeholder — Gui calibra. */}
+        {showFlorAmarelaLvl6A && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                top: WORLD_LAYOUT.florAmarelaLvl6A.top,
+                left: WORLD_LAYOUT.florAmarelaLvl6A.left,
+                width: WORLD_LAYOUT.florAmarelaLvl6A.width,
+                aspectRatio: 458 / 855,
+              },
+            ]}
+          >
+            <Image
+              source={MUNDO_FLOR_AMARELA}
+              resizeMode="contain"
+              style={{ width: "100%", height: "100%" }}
+            />
+          </Animated.View>
+        )}
+        {showFlorAmarelaLvl6B && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                top: WORLD_LAYOUT.florAmarelaLvl6B.top,
+                right: WORLD_LAYOUT.florAmarelaLvl6B.right,
+                width: WORLD_LAYOUT.florAmarelaLvl6B.width,
+                aspectRatio: 458 / 855,
+              },
+            ]}
+          >
+            <Image
+              source={MUNDO_FLOR_AMARELA}
+              resizeMode="contain"
+              style={{ width: "100%", height: "100%" }}
+            />
+          </Animated.View>
+        )}
+        {showFlorAmarelaLvl6C && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                bottom: WORLD_LAYOUT.florAmarelaLvl6C.bottom,
+                left: WORLD_LAYOUT.florAmarelaLvl6C.left,
+                width: WORLD_LAYOUT.florAmarelaLvl6C.width,
+                aspectRatio: 458 / 855,
+              },
+            ]}
+          >
+            <Image
+              source={MUNDO_FLOR_AMARELA}
+              resizeMode="contain"
+              style={{ width: "100%", height: "100%" }}
+            />
+          </Animated.View>
+        )}
 
         {/* Z-layer 5: UI — Play button */}
         <Animated.View
