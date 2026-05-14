@@ -2,10 +2,24 @@
 
 **Projeto:** Norte Code — A bússola da lógica e programação para crianças.
 **De:** Claude (Estrategista)
-**Para:** Manus (Executor)
+**Para:** Dev Temporário ativo (atualmente Claude Code, em substituição ao Manus)
 **Via:** Gui
 **Data:** Maio/2026
-**Versão:** 2.5 — Briefing consolidado após primeiras semanas de execução. Reflete estado real do projeto: Gui passou a editar código localmente, princípio de não-retroatividade estabelecido (novos níveis não refatoram níveis anteriores), recompensas visuais detalhadas, divisão de trabalho ajustada.
+**Versão:** 2.7 — Roadmap visual + pedagógico consolidado para Níveis 5-10.
+
+**Changelog v2.7:**
+- Roadmap completo dos Níveis 5-10 desenhado em sessão dedicada de estratégia.
+- Decisões narrativas estruturais registradas: MVP cobre Criação + Tentação + Queda + início da Restauração (NÃO inclui cidade — pós-MVP).
+- Princípio "Mundo permanente é narrativa visual" aplicado a todos os níveis.
+- Decisão narrativa-chave: a queda no Nível 9 é inevitável (toda criança "cai") — não é punição por escolha errada, é a história sendo contada. Mecânica específica TBD em sessão dedicada antes da implementação.
+- Princípio pedagógico "ferramentas antecipadas": cada conceito de programação aprendido nos Níveis 5-8 é apresentado também como ferramenta que a criança vai usar pra restaurar o mundo no Nível 10. Texto de conclusão de cada nível planta essa expectativa.
+- Background do Mundo permanente passa a ser substituível por estágio (Nível 5 introduz `background_mundo_v2.png`).
+- Fauna entra gradualmente a partir do Nível 6 (1 elemento por nível).
+- Árvore frutífera aparece no Nível 7 (antecipando coleta do Nível 8).
+- Cenário árido aparece SÓ no Nível 10 — primeira grande mudança ambiental do MVP.
+
+**Changelog v2.6:** (anterior — Nível 4 entregue, Nível 5 redesenhado como par pedagógico).
+**Changelog v2.5:** (anterior — consolidação após primeiras semanas de execução).
 
 ---
 
@@ -339,13 +353,22 @@ Mecânica registrada como direção de produto. **Não entra nos 10 níveis do M
 
 **Manus:** ao implementar o MVP, **não inserir** decisões morais nos níveis 1-10. **Manter arquitetura aberta** pra adicionar depois. Documentar intenção em `ARCHITECTURE.md`.
 
-### 4.5.2. Mapeamento dos níveis nas fases narrativas
+### 4.5.2. Mapeamento dos níveis nas fases narrativas (atualizado v2.7)
 
-- **Níveis 1-5 — Fase 1 (Origem).** Primeiro terreno, criança cuidando do que era vazio
-- **Capítulo Narrativo (após Nível 5):** transição Fase 1 → Fase 2 (Quebra)
-- **Níveis 6-10 — Fase 3 (Reconstrução, início).** Novo terreno, mais árido. Condicionais, variáveis, primeiras funções
+**Estrutura narrativa do MVP:**
 
-**Implicação visual:** mundo permanente muda visualmente após Nível 5 (de "primeiro jardim" pra "novo terreno árido"). Arquitetura visual deve suportar essa transição.
+- **Níveis 1-8 — Construção do jardim (Fase 1, evoluindo visualmente).** Da sementinha inicial à floresta madura com fauna diversa. Cada nível adiciona vida ao Mundo permanente.
+- **Nível 9 — Tentação e queda.** Serpente aparece e oferece atalho. Criança aceita (inevitabilidade narrativa).
+- **Nível 10 — Recomeço no árido + esperança.** Cenário muda radicalmente. Criança aplica o que aprendeu pra começar a restaurar a vida em terra difícil.
+
+**O que ficou fora do MVP (pós-MVP):**
+- Cidade que cuida do jardim
+- Capítulo Narrativo formal (telas dedicadas de história entre níveis) — pode entrar antes do release, mas em sessão dedicada
+- Continuação do árido (mais níveis de restauração após o 10)
+
+**Implicação visual:** o Mundo permanente passa por DUAS grandes mudanças visuais ao longo do MVP:
+1. **Nível 5:** background v1 → background v2 (graminha, florestinha, flor no tronco). Mesma cena, mais madura.
+2. **Nível 10:** background v2 → background árido. Cenário radicalmente diferente. O jardim Fase 1 vira memória/silhueta no horizonte.
 
 ### 4.6. PRINCÍPIO TRANSVERSAL — Complexidade Crescente, Não Retroativa
 
@@ -401,7 +424,7 @@ Quando a criança aperta "Executar":
 
 ---
 
-#### Nível 3 — Direção (grade 2D) 🚧 EM IMPLEMENTAÇÃO
+#### Nível 3 — Direção (grade 2D) ✅ IMPLEMENTADO
 
 - **Conceito:** sequência com escolha de direção
 - **Cenário:** grade 2×3. Pedra bloqueia o caminho direto até o canteiro
@@ -417,97 +440,187 @@ Quando a criança aperta "Executar":
   - Flor aparece ao lado da pedra do Mundo (`flower_lvl3`)
 - **Texto:** "Bom! Às vezes o caminho não é reto. Programar é dar direção certa."
 
-**Nota:** Esquerda (`move_left`) NÃO entra neste nível. Reservado pra Nível 4 ou 5.
+**Nota:** Esquerda (`move_left`) foi reservada pro Nível 4.
 
 ---
 
-#### Nível 4 — Primeira repetição (loop fixo simples) — PENDENTE
+#### Nível 4 — Sequência longa + `move_left` ✅ IMPLEMENTADO
 
-- **Conceito:** loop / repetição
-- **Cenário:** avatar precisa plantar 3 sementinhas seguidas
-- **Blocos:** [Andar/Direita] [Plantar] [Repetir 3 vezes [...]]
-- **Solução elegante:** [Repetir 3 vezes [Andar, Plantar]]
-- **Solução aceita (longa):** [Andar][Plantar][Andar][Plantar][Andar][Plantar] (acerta, mas dica sugere o loop)
-- **Recompensa:** três brotos enfileirados no Mundo + (a discutir: plantinha brotando do tronco?)
-- **Texto:** "Quando você precisa fazer a mesma coisa várias vezes, **repetir** funciona. Programar bem é fazer mais com menos."
-
-**Decisão pendente:** introduzir `move_left` neste nível? Tem espaço narrativo.
-
----
-
-#### Nível 5 — Loop com variação de quantidade — PENDENTE
-
-- **Conceito:** loop (reforço, com escolha de quantas vezes repetir)
-- **Cenário:** avatar precisa regar 5 brotos em sequência
-- **Blocos:** [Andar/Direita] [Regar] [Repetir N vezes [...]] (N selecionável: 2, 3, 4, 5)
-- **Solução:** [Repetir 5 vezes [Andar, Regar]]
-- **Recompensa:** brotos viram pequenas flores. Caminho de pedras começa.
-- **Texto:** "Você escolheu quantas vezes repetir. Esse é o jeito de cuidar bem: na medida certa."
-
----
-
-### >>> CAPÍTULO NARRATIVO <<<
-
-(Após Nível 5)
+- **Conceito:** sequência longa sem loop + introdução de `move_left`
+- **Função pedagógica:** par com o Nível 5. A criança sente o cansaço da repetição manual aqui pra que o loop do Nível 5 seja sentido como alívio (princípio "necessidade antes da ferramenta")
+- **Cenário:** grade 4×4. Avatar em (0,0). 3 canteiros em (0,3), (3,3), (3,0). 6 pedras formando bloco central (linhas 1-2, colunas 0-2) que força rota única em "U" no sentido horário
+- **Blocos disponíveis:** [→ Direita] [← Esquerda] [↑ Subir] [↓ Descer] [🌱 Plantar] — `move_up` está na paleta como "trap pedagógico" (criança aprende que nem todo bloco serve em toda situação)
+- **Solução-alvo:** 12 blocos em 3 grupos simétricos
+  ```
+  [Direita][Direita][Direita][Plantar]   → C1 em (0,3)
+  [Descer][Descer][Descer][Plantar]      → C2 em (3,3)
+  [Esquerda][Esquerda][Esquerda][Plantar] → C3 em (3,0)
+  ```
+- **Validação:** qualquer programa que termine com os 3 canteiros plantados é aceito (`maxBlocks: 16` pra dar margem de exploração)
+- **Estrutura:** grade 2D (`grid.cells[row][col]`)
+- **Recompensa:**
+  - Mini-árvore substitui broto crescido (`mini_tree_lvl4` replaces `grown_sprout_lvl3`), posicionada mais ao fundo da cena pra abrir espaço pras 3 sementes na frente
+  - 3 sementes (estágio 1) novas em (`seed_lvl4_a/b/c`), reusando o asset do Nível 1
+  - 1 flor decorativa nova (`flower_lvl4`), reusando o asset do Nível 3
+- **Texto de conclusão:** "Você reparou que fez quase a mesma coisa três vezes? Andar pra um lado e plantar. Andar pra outro lado e plantar. Andar pra outro lado e plantar. Programar é assim mesmo — às vezes a gente repete. No próximo nível você vai descobrir um jeito mais esperto de fazer isso."
+- **Mensagens de erro contextuais:**
+  - Bate em pedra: "Hmm, tem uma pedra aí. Tenta outro caminho."
+  - Sai da grade: "Esse lado não dá. O caminho continua em outra direção."
+  - Planta sem canteiro: "Aqui não tem canteiro. Procura o lugar certo pra plantar."
+- **Decisão arquitetural:** campo opcional `failReason` em `ExecutionStep` permite distinguir "rock" de "out_of_grid" pra mensagens contextuais. Aditivo, não-retroativo.
 
 ---
 
-#### Nível 6 — Primeira condicional — PENDENTE
+#### Nível 5 — Bloco de Repetição (loop fixo) — PENDENTE (próximo a implementar)
 
-- **Conceito:** condicional (se / então)
-- **Cenário:** caminho com casas. Em algumas tem semente, em outras não. Plantar **só** onde tem semente
-- **Blocos:** [Andar] [Plantar] [Se houver semente [Plantar]]
-- **Solução:** [Repetir 5 vezes [Andar, Se houver semente [Plantar]]]
-- **Recompensa:** flores formam padrão de canteiro organizado
-- **Texto:** "Você ensinou seu personagem a **decidir**. Isso é uma das coisas mais importantes da programação: saber quando fazer e quando não fazer."
+- **Conceito de programação:** loop com N fixo (`[Repetir 3×]`).
+- **Função pedagógica:** par com o Nível 4. A criança refaz o MESMO trajeto do Nível 4 (rega as 3 sementes que plantou) mas agora com bloco de loop disponível. Sente o alívio de fazer mais com menos. Princípio "necessidade antes da ferramenta".
+- **Função narrativa:** primeiro grande salto visual do Mundo permanente. O jardim entra em maturidade — vida começa a se espalhar pelo solo, primeira fauna se prepara, vida vence até o que parecia morto (flor no tronco).
+- **Cenário do nível:** mesma grade 4×4 do Nível 4, mesmas 6 pedras, mesmos 3 canteiros (agora com sementes plantadas esperando rega).
+- **Blocos disponíveis:** `move_right`, `move_left`, `move_up`, `move_down`, `regar`, `[Repetir 3×]`.
+- **Solução-alvo (9 blocos):**
+  ```
+  [Repetir 3× [Direita]][Regar]
+  [Repetir 3× [Descer]][Regar]
+  [Repetir 3× [Esquerda]][Regar]
+  ```
+- **Solução longa aceita:** versão sem loop (igual à do Nível 4 com `Regar` em vez de `Plantar`).
+- **Validação:** as 3 sementes regadas viram plantinhas estágio 3.
+- **Mudança no Mundo permanente:**
+  - **Background v1 → background v2** (substituição completa, mesmo padrão de substituição das plantas): graminha esparsa pelo solo (não tapete — tufos espalhados), florestinha em silhueta no horizonte. Esta é a mudança visual mais forte do MVP até aqui.
+  - Flor brotando do tronco caído (asset novo, sobreposto ao log existente). Símbolo: vida vence até no que parecia morto.
+  - 3 sementes do Nível 4 (`seed_lvl4_a/b/c`) viram 3 plantinhas estágio 3 (pulam estágio 2 — sinal visual de que regar acelerou o crescimento).
+  - +2 flores decorativas adicionais (total: 4 flores no Mundo).
+- **Assets novos necessários:**
+  - `background_mundo_v2.png` (substitui o background atual)
+  - `flor_no_tronco.png` (sobreposto ao tronco caído)
+  - `plantinha_estagio3.png` (planta com caule + folhas, mais desenvolvida que broto)
+- **Texto de conclusão (rascunho):** "Olha que esperto! Em vez de mandar o mesmo movimento três vezes, você usou o bloco de **repetir**. Programar bem é fazer mais com menos. Lembra disso — vai ser útil mais pra frente."
+- **Conexão com Nível 10 (ferramenta antecipada):** a frase final planta a semente de que loop vai ser útil de novo no recomeço. No árido, a criança vai precisar replantar muito — loop é o que permite plantar rápido.
 
 ---
 
-#### Nível 7 — Condicional com duas ações (se/senão) — PENDENTE
+#### Nível 6 — Condicional simples (se → então) — PENDENTE
 
-- **Conceito:** se / senão
-- **Cenário:** algumas casas têm semente (planta), outras têm broto (rega)
-- **Blocos:** [Andar] [Plantar] [Regar] [Se houver semente, plantar, senão regar]
-- **Solução:** [Repetir 6 vezes [Andar, Se houver semente plantar senão regar]]
-- **Recompensa:** primeiro arbusto adulto com frutinhas
-- **Texto:** "Cada situação pede uma resposta diferente. Você está aprendendo a **escolher bem**."
+- **Conceito de programação:** condicional. "Se acontecer X, então faça Y."
+- **Função pedagógica:** introdução do **discernimento**. Até agora a criança fazia coisas em sequência. Agora ela aprende a **olhar antes de agir**. Mordomia exige discernimento — não é todo solo que recebe semente.
+- **Função narrativa:** primeira fauna entra no Mundo permanente. Sinal de que a vida não é só vegetação — agora há criaturas. A planta principal evolui pra árvore jovem.
+- **Cenário do nível (esboço):** grade 2D maior (sugestão: 3×5). Caminho linear de células. Algumas células têm canteiro vazio, outras têm canteiro com semente já plantada, outras estão vazias. Criança planta SÓ onde tem canteiro vazio.
+- **Blocos disponíveis:** `move_right`, `[Se houver canteiro vazio → Plantar]`, `[Repetir N×]`.
+- **Solução-alvo:** `[Repetir 5× [Direita, Se canteiro vazio → Plantar]]`.
+- **Mudança no Mundo permanente:**
+  - Primeira fauna: 1 pássaro pousado em algum ponto do cenário (asset novo, marcante).
+  - Mini-árvore → árvore jovem (substituição da planta principal, asset novo).
+  - +1 ou +2 plantinhas no chão.
+- **Assets novos necessários:**
+  - `passaro_pousado.png` (estilo Style Guide — formas arredondadas, paleta suave)
+  - `arvore_jovem.png` (sucessora da mini-árvore)
+- **Texto de conclusão (rascunho):** "Você aprendeu a **olhar antes de fazer**. Nem todo lugar pede a mesma ação. Saber decidir é cuidar bem."
+- **Conexão com Nível 10:** condicional vai permitir diagnóstico do solo árido — "se solo tem umidade → planta; senão → continua andando até achar solo bom". Discernimento é vital pra lidar com terreno difícil.
+
+---
+
+#### Nível 7 — Se / senão (condicional com dois ramos) — PENDENTE
+
+- **Conceito de programação:** if/else. "Se X, faça Y; senão, faça Z."
+- **Função pedagógica:** discernimento amadurecido. A criança não só "vê e age" — tem duas respostas possíveis dependendo do que vê.
+- **Função narrativa:** árvore frutífera aparece — sinaliza que o jardim agora produz. Visualmente antecipa a coleta de frutas do Nível 8.
+- **Cenário do nível (esboço):** caminho com células variadas. Algumas têm canteiros vazios, outras têm plantinhas secas que precisam de rega, outras estão vazias.
+- **Blocos disponíveis:** `move_right`, `[Se planta seca → Regar; senão se canteiro vazio → Plantar]`, `[Repetir N×]`.
+- **Solução-alvo:** `[Repetir 6× [Direita, Se planta seca → Regar; senão se canteiro vazio → Plantar]]`.
+- **Mudança no Mundo permanente:**
+  - Árvore frutífera aparece (asset novo, ou variação da árvore_jovem com frutos sobrepostos — definir na hora da implementação). Frutos em vermelho-fruta suave (#B5483A da paleta).
+  - +1 esquilo aparece no chão (segunda peça de fauna).
+  - Mais grama, mais flores espalhadas — consolida "jardim maduro".
+- **Assets novos necessários:**
+  - `arvore_frutifera.png`
+  - `esquilo.png` (em pose calma, paleta suave)
+- **Texto de conclusão (rascunho):** "Agora você sabe escolher entre dois caminhos. Cuidar é responder ao que cada coisa precisa — não tratar tudo igual."
+- **Conexão com Nível 10:** if/else permite escolhas críticas com pouca água — "se solo tem umidade → planta semente; senão → continua andando". Sem if/else, criança gasta sementes em terra ruim.
 
 ---
 
 #### Nível 8 — Variável (contador simples) — PENDENTE
 
-- **Conceito:** variável
-- **Cenário:** coletar exatamente 3 frutas e levar pra cesto. Indicador "Frutas: 0"
-- **Blocos:** [Andar] [Pegar fruta (frutas + 1)] [Se frutas = 3, parar]
-- **Solução:** [Repetir [Andar, Se houver fruta pegar, Se frutas = 3 parar]]
-- **Recompensa:** cesta com frutas no canto. Mascote ganha animação de "comer fruta"
-- **Texto:** "Você usou um lugar pra **guardar** uma informação (quantas frutas). Isso se chama **variável**."
+- **Conceito de programação:** variável. "Guardar um número e usá-lo depois."
+- **Função pedagógica:** consciência de **quantidade**. Cuidar não é "fazer pra sempre" — é "fazer até atingir o que é necessário". Mordomia tem medida.
+- **Função narrativa:** primeira ideia de **provisão guardada** (cesta com 3 frutas). Pequenos animais consolidam ambiente vivo.
+- **Cenário do nível (esboço):** árvore frutífera no canto da grade. Ao lado, uma cesta vazia. Indicador na tela: "Frutas: 0 / 3". Criança precisa pegar EXATAMENTE 3 frutas e parar.
+- **Blocos disponíveis:** `move_right`, `move_left`, `move_up`, `move_down`, `[Pegar fruta (frutas + 1)]`, `[Se frutas = 3 → Parar]`, `[Repetir N×]`.
+- **Solução-alvo:** `[Repetir até frutas = 3 [Andar até árvore, Pegar fruta]]`.
+- **Mudança no Mundo permanente:**
+  - Cesta com 3 frutas aparece num canto do Mundo (símbolo de provisão guardada).
+  - Mascote ganha animação de "comer fruta" no level summary (não no Mundo permanente).
+  - 1 ou 2 elementos pequenos de fauna (borboleta, formiga ou similar).
+  - **Decisão simplificadora:** a árvore frutífera NÃO muda visualmente (não tem "versão parcialmente colhida"). A coleta acontece logicamente, mas a árvore permanece igual.
+  - Planta principal não muda neste nível.
+- **Assets novos necessários:**
+  - `cesta_com_frutas.png`
+  - 1-2 elementos pequenos de fauna
+- **Texto de conclusão (rascunho):** "Você usou um **lugar pra guardar** uma informação (quantas frutas). Isso se chama variável. Cuidar bem é saber a quantidade certa — não pegar tudo, não pegar de menos."
+- **Conexão com Nível 10:** variável permite no árido **racionar sementes** com a água disponível. Sem variável, criança não consegue medir quanto plantar.
 
 ---
 
-#### Nível 9 — Função simples — PENDENTE
+#### Nível 9 — Função + Tentação da serpente — PENDENTE (decisões TBD)
 
-- **Conceito:** função / sub-rotina
-- **Cenário:** cuidar de 3 canteiros (andar até ele, plantar, regar)
-- **Blocos:** [Andar] [Plantar] [Regar] [Definir "cuidar" = [...]] [Fazer "cuidar"]
-- **Solução:** [Definir "cuidar" = [Plantar, Regar]] depois [Repetir 3 vezes [Andar, Cuidar]]
-- **Recompensa:** três canteiros completos. Início de espaço de cultivo organizado
-- **Texto:** "Você criou um nome novo ('cuidar') que junta várias ações. Isso se chama **função**."
+**TBD — sessão dedicada pendente antes da implementação.**
+
+**O que está decidido:**
+- **Conceito de programação:** função (definir e usar sub-rotina, ex: definir `cuidar` = `[Plantar, Regar]`).
+- **Função narrativa:** a serpente aparece e oferece um "atalho". A criança acaba seguindo o atalho (inevitabilidade — ver Decisão estratégica na Seção 4.6 / DECISIONS.md). Programa do Nível 9 termina com sucesso TÉCNICO, mas algo se quebra NARRATIVAMENTE.
+- **Princípio decidido:** a queda não é punição por escolha errada. É a história sendo contada — toda criança "cai". O Nível 10 é consequência, não castigo.
+- **Asset crítico:** serpente (estilo Style Guide — silhueta arredondada, NÃO assustadora, NÃO realista, verde-escuro com padrões sutis).
+- **Mudança no Mundo permanente:** algo sutil sinaliza que algo se quebrou (sombra, som diferente, cor mais fria entrando) — sem ainda explicitar.
+
+**O que está pendente (sessão dedicada):**
+- **Mecânica do atalho:** como a serpente "oferece" o atalho? NPC clicável? Bloco mágico aparecendo na paleta? Outra forma?
+- **Como garantir a inevitabilidade:** o que faz a criança aceitar o atalho? Restrição de `maxBlocks` que só cabe com o atalho? Único caminho técnico funcional?
+- **Hipótese de design forte (a discutir):** a serpente oferece um bloco pré-pronto (`pegar_tudo`, `fazer_tudo`) que substitui a função `cuidar` que a criança construiria. Subverte a abstração que ela acabou de aprender. A criança escolhe o "pronto" sobre o que ela cultivou — eis a queda.
 
 ---
 
-#### Nível 10 — Combinação (loop + condicional + função) — PENDENTE
+#### Nível 10 — Recomeço na terra árida + Esperança — PENDENTE (decisões TBD)
 
-- **Conceito:** combinar tudo
-- **Cenário:** caminho com canteiros e poças. Canteiros: "cuidar" (função). Poças: desviar
-- **Blocos:** [Andar] [Virar] [Cuidar (função pré-definida)] [Se houver poça, virar]
-- **Solução:** [Repetir 8 vezes [Se houver poça, virar; senão se houver canteiro, cuidar; senão andar]]
-- **Recompensa:** cerca de madeira aparece no Mundo (primeira "estrutura construída" — início simbólico da cidade)
-- **Texto:** "Você juntou tudo o que aprendeu! Sequência, repetição, decisão, lembrar de coisas, e dar nomes pra ações. É assim que tudo o que existe nos celulares foi feito."
+**TBD — depende da decisão do Nível 9 + sessão de polish narrativo.**
 
-**Tela final do MVP (após Nível 10):**
-- Texto: "Você terminou a primeira jornada. Mais coisas estão crescendo aqui — em breve."
-- Sem botão "próximo nível". Botão "Voltar para o mundo".
+**O que está decidido:**
+- **Conceito de programação:** combinação de 2-3 conceitos aprendidos (NÃO todos, conforme decisão do Gui). Lista exata a definir, baseada em quais conceitos se aplicam melhor à mecânica de recomeço no árido.
+- **Função narrativa:** consequência da queda + restauração começa. Não punição — "novo começo, com o que aprendi".
+- **Cenário do nível:** cenário árido (totalmente diferente do jardim). Terra rachada, poucas plantas, sol mais alto. Tamanho da grade TBD.
+- **Solução-alvo:** programa relativamente longo, juntando 2-3 conceitos. NÃO é elegante — é trabalhoso, como recomeçar deve ser.
+- **Mudança no Mundo permanente:**
+  - Cenário principal da Tela Mundo passa a ser o **árido** após Nível 10. Mas o jardim Fase 1 não some — fica como memória/silhueta ao horizonte.
+  - Ao final do nível, o árido tem 3-5 sementinhas e brotos novos brotando no solo rachado. **Esperança visível.**
+- **Mensagem final do MVP (rascunho, calibrar muito):**
+  > *"O que você plantou no jardim não se perdeu. Continua dentro de você — em cada bloco que aprendeu a usar. Agora você sabe cuidar até onde parecia impossível. Continua, em breve."*
+- **Assets novos necessários:**
+  - `background_arido.png` (referência: prompt Style Guide Seção 9.2 "Cenário Terreno Árido Fase 2")
+  - `solo_rachado.png`, `solo_umidade.png` (texturas)
+  - `sementinha_arida.png`, `broto_arido.png` (variações das plantas em contexto árido)
+- **Conexão com pós-MVP:** o Nível 10 abre caminho pra continuação — construção da "cidade que cuida do jardim". Mas o MVP encerra com a sensação de "tem esperança, e sou eu quem vai fazer".
+
+---
+
+### Princípios consolidados do roadmap (registrados em DECISIONS.md)
+
+1. **Cada conceito de programação tem uso explícito no Nível 10.** Texto de conclusão de cada nível 5-8 antecipa essa utilidade futura ("Lembra disso — vai ser útil mais pra frente", "vai te ajudar no árido", etc.).
+2. **A virada do Nível 5 é a primeira marcação visual forte do MVP.** Background novo, grama, flor no tronco, florestinha. Antes era "uma planta crescendo"; agora é "o lugar todo está vivo".
+3. **Fauna entra gradualmente a partir do Nível 6.** 1 elemento por nível (pássaro, esquilo, borboleta/formiga). Constrói afeto antes da quebra.
+4. **Árvore frutífera precede o Nível 8 (Nível 7).** Visual antecede pedido pedagógico.
+5. **Cenário árido só aparece no Nível 10.** Primeira mudança radical de paleta. Justifica impacto emocional.
+6. **A queda no Nível 9 é decisão de design pendente.** Será resolvida em sessão dedicada antes da implementação.
+
+---
+
+### Notas sobre o Capítulo Narrativo (antes Briefing v2.5 dizia "após Nível 5")
+
+A v2.7 NÃO inclui Capítulo Narrativo entre Níveis 5 e 6. O Capítulo Narrativo (Origem → Quebra → Recomeço) será adicionado ao MVP em sessão dedicada após o roadmap visual estar todo testado. Provavelmente:
+- Tela de abertura ANTES do Nível 1 (1-2 telas — "Era uma vez um lugar sem nada...")
+- Tela entre Nível 9 e Nível 10 (transição da queda — narrativa da serpente, vista de fora)
+- Tela final pós-Nível 10 (mensagem de esperança)
+
+Mas a definição exata, mesma sessão dedicada da serpente.
 
 ---
 
@@ -699,20 +812,25 @@ A cada commit que mude lógica/arquitetura, atualizar a doc correspondente.
 - Tela Mundo com WORLD_LAYOUT calibrado
 - Nível 1 (Sequência simples) — solução [Andar][Plantar]
 - Nível 2 (Sequência mais longa) — solução [Andar][Andar][Plantar][Andar][Regar]
-- Sistema de recompensas com substituição (sementinha → broto)
+- Nível 3 (Direção em grade 2D) — introduz `move_right`, `move_up`, `move_down`. Solução tipo [Descer][Direita][Direita][Subir][Plantar]
+- Nível 4 (Sequência longa + `move_left`) — grade 4×4 com caminho em "U" de 12 blocos. Introduz `move_left`. Cenário com 6 pedras forçando rota única em sentido horário. Padrão "3 movimentos + 1 plant" repetido 3 vezes (preparação pedagógica do Nível 5)
+- Sistema de recompensas com substituição em cadeia (`seed_lvl1` → `sprout_lvl2` → `grown_sprout_lvl3` → `mini_tree_lvl4`)
+- Mensagens de erro contextuais por nível (via campo opcional `failReason` no `ExecutionStep`)
+- Princípio narrativo registrado: Mundo permanente é narrativa visual, não decoração (ver `DECISIONS.md`)
 - SafeAreaView correto (react-native-safe-area-context)
 - Botão voltar com router.replace('/world')
 - Persistência local (AsyncStorage)
 - Sync com Supabase
-- Build local funcional no Windows do Gui
+- Build local funcional no Windows do Gui (dev build via `npx expo run:android`, com Fast Refresh por Wi-Fi)
 
 ### 🚧 Em implementação
 
-- Nível 3 (Direção, grade 2D)
+- (Nenhum nível em implementação no momento — próximo é o Nível 5)
 
 ### ⏳ Pendente
 
-- Níveis 4-10
+- Nível 5 (introdução do bloco `[Repetir N vezes]`) — par pedagógico do Nível 4. Mesmo cenário, mesmos movimentos, mas com bloco de loop. Solução de 9 blocos. Recompensa: 3 sementes do Nível 4 viram plantinhas estágio 3 (pulando broto estágio 2) + 2 flores novas
+- Níveis 6-10
 - Capítulo narrativo entre Nível 5 e 6
 - Transição visual Mundo Fase 1 → Mundo Fase 3
 - Acessibilidade (TTS opcional)
@@ -722,6 +840,11 @@ A cada commit que mude lógica/arquitetura, atualizar a doc correspondente.
 - **Mascote com aspectRatio fixo do cachorro:** `components/Mascote.tsx` usa `aspectRatio: 880/1062` (cachorro_padrao), mas gato e coelho têm dimensões diferentes. Pode causar distorção visual nos outros mascotes. Solução proposta: padronizar PNGs pra canvas 1024×1024 (regenerar no Canvas) ou usar `Image.resolveAssetSource` em runtime.
 - **ExecuteButton sem sombra:** versão atual simplificada (sem `Animated.View` externo, sem sombra, sem pulse animation) porque combinação `Animated.View + transform + alignSelf:'stretch'` quebrava renderização. Polish visual pode voltar depois (re-introduzir features uma a uma).
 - **Animação de movimento do avatar:** validar se está suave (~500ms, easing inOut). Se não estiver, melhorar.
+- **Erros TypeScript pré-existentes** em `components/Avatar.tsx:27` e `components/Mascote.tsx:28` (`Type 'unknown' is not assignable to type 'ImageSourcePropType'`). Não afetam runtime. Limpar quando houver oportunidade.
+
+### Backlog de melhorias futuras
+
+Ver `docs/internal/BACKLOG.md` pra lista completa de tarefas pequenas/médias que ficaram pra depois (mensagem "Você já plantou aqui!", alinhamento visual completo ao Style Guide, etc.).
 
 ---
 
@@ -770,5 +893,5 @@ Ao final:
 
 ---
 
-*Atualizado em Maio/2026 — v2.5*
-*Reflete: setup local do Gui, primeiros 2 níveis funcionando, Nível 3 em implementação, princípio de não-retroatividade, sistema de recompensas com múltiplas operações.*
+*Atualizado em Maio/2026 — v2.7*
+*Reflete: roadmap completo dos Níveis 5-10 consolidado, princípios estratégicos do Mundo permanente registrados, escopo do MVP redefinido (Criação + Tentação + Queda + Esperança; cidade vai pra pós-MVP), decisões narrativas-chave registradas no DECISIONS.md. Dev Temporário ativo: Claude Code.*
