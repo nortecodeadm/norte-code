@@ -1,6 +1,6 @@
 # Log de Decisões Técnicas — Norte Code
 
-**Última atualização:** 13/05/2026 (entrada do Nível 4)
+**Última atualização:** 13/05/2026 (entradas estratégicas do roadmap 5-10 + Nível 5)
 
 ---
 
@@ -639,6 +639,124 @@ Esta decisão governa todas as futuras escolhas de recompensas no Mundo permanen
 **Placeholder visual sinalizado:** o ícone do bloco `move_left` na paleta usa o caractere unicode "←" como placeholder (consistente com os outros movimentos absolutos que também usam unicode arrows). Quando o asset profissional for entregue, basta ajustar `BLOCK_CONFIG` em `components/level/BlockPalette.tsx`.
 
 **Decisor:** Claude (Estrategista) + Gui — registrado no Briefing do Nível 4. Implementação por Claude Code (Dev Temporário).
+
+---
+
+### [13/05/2026] Decisão estratégica: Roadmap completo dos Níveis 5-10 consolidado em sessão dedicada
+
+Após entrega do Nível 4, fizemos sessão de estratégia dedicada para desenhar coerência narrativa e pedagógica entre os 6 níveis restantes do MVP. Decisões registradas:
+
+**ESCOPO DO MVP:**
+- O MVP cobre: Criação (Níveis 1-8) + Tentação (Nível 9) + Queda + início da Esperança/Restauração (Nível 10).
+- Cidade que cuida do jardim fica pós-MVP.
+- Capítulo Narrativo formal (telas dedicadas) fica pra sessão posterior.
+
+**ESTRUTURA NARRATIVA DOS NÍVEIS:**
+- Níveis 1-4 já entregues — sementinha vira mini-árvore, primeiras flores aparecem.
+- Nível 5: primeira grande mudança visual do Mundo (background novo, grama, flor no tronco). Plantinhas estágio 3 substituem sementes.
+- Níveis 6-8: amadurecimento do jardim. Fauna entra gradualmente (pássaro no 6, esquilo no 7, fauna pequena no 8). Árvore frutífera aparece no Nível 7 (antecipando coleta de frutas do Nível 8).
+- Nível 9: serpente aparece e oferece atalho. Inevitabilidade.
+- Nível 10: cenário muda radicalmente pra árido. Mas termina com brotos novos, sinalizando esperança.
+
+**PRINCÍPIO PEDAGÓGICO "FERRAMENTAS ANTECIPADAS":**
+- Cada conceito de programação aprendido nos Níveis 5-8 será REVISITADO no Nível 10 como ferramenta de restauração no árido.
+  - Loop (Nível 5) → replantar rápido no árido
+  - Condicional (Nível 6) → decidir onde plantar (solo bom vs ruim)
+  - If/else (Nível 7) → escolher entre plantar e regar conforme contexto
+  - Variável (Nível 8) → racionar sementes com água disponível
+- O Nível 10 pode NÃO usar todos os conceitos — provavelmente 2-3. Lista exata definida em sessão dedicada antes da implementação do 10.
+- O texto de conclusão de cada nível 5-8 planta a semente de que o conceito vai ser útil mais pra frente. Não é enrolação narrativa, é design pedagógico calibrado.
+
+**CONTINUIDADE VISUAL DA PLANTA PRINCIPAL:**
+- Uma única planta evolui ao longo dos níveis: sementinha (1) → broto (2) → broto médio (3) → mini-árvore (4) → árvore jovem (6) → árvore frutífera (7).
+- Substituições em cadeia, mesmo padrão estabelecido nos Níveis 1-4.
+
+**MUDANÇAS GRANDES DE BACKGROUND DO MUNDO:**
+- Nível 5: background v1 → v2 (mesma cena com graminha esparsa + florestinha em silhueta + flor no tronco).
+- Nível 10: background v2 → árido. Primeira mudança radical de paleta do MVP. Jardim Fase 1 vira memória/silhueta no horizonte.
+
+**DECISÃO TÉCNICA:** o background é substituível (mesma lógica de substituição usada pra plantas).
+
+ROADMAP COMPLETO DOCUMENTADO em Briefing MVP v2.7 (docs/internal/), Seção 4.7.
+
+---
+
+### [13/05/2026] Decisão narrativa-chave: a queda no Nível 9 é inevitável
+
+A serpente que aparece no Nível 9 oferece um "atalho" pra criança. Mecânica exata da oferta ainda TBD (sessão dedicada antes da implementação do Nível 9), mas o PRINCÍPIO está decidido:
+
+Toda criança que joga o MVP "cai" no Nível 9. Não há caminho técnico pra recusar o atalho da serpente. Razões:
+
+1. **Coerência teológica (Gênesis 3):** a queda não tem versão alternativa. É a história sendo contada, não teste de virtude do jogador.
+
+2. **Coerência pedagógica:** se o Nível 10 (consequência da queda) é o coração narrativo do MVP, todas as crianças precisam chegar lá. Caminho opcional faria metade das crianças nunca ver a virada.
+
+3. **Coerência psicológica:** "ser tentado e cair" é parte da experiência humana. Reforçar que a queda é responsabilidade individual quando ela na verdade é universal seria moralismo, não narrativa.
+
+**IMPLICAÇÃO PRÁTICA:**
+- O Nível 9 termina com sucesso TÉCNICO (programa funciona) mas ERRO NARRATIVO (algo se quebrou).
+- O Nível 10 NÃO é punição. É consequência + nova oportunidade. A mensagem final é de esperança.
+- A criança que escolheu o atalho não deve se sentir mal — a história precisa SUSTENTAR ela. A mensagem do Nível 10 explicita que o que foi aprendido permanece, e que cuidar continua possível mesmo no difícil.
+
+A mecânica específica do atalho (NPC, bloco mágico na paleta, restrição de maxBlocks que força a aceitar, etc.) será decidida em sessão dedicada antes da implementação do Nível 9.
+
+**Hipótese de design forte registrada:** a serpente oferece um bloco pré-pronto que substitui a função "cuidar" que a criança construiu — subvertendo a abstração aprendida. A criança escolhe o "pronto" sobre o que ela cultivou. Isso é exatamente a queda contada em código.
+
+---
+
+### [13/05/2026] Decisão técnica: background do Mundo permanente é substituível
+
+O mesmo padrão usado pra plantas (substituir `grown_sprout_lvl3` por `mini_tree_lvl4`) é estendido pro background da Tela Mundo.
+
+A partir do Nível 5, o background pode mudar:
+- Crianças que NÃO passaram do Nível 4: veem background v1.
+- Crianças que passaram do Nível 5: veem background v2.
+- Crianças que passaram do Nível 10: veem background árido.
+
+Implementação sugerida: no `WORLD_LAYOUT`, o background é um elemento como qualquer outro, com regras de substituição. Quando o nível N é concluído e tem `rewards` que substituem o background, o asset é trocado.
+
+Estrutura sugerida:
+```typescript
+{ type: "world_background_replace", removeId: "bg_v1", addId: "bg_v2", asset: "background_mundo_v2" }
+```
+
+Esta decisão tem impacto na implementação do Nível 5 (primeira ocorrência) e do Nível 10 (segunda ocorrência, mais radical).
+
+---
+
+### [13/05/2026] Decisão técnica: Nível 5 introduz bloco de loop fixo (repeat_3) + mudança estrutural na representação de programas
+
+**Mecânica:** bloco `repeat_3` com N hardcoded em 3, aceita blocos filhos no slot interno, executa filhos 3 vezes em sequência. Se algum filho falha (bate em pedra, sai da grade), loop para imediatamente e o programa retorna erro contextual.
+
+**Mudança estrutural:** o tipo `ProgramBlock` ganha campo opcional `children?: ProgramBlock[]`. Programas com blocos sem `children` continuam executando idênticos aos Níveis 1-4 (princípio de não-retroatividade preservado). A conversão `ProgramBlock[]` → AST passa a ser recursiva: blocos com `children` viram `LoopNode` cujo `body` é a conversão recursiva dos filhos.
+
+**Princípio pedagógico aplicado: "ferramenta antecipada".** O texto de conclusão menciona explicitamente que loop vai ser útil mais pra frente. Este princípio governa todos os Níveis 5-8 e está registrado na entrada estratégica do roadmap acima.
+
+**Visual:** Mundo permanente sofre primeira grande mudança visual do MVP. Background v1 substituído por v2 (graminha + florestinha). 3 sementes do Nível 4 viram plantinhas estágio 3 (pulando estágio 2 — sinal de que regar acelerou o crescimento). +2 flores. +1 flor no tronco caído (símbolo: vida vence até o que parecia morto).
+
+**maxBlocks 14, contagem plana:** cada bloco conta 1, incluindo filhos dentro de `repeat_3`. Margem de 5 sobre solução-alvo de 9 blocos. Permite que solução longa do Nível 4 (12 blocos sem `repeat_3`) ainda caiba, preservando "necessidade antes da ferramenta" — criança pode escolher fazer manual e depois descobrir o `repeat_3`.
+
+---
+
+### [13/05/2026] Decisão de UX: blocos com filhos usam "modo de edição via toque"
+
+Padrão de UX para qualquer bloco com slot de filhos (estrutura aninhada) no Norte Code. Aplicável ao `repeat_3` (Nível 5) e a todas as estruturas aninhadas futuras: condicional (Nível 6), if/else (Nível 7), função (Nível 9).
+
+**Mecânica:**
+- Tap na paleta cria envelope vazio na lista do programa.
+- Tap no envelope ativa "modo edição" — próximos taps na paleta inserem blocos DENTRO do envelope.
+- Tap no envelope de novo, ou no botão "Pronto ✓", ou em área fora do envelope, encerra o modo.
+
+**5 ajustes de UX defensiva (criança de 7-10 anos):**
+1. **Feedback visual forte** quando o modo está ativo: borda do envelope pulsando, fundo clareado, overlay leve escurecendo o resto da tela. Não pode ter dúvida visual de "estou dentro" vs "estou fora".
+2. **Botão "Pronto ✓"** verde, grande, sempre no mesmo lugar (barra inferior ou área de programa) — saída óbvia.
+3. **Tap em área fora do envelope** também encerra o modo (com animação curta de fechamento).
+4. **Indicador permanente no topo** enquanto o modo está ativo: texto pequeno "Adicionando blocos dentro de Repetir 3×".
+5. **Validação na saída** se envelope estiver vazio: mensagem "Coloca pelo menos um bloco dentro do repetir." (modo continua aberto, não pune a criança).
+
+**Modelo mental:** mesmo de galeria de fotos selecionando múltiplas imagens. Crianças desse público-alvo já têm contato — não é conceito novo, só precisa de feedback visual forte.
+
+**Alternativa descartada:** "auto-inserção" (Rep3 engole automaticamente o próximo bloco selecionado). Atende o Nível 5 mas não escala pra estruturas com múltiplos filhos óbvios (condicional do Nível 6, if/else do Nível 7, função do Nível 9). Adotar agora evita refator futuro.
 
 ---
 
