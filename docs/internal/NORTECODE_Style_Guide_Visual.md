@@ -1,6 +1,11 @@
 # Norte Code — Style Guide Visual
 
-**Documento vivo. Versão 1.2 — Maio/2026.**
+**Documento vivo. Versão 1.3 — Maio/2026.**
+
+**Changelog v1.3:**
+- Adicionado prompt da árvore jovem (`mundo_arvore_jovem.png`) na Seção 9.2.1.
+- Decisão registrada: planta principal evolui pra árvore jovem no Nível 5 (não no Nível 6 como previsto antes). Estágio intermediário "arbusto/planta adulta" descartado da sequência.
+- Tabela de progressão de altura atualizada.
 
 **Changelog v1.2:**
 - Adicionada subseção 9.2.1 "Plantas / Estágios de crescimento do Mundo permanente" com 4 prompts registrados (brotinho, broto-médio, mini-árvore, flor decorativa) e tabela de progressão de altura.
@@ -519,6 +524,43 @@ Same flat-design style as mundo_sementinha.png, mundo_broto.png,
 mundo_broto_medio.png, and mundo_flor.png.
 ```
 
+**Árvore jovem — Nível 5 (asset `mundo_arvore_jovem.png`):**
+```
+Generate a young tree, evolved from the previous sapling
+(mundo_mini_arvore.png). This represents the plant that has been
+consistently cared for across multiple levels and is now growing
+into a clear young tree shape.
+DETAILS:
+- A young tree, clearly larger and more developed than the previous
+  mundo_mini_arvore.png
+- About 30-40 cm visible above ground (significantly taller than the
+  previous sapling, with clearly defined trunk and canopy)
+- Trunk: now fully woody for about 2/3 of the height (light brown bark
+  texture, #8B6F47), only the upper canopy area still shows fresh green
+  on small branches
+- Trunk slightly thicker than in mundo_mini_arvore.png — visually
+  conveys strength and growth
+- 12-18 medium leaves arranged in a clear rounded canopy at the top
+- Canopy shape: rounded, soft, full but not heavy — childlike storybook
+  tree shape, not realistic
+- Leaf colors: fresh green (#7FB069) with some slightly darker leaves
+  (#5A8A4A) for natural depth
+- Small soil mound at the base (warm brown #6B4423), same style as
+  previous mundo_* assets
+- NO fruits yet (fruits come in a later stage)
+- The whole tree has a hopeful, strong, young appearance
+CANVAS: 1024x1024, transparent background
+The tree should occupy approximately 70% of canvas height (clearly
+taller than mundo_mini_arvore.png at 50-55%, but still leaving room
+for future growth stages with fruits). Centered horizontally.
+NOT cartoonish, NOT exaggerated, NOT overly bright, NOT a mature/full
+adult tree, NOT realistic photographic style, NO fruits.
+Subtle and contemplative, matching the calm tone of the previous
+mundo_* assets. Same flat-design style as mundo_sementinha.png,
+mundo_broto.png, mundo_broto_medio.png, mundo_mini_arvore.png, and
+mundo_flor.png.
+```
+
 **Flor decorativa — Nível 3 (asset `mundo_flor.png`):**
 ```
 Generate a small delicate flower in flat-design style, matching previous
@@ -549,9 +591,10 @@ matching the calm tone of the previous mundo_* assets. Same flat-design style.
 | Brotinho (2 folhas) | `mundo_broto.png` | ~30% |
 | Broto-médio (4 folhas) | `mundo_broto_medio.png` | ~40% |
 | Mini-árvore / sapling | `mundo_mini_arvore.png` | ~50-55% |
-| (Futuro) Arbusto / planta adulta | a definir | ~60-65% |
-| (Futuro) Árvore jovem | a definir | ~70% |
+| Árvore jovem | `mundo_arvore_jovem.png` | ~70% |
 | (Futuro) Árvore com frutos | a definir | ~80% |
+
+**Nota sobre a sequência:** o estágio intermediário "Arbusto/planta adulta" que estava previsto entre mini-árvore e árvore jovem foi **descartado** — a planta vai direto de sapling pra árvore jovem no Nível 5 (decisão registrada em DECISIONS.md, Maio/2026). Isso reforça o "salto visual forte" do Nível 5, que é também o nível em que o background do Mundo muda.
 
 Esses números são guias de continuidade visual — usar como base ao gerar próximos estágios. Cada novo estágio deve dialogar com o anterior em paleta, ângulo e estilo de folhagem.
 
@@ -734,4 +777,4 @@ Mas os **princípios estéticos invioláveis (Seção 1.2)**, a **paleta primár
 ---
 
 *Documento criado por Claude em colaboração com Gui. Abril/2026.*
-*Versão 1.2 — Maio/2026. Adicionada subseção 9.2.1 (Plantas / Estágios de crescimento) com prompts registrados pra brotinho, broto-médio, mini-árvore e flor decorativa. Workflow flexibilizado: Gemini ou Canva, escolha do Gui no momento. Workflow de integração de assets adaptado pra ambiente atual (Dev Temporário ativo no lugar do Manus).*
+*Versão 1.3 — Maio/2026. Adicionado prompt da árvore jovem (Nível 5) na Seção 9.2.1. Sequência de estágios de crescimento ajustada — estágio "arbusto/planta adulta" descartado, planta vai direto de sapling (Nível 4) pra árvore jovem (Nível 5).*

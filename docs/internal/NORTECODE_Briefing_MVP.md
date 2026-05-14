@@ -5,7 +5,14 @@
 **Para:** Dev Temporário ativo (atualmente Claude Code, em substituição ao Manus)
 **Via:** Gui
 **Data:** Maio/2026
-**Versão:** 2.7 — Roadmap visual + pedagógico consolidado para Níveis 5-10.
+**Versão:** 2.8 — Refinamentos durante implementação do Nível 5.
+
+**Changelog v2.8:**
+- Nível 5 ganha mais 2 recompensas no Mundo permanente:
+  - Planta principal evolui de mini-árvore pra árvore jovem (era previsto pro Nível 6, antecipado pro 5 pra reforçar o "salto visual forte" do nível).
+  - Tronco caído é SUBSTITUÍDO por versão com flor brotando (originalmente seria sobreposição, agora é substituição — mais limpo arquiteturalmente, evita problema de calibração).
+- Nível 6 perde a evolução da planta principal como recompensa (já aconteceu no 5). Mantém fauna (pássaro) e plantinhas extras.
+- Sequência de estágios da planta principal ajustada — descarta o estágio intermediário "arbusto/planta adulta" que estava na reserva. Vai direto de mini-árvore pra árvore jovem.
 
 **Changelog v2.7:**
 - Roadmap completo dos Níveis 5-10 desenhado em sessão dedicada de estratégia.
@@ -488,12 +495,14 @@ Quando a criança aperta "Executar":
 - **Validação:** as 3 sementes regadas viram plantinhas estágio 3.
 - **Mudança no Mundo permanente:**
   - **Background v1 → background v2** (substituição completa, mesmo padrão de substituição das plantas): graminha esparsa pelo solo (não tapete — tufos espalhados), florestinha em silhueta no horizonte. Esta é a mudança visual mais forte do MVP até aqui.
-  - Flor brotando do tronco caído (asset novo, sobreposto ao log existente). Símbolo: vida vence até no que parecia morto.
+  - **Planta principal evolui:** mini-árvore (`mini_tree_lvl4`) substituída por árvore jovem (`young_tree_lvl5`). Tronco lenhoso mais alto, copa redonda definida, sem frutos ainda.
+  - **Tronco caído substituído por versão com flor brotando** (`fallen_log_with_flower_lvl5` substitui `fallen_log` original). Símbolo: vida vence até no que parecia morto.
   - 3 sementes do Nível 4 (`seed_lvl4_a/b/c`) viram 3 plantinhas estágio 3 (pulam estágio 2 — sinal visual de que regar acelerou o crescimento).
   - +2 flores decorativas adicionais (total: 4 flores no Mundo).
 - **Assets novos necessários:**
   - `background_mundo_v2.png` (substitui o background atual)
-  - `flor_no_tronco.png` (sobreposto ao tronco caído)
+  - `mundo_arvore_jovem.png` (substitui a mini-árvore — evolução natural da planta principal)
+  - `flor_no_tronco.png` (já existe, mas será usado como SUBSTITUIÇÃO do tronco original, não como sobreposição. O asset já inclui o tronco completo com a flor.)
   - `plantinha_estagio3.png` (planta com caule + folhas, mais desenvolvida que broto)
 - **Texto de conclusão (rascunho):** "Olha que esperto! Em vez de mandar o mesmo movimento três vezes, você usou o bloco de **repetir**. Programar bem é fazer mais com menos. Lembra disso — vai ser útil mais pra frente."
 - **Conexão com Nível 10 (ferramenta antecipada):** a frase final planta a semente de que loop vai ser útil de novo no recomeço. No árido, a criança vai precisar replantar muito — loop é o que permite plantar rápido.
@@ -510,11 +519,10 @@ Quando a criança aperta "Executar":
 - **Solução-alvo:** `[Repetir 5× [Direita, Se canteiro vazio → Plantar]]`.
 - **Mudança no Mundo permanente:**
   - Primeira fauna: 1 pássaro pousado em algum ponto do cenário (asset novo, marcante).
-  - Mini-árvore → árvore jovem (substituição da planta principal, asset novo).
   - +1 ou +2 plantinhas no chão.
+  - Planta principal NÃO evolui neste nível (já tinha evoluído pra árvore jovem no Nível 5 — evolução pra árvore frutífera fica reservada pro Nível 7).
 - **Assets novos necessários:**
   - `passaro_pousado.png` (estilo Style Guide — formas arredondadas, paleta suave)
-  - `arvore_jovem.png` (sucessora da mini-árvore)
 - **Texto de conclusão (rascunho):** "Você aprendeu a **olhar antes de fazer**. Nem todo lugar pede a mesma ação. Saber decidir é cuidar bem."
 - **Conexão com Nível 10:** condicional vai permitir diagnóstico do solo árido — "se solo tem umidade → planta; senão → continua andando até achar solo bom". Discernimento é vital pra lidar com terreno difícil.
 
@@ -893,5 +901,5 @@ Ao final:
 
 ---
 
-*Atualizado em Maio/2026 — v2.7*
-*Reflete: roadmap completo dos Níveis 5-10 consolidado, princípios estratégicos do Mundo permanente registrados, escopo do MVP redefinido (Criação + Tentação + Queda + Esperança; cidade vai pra pós-MVP), decisões narrativas-chave registradas no DECISIONS.md. Dev Temporário ativo: Claude Code.*
+*Atualizado em Maio/2026 — v2.8*
+*Reflete: roadmap completo dos Níveis 5-10 consolidado, Nível 5 ganha evolução da planta principal pra árvore jovem (antecipada do Nível 6) e substituição do tronco caído pelo tronco com flor. Dev Temporário ativo: Claude Code.*
