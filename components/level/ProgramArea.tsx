@@ -298,14 +298,16 @@ function ContainerBlockRow({
         )}
       </View>
 
-      {/* Botão "Pronto ✓" — só aparece em modo edição */}
+      {/* Botão "Pronto ✓" — só aparece em modo edição. Cor de fundo
+          verde-jardim da marca (#1F5F3F) com texto branco-quente — contraste
+          ~5:1 (passa WCAG AA em qualquer tamanho de fonte). */}
       {isEditing && !disabled && (
         <Pressable
           onPress={onDone}
           style={({ pressed }) => ({
             marginTop: 10,
             alignSelf: "flex-end",
-            backgroundColor: pressed ? "#1F5F3F" : "#2A7A4F",
+            backgroundColor: pressed ? "#163F2A" : "#1F5F3F",
             paddingHorizontal: 16,
             paddingVertical: 8,
             borderRadius: 10,
@@ -315,7 +317,7 @@ function ContainerBlockRow({
             style={{
               fontFamily: "Nunito-Bold",
               fontSize: 13,
-              color: "#FFFFFF",
+              color: "#FAF6EE",
             }}
           >
             Pronto ✓
