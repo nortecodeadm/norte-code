@@ -9,7 +9,7 @@
  */
 
 import React from "react";
-import { View, Text, Pressable, ScrollView } from "react-native";
+import { View, Text, Pressable } from "react-native";
 import type { BlockType } from "../../lib/interpreter";
 
 export interface ProgramBlock {
@@ -315,7 +315,9 @@ export function ProgramArea({
 }: ProgramAreaProps) {
   const count = totalCount ?? blocks.length;
   return (
-    <View style={{ flex: 1 }} className="mx-4 rounded-2xl bg-white/80 border border-garden-green/10 p-3">
+    // Sem flex:1 e sem maxHeight: o componente cresce conforme blocos. A tela
+    // do nível (ScrollView externo em app/level/[id].tsx) cuida da rolagem.
+    <View className="mx-4 rounded-2xl bg-white/80 border border-garden-green/10 p-3">
       {/* Header */}
       <View className="flex-row justify-between items-center mb-2">
         <Text
@@ -338,11 +340,9 @@ export function ProgramArea({
         </Text>
       </View>
 
-      {/* Block list */}
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ gap: 6, paddingBottom: 8 }}
-      >
+      {/* Block list — sem ScrollView interno (evita scroll-dentro-de-scroll).
+          A tela inteira rola, e o programa cresce naturalmente. */}
+      <View style={{ gap: 6, paddingBottom: 8 }}>
         {blocks.length === 0 ? (
           <View className="items-center justify-center py-6">
             <Text
@@ -398,7 +398,7 @@ export function ProgramArea({
             );
           })
         )}
-      </ScrollView>
+      </View>
     </View>
   );
 }

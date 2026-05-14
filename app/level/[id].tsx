@@ -10,7 +10,7 @@
  */
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import { View, Text, Pressable } from "react-native";
+import { View, Text, Pressable, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import Animated, {
@@ -147,6 +147,10 @@ export default function LevelScreen() {
 
   const blockIdCounter = useRef(0);
   const hintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // ScrollView que envolve todo o conteúdo central. Antes de executar o
+  // programa, rolamos pro topo pra garantir que a criança veja o mapa
+  // animando, mesmo que estivesse rolada pra baixo editando.
+  const scrollRef = useRef<ScrollView>(null);
 
   // Hint timer: show hint after 5s of inactivity (no blocks added)
   useEffect(() => {
@@ -284,6 +288,12 @@ export default function LevelScreen() {
   const handleExecute = async () => {
     if (programBlocks.length === 0) return;
     if (executeState === "running") return;
+
+    // Autoscroll pro topo antes de executar — garante que a criança veja o
+    // mapa animando mesmo se estava rolada pra baixo editando o programa.
+    // Aguarda a animação terminar antes de iniciar a execução (~400ms).
+    scrollRef.current?.scrollTo({ y: 0, animated: true });
+    await new Promise((resolve) => setTimeout(resolve, 400));
 
     // Reset world before execution
     const freshWorld: WorldState = JSON.parse(
@@ -491,7 +501,7 @@ export default function LevelScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-warm-white">
-      {/* Header */}
+      {/* Header FIXO — sempre visível, mesmo quando criança rola o conteúdo. */}
       <View className="flex-row items-center justify-between px-4 pt-2 pb-1">
         <Pressable onPress={() => router.replace('/world')} className="px-3 py-2">
           <Text style={{ fontSize: 18, color: "#1F5F3F" }}>←</Text>
@@ -511,25 +521,9 @@ export default function LevelScreen() {
         </Pressable>
       </View>
 
-      {/* Objective */}
-      <View className="px-6 py-1">
-        <Text
-          className="text-garden-green-700 text-center"
-          style={{ fontFamily: "Nunito-SemiBold", fontSize: 13, lineHeight: 18 }}
-        >
-          {level.objective}
-        </Text>
-        <Text
-          className="text-garden-green-400 text-center mt-1"
-          style={{ fontFamily: "Nunito-Regular", fontSize: 11 }}
-        >
-          {level.description}
-        </Text>
-      </View>
-
-      {/* Indicador de "modo edição" — só aparece quando há container em edição.
-          Garante que a criança sempre sabe que próximos taps vão pra dentro
-          do envelope. Ver decisão de UX em DECISIONS.md (modo via toque). */}
+      {/* Indicador de "modo edição" FIXO logo abaixo do header — fica sempre
+          visível mesmo quando criança rola pra baixo editando dentro do
+          envelope. Ver decisão de UX em DECISIONS.md (modo via toque). */}
       {editingContainerId && (
         <View className="px-6 pt-1">
           <View
@@ -556,60 +550,91 @@ export default function LevelScreen() {
         </View>
       )}
 
-      {/* Scene — fixed height, does not grow */}
-      <LevelScene world={worldState} />
+      {/* Conteúdo central rolável (Nível 5+ tem programa que pode crescer
+          bastante; tela inteira fica scrollable em vez de ProgramArea ter
+          maxHeight com scroll interno — evita scroll-dentro-de-scroll). */}
+      <ScrollView
+        ref={scrollRef}
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingBottom: 16 }}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* Objective */}
+        <View className="px-6 py-1">
+          <Text
+            className="text-garden-green-700 text-center"
+            style={{ fontFamily: "Nunito-SemiBold", fontSize: 13, lineHeight: 18 }}
+          >
+            {level.objective}
+          </Text>
+          <Text
+            className="text-garden-green-400 text-center mt-1"
+            style={{ fontFamily: "Nunito-Regular", fontSize: 11 }}
+          >
+            {level.description}
+          </Text>
+        </View>
 
-      {/* Hint (shown after 5s of inactivity) — zero height when hidden */}
-      {showHint && (
-        <Animated.View style={hintStyle} className="px-6 py-1">
-          <View className="bg-amber-50 rounded-xl px-3 py-1 border border-amber-200">
-            <Text
-              className="text-amber-700 text-center"
-              style={{ fontFamily: "Nunito-Regular", fontSize: 11 }}
-            >
-              {level.hint}
-            </Text>
-          </View>
-        </Animated.View>
-      )}
+        {/* Scene — mantém tamanho original (não tenta encolher pra caber). */}
+        <LevelScene world={worldState} />
 
-      {/* Error message — zero height when hidden */}
-      {errorMessage && (
-        <Animated.View style={errorStyle} className="px-6 py-1">
-          <View className="bg-red-50 rounded-xl px-3 py-1 border border-red-200">
-            <Text
-              className="text-red-600 text-center"
-              style={{ fontFamily: "Nunito-SemiBold", fontSize: 11 }}
-            >
-              {errorMessage}
-            </Text>
-          </View>
-        </Animated.View>
-      )}
+        {/* Hint */}
+        {showHint && (
+          <Animated.View style={hintStyle} className="px-6 py-1">
+            <View className="bg-amber-50 rounded-xl px-3 py-1 border border-amber-200">
+              <Text
+                className="text-amber-700 text-center"
+                style={{ fontFamily: "Nunito-Regular", fontSize: 11 }}
+              >
+                {level.hint}
+              </Text>
+            </View>
+          </Animated.View>
+        )}
 
-      {/* Block Palette */}
-      <BlockPalette
-        availableBlocks={level.availableBlocks}
-        onBlockTap={handleAddBlock}
-        disabled={executeState === "running" || executeState === "success"}
-      />
+        {/* Error message */}
+        {errorMessage && (
+          <Animated.View style={errorStyle} className="px-6 py-1">
+            <View className="bg-red-50 rounded-xl px-3 py-1 border border-red-200">
+              <Text
+                className="text-red-600 text-center"
+                style={{ fontFamily: "Nunito-SemiBold", fontSize: 11 }}
+              >
+                {errorMessage}
+              </Text>
+            </View>
+          </Animated.View>
+        )}
 
-      {/* Scrollable middle: ProgramArea takes remaining space */}
-      <View style={{ flex: 1, minHeight: 60, maxHeight: 250 }}>
-        <ProgramArea
-          blocks={programBlocks}
-          onBlockRemove={handleRemoveBlock}
-          editingContainerId={editingContainerId}
-          onContainerToggle={handleContainerToggle}
-          onContainerDone={handleContainerDone}
-          activeBlockId={activeBlockId}
-          maxBlocks={level.maxBlocks}
-          totalCount={countBlocks(programBlocks)}
-          disabled={executeState === "running"}
+        {/* Block Palette — rola junto com o conteúdo. Quando criança rola pra
+            ver o programa, a paleta naturalmente fica visível logo acima. */}
+        <BlockPalette
+          availableBlocks={level.availableBlocks}
+          onBlockTap={handleAddBlock}
+          disabled={executeState === "running" || executeState === "success"}
         />
-      </View>
 
-      {/* Execute Button — ALWAYS visible at bottom, never pushed off screen */}
+        {/* ProgramArea — cresce conforme blocos. Sem altura máxima, sem
+            scroll interno (evita scroll-dentro-de-scroll). minHeight pra
+            garantir presença visual mesmo com programa vazio. */}
+        <View style={{ minHeight: 200 }}>
+          <ProgramArea
+            blocks={programBlocks}
+            onBlockRemove={handleRemoveBlock}
+            editingContainerId={editingContainerId}
+            onContainerToggle={handleContainerToggle}
+            onContainerDone={handleContainerDone}
+            activeBlockId={activeBlockId}
+            maxBlocks={level.maxBlocks}
+            totalCount={countBlocks(programBlocks)}
+            disabled={executeState === "running"}
+          />
+        </View>
+      </ScrollView>
+
+      {/* Execute Button FIXO no rodapé — sempre acessível, mesmo quando
+          criança está rolada pra baixo editando. Autoscroll pro topo é
+          disparado dentro do handleExecute antes da execução começar. */}
       <ExecuteButton
         state={executeState}
         onPress={handleExecute}
