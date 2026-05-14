@@ -1,7 +1,7 @@
 # Arquitetura — Norte Code MVP
 
-**Última atualização:** 13/05/2026
-**Versão:** 0.7.0 (Nível 5 — programa passa a suportar blocos com filhos + background do Mundo é substituível)
+**Última atualização:** 14/05/2026
+**Versão:** 0.8.0 (Nível 6 — condicional embutido `if_canteiro_vazio_then_plantar`, `conditionResult` em ExecutionStep, primeira fauna no Mundo)
 
 ---
 
@@ -123,9 +123,11 @@ O interpretador é o **núcleo do app**. Arquitetura:
 4. **GoalCondition** — Verificada ao final da execução
 
 **Tipos de nó AST:**
-- `action` — Folhas: walk_forward, plant, water, turn_left, turn_right, pick_fruit, move_right/left/up/down
-- `loop` — Repetição N vezes (níveis 5+; `repeat_3` da UI vira `LoopNode { times: 3 }`)
-- `if` — Condicional com then/else (níveis 6+, pendente)
+- `action` — Folhas: walk_forward, plant, water, turn_left, turn_right, pick_fruit, move_right/left/up/down, **if_canteiro_vazio_then_plantar (Nível 6 — condicional embutido, comportamento condicional dentro do handler, não no AST)**
+- `loop` — Repetição N vezes (`repeat_3` da UI vira `LoopNode { times: 3 }` — Nível 5; `repeat_5` vira `LoopNode { times: 5 }` — Nível 6)
+- `if` — Condicional com then/else no AST (declarado mas usado apenas pelo Nível 7+ futuro; o Nível 6 usa condicional embutido em `action`, não `IfNode`)
+
+**ExecutionStep** carrega campo opcional `conditionResult?: boolean` (introduzido no Nível 6) — preenchido apenas por blocos condicionais embutidos. A UI usa pra colorir o destaque do bloco ativo (verde quando true, cinza quando false). Aditivo, não-retroativo.
 
 **Estrutura do programa (camada UI):**
 A partir do Nível 5, `ProgramBlock` aceita campo opcional `children?: ProgramBlock[]`. Programa deixa de ser array linear e passa a ser árvore — blocos estruturais (containers, ex: `repeat_3`) carregam seus filhos no slot interno. Conversão `ProgramBlock[] → ASTNode[]` é recursiva: blocos com filhos viram `LoopNode` (ou `IfNode` no futuro). Blocos folha viram `ActionNode`. Princípio de não-retroatividade preservado: Níveis 1-4 não declaram `children` e continuam executando idênticos.

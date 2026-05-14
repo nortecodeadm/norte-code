@@ -1,7 +1,7 @@
 # Interpretador de Blocos — Norte Code
 
-**Última atualização:** 13/05/2026
-**Versão:** 1.5.0 (Nível 5 jogável — bloco `repeat_3` + estrutura de programa com filhos)
+**Última atualização:** 14/05/2026
+**Versão:** 1.6.0 (Nível 6 jogável — bloco condicional embutido `if_canteiro_vazio_then_plantar`, `repeat_5`, campo `conditionResult` em `ExecutionStep`)
 
 ---
 
@@ -60,6 +60,7 @@ O campo `id` é opcional e usado para highlight visual durante execução.
 | `plant` | Planta semente em célula `empty` ou `flowerbed` | Ação | Nível 1 |
 | `water` | Rega (seed→sprout, sprout→flower, watering_spot→watered) | Ação | Nível 2 |
 | `pick_fruit` | Coleta fruta da célula atual (incrementa `inventory.fruits`) | Ação | Disponível |
+| `if_canteiro_vazio_then_plantar` | **Condicional embutido.** Se célula atual é `flowerbed` → planta (vira `seed`) e emite `conditionResult: true`. Caso contrário → ignora e emite `conditionResult: false`. Step sempre carrega `action: "plant"`. | Condicional sólido | Nível 6 |
 
 > **Nota sobre aliases:** `walk_forward` e `move_forward` apontam para o mesmo handler (fall-through no switch de `executeAction`). Os níveis novos usam `move_forward` por consistência com os movimentos absolutos; `walk_forward` é mantido por compatibilidade com a nomenclatura original alinhada com Claude.
 
@@ -81,6 +82,18 @@ O campo `id` é opcional e usado para highlight visual durante execução.
 - `pick_fruit` em célula sem fruta → idem.
 - O engine não falha nem aborta — a aprendizagem por tentativa e erro é fundamental no método (ver decisão "Botão Executar: ativo com ≥1 bloco" em DECISIONS.md).
 
+**Bloco "tudo em um" `if_canteiro_vazio_then_plantar` (Nível 6):**
+Categoria nova — condicional embutido. É uma `ActionNode` (não um `IfNode`).
+O comportamento condicional mora dentro de `executeAction`, não no AST: o
+mesmo handler que processa o `plant` verifica primeiro se a célula atual é
+`"flowerbed"`. Se for, planta e emite `conditionResult: true`; senão, não
+mexe no mundo e emite `conditionResult: false`. Decisão pedagógica: o bloco
+é sólido único na UI (sem slot, sem modo de edição) — manter a mecânica
+simples enquanto a criança aprende **o que é** condicional. A camada de UI
+usa `conditionResult` pra colorir o destaque do bloco ativo: verde quando
+true (executou ação), cinza claro quando false (ignorou). Ver seção 6
+(ExecutionStep) e DECISIONS.md.
+
 ### 2.3 Loop (níveis 5+)
 
 Repete um bloco de statements N vezes:
@@ -98,7 +111,7 @@ Repete um bloco de statements N vezes:
 
 O campo `times` define quantas iterações. O `body` pode conter qualquer tipo de nó, incluindo loops aninhados (o engine suporta — não há restrição em runtime).
 
-**Origem na UI (Nível 5):** o bloco `repeat_3` da paleta vira `LoopNode { times: 3, ... }` no AST. O campo `times` é hardcoded em 3 pelo conversor `blocksToAST` em `app/level/[id].tsx`. Variar N na UI só acontece em níveis posteriores (Nível 8 — pendente).
+**Origem na UI:** o bloco `repeat_3` da paleta vira `LoopNode { times: 3, ... }` (Nível 5). O bloco `repeat_5` da paleta vira `LoopNode { times: 5, ... }` (Nível 6). Ambos N hardcoded pelo conversor `blocksToAST` em `app/level/[id].tsx`. Variar N na UI só acontece em níveis posteriores (Nível 8 — pendente).
 
 **Comportamento em falha:** se algum nó dentro do `body` retorna `fail_move` (bate em pedra ou sai da grade), `executeLoop` para a iteração atual via `ctx.error` (na verdade não há erro hard — o controle volta porque `executeBlock` retorna ao detectar próximo step com falha). Mensagem contextual é montada pela UI a partir do `failReason` do primeiro `fail_move` da execução (mesma lógica do Nível 4 — não regressa).
 
@@ -153,17 +166,19 @@ interface ProgramBlock {
 
 Quando `children` é `undefined`, o bloco é simples (folha) — `Níveis 1-4` continuam funcionando idênticos, sem qualquer mudança de comportamento.
 
-**Predicado `isContainerBlock(type)`** em `ProgramArea.tsx` enumera quais tipos são containers. Hoje: apenas `repeat_3`. Estruturas dos níveis seguintes serão adicionadas conforme entrarem.
+**Predicado `isContainerBlock(type)`** em `ProgramArea.tsx` enumera quais tipos são containers. Hoje: `repeat_3` e `repeat_5`. Estruturas dos níveis seguintes serão adicionadas conforme entrarem.
+
+> **Importante:** `if_canteiro_vazio_then_plantar` (Nível 6) **NÃO** é container — é folha. O comportamento condicional embutido fica dentro do `executeAction`, não como `IfNode` com filhos. Ver seção 2.2.
 
 **Conversão `ProgramBlock[]` → `ASTNode[]`** (recursiva, em `app/level/[id].tsx`):
 
 ```typescript
 function blocksToAST(blocks: ProgramBlock[]): ASTNode[] {
   return blocks.map((b): ASTNode => {
-    if (b.type === "repeat_3") {
+    if (b.type === "repeat_3" || b.type === "repeat_5") {
       return {
         type: "loop",
-        times: 3,
+        times: b.type === "repeat_3" ? 3 : 5,
         body: blocksToAST(b.children ?? []),
         id: b.id,
       };
@@ -283,12 +298,20 @@ interface ExecutionStep {
   worldChanges?: WorldChange[];// Mudanças nas células
   blockId: string;             // ID do bloco que gerou (para highlight)
   failReason?: "rock" | "out_of_grid"; // Preenchido só quando action === "fail_move"
+  conditionResult?: boolean;   // Preenchido por blocos condicionais embutidos (ex: if_canteiro_vazio_then_plantar)
 }
 ```
 
 A UI reproduz os steps com 500ms de intervalo, destacando o bloco ativo na ProgramArea.
 
 **`failReason` (introduzido no Nível 4):** Quando um movimento falha, o interpretador agora diferencia se foi por colisão com `rock` ou por tentativa de sair da grade. A camada de UI (`getContextualError` em `app/level/[id].tsx`) usa o `failReason` do **primeiro** `fail_move` da execução pra escolher entre as mensagens `errorMessages.blocked_by_rock` e `errorMessages.out_of_grid` configuradas no nível. Níveis que não declaram `out_of_grid` caem no fallback anterior (`wrong_path` / `blocked_by_rock`) — sem regressão pros Níveis 1-3.
+
+**`conditionResult` (introduzido no Nível 6):** Campo opcional preenchido apenas por blocos condicionais embutidos — hoje só o `if_canteiro_vazio_then_plantar`. Vale `true` quando a condição foi satisfeita (ação foi executada) e `false` quando foi ignorada. **Aditivo, não-retroativo:** steps dos Níveis 1-5 nunca definem o campo, então fica `undefined` e a UI mantém o comportamento atual sem mudanças. Ver decisão pedagógica em DECISIONS.md (entrada do Nível 6). A camada de UI usa o campo pra pintar o destaque do bloco ativo:
+- `true` → verde (`#5D8A3C`, reusa cor do `plant`)
+- `false` → cinza claro (`#BDBDBD`)
+- `undefined` → cor original do bloco (não condicional)
+
+O estado é propagado de `app/level/[id].tsx` (variável `activeConditionResult`) pro `ProgramArea` via prop e, recursivamente, pros filhos de containers como `repeat_5`.
 
 ---
 
@@ -385,7 +408,9 @@ Limite: `MAX_EXECUTION_STEPS = 200`. Se ultrapassado:
 **Camada de UI (fora de lib/interpreter/):**
 - [x] Componentes visuais (BlockPalette, ProgramArea, ExecuteButton, LevelScene)
 - [x] Tap-to-add (MVP — drag-and-drop pós-MVP)
-- [x] Níveis 1, 2 e 3 jogáveis
+- [x] Níveis 1-6 jogáveis (sequência → 2D → loop → condicional embutido)
+- [x] Containers com filhos (`repeat_3`, `repeat_5`) + "modo edição via toque"
+- [x] Feedback visual de condicional (verde/cinza) via `conditionResult`
 
 **Não implementado / pendente:**
 - [ ] Suporte a funções (definir/chamar) — `BlockType` declarado, AST e executor faltam (Nível 9)

@@ -774,6 +774,34 @@ Asset `mundo_arvore_jovem.png` (606×903 RGBA) renderizado em posição própria
 
 ---
 
+### [14/05/2026] Decisão técnica: Nível 6 introduz condicional simples como bloco "tudo em um"
+
+O bloco `if_canteiro_vazio_then_plantar` é bloco sólido único — sem slot interno, sem modo de edição. Comportamento embutido: se célula atual tem canteiro vazio (`"flowerbed"`), planta; senão, ignora. Mecanicamente, é uma `ActionNode` no AST (não um `IfNode`), com a lógica condicional dentro do handler do `executeAction` — vive ao lado do case do `plant`.
+
+**Decisão pedagógica:** Nível 6 é a primeira introdução ao conceito de condicional. Mantém mecânica simples pra criança aprender **o que é** condicional primeiro (uma única ação que pode ou não acontecer dependendo do contexto). No Nível 7 (if/else), o conceito amadurece com 2 ações possíveis — aí sim o slot interno volta. Princípio "uma virada por nível".
+
+**Princípio "uma forma única de plantar" no Nível 6:** O bloco `plant` solto **NÃO** entra na paleta. O `if_canteiro_vazio_then_plantar` é a única forma de plantar neste nível. Esse é o ponto pedagógico — a criança aprende que plantar só acontece quando a condição é verdadeira. Permitir os dois quebra a lição.
+
+**Campo `conditionResult?: boolean` em `ExecutionStep`:** aditivo, não-retroativo. Níveis 1-5 não declaram (campo undefined → comportamento atual preservado). O bloco condicional embutido emite `true` quando executou ação e `false` quando ignorou. A UI (`ProgramArea`) usa o campo pra colorir o destaque do bloco ativo:
+- `true` → verde (`#5D8A3C`, reusa cor do bloco `plant` — associação visual: "a ação que aconteceu aqui foi um plantio")
+- `false` → cinza claro (`#BDBDBD`, "ignorou" sem ser punitivo)
+
+A escolha do verde do `plant` foi consciente: o condicional carrega uma ação plantar embutida, então reusar a cor do `plant` ancora a associação.
+
+**`repeat_5` como bloco novo (não `repeat_n` variável):** mesmo princípio "N hardcoded no bloco" estabelecido no Nível 5 com `repeat_3`. Adicionar "loop com N variável" no mesmo nível que introduz condicional seria sobrecarga. Quando o N variável entrar (Nível 8+), substitui os `repeat_N` específicos — princípio retroativo aplicado com cuidado.
+
+**Mirror do pássaro: render, não schema.** Os 2 pássaros são instâncias do mesmo asset (`mundo_passaro_pousado.jpg`); um é espelhado horizontalmente pra parecer um "casal" virado em direções opostas. Decisão: o mirror mora no render do `app/world.tsx` via `transform: [{ scaleX: -1 }]` (padrão idêntico ao `rotate: '-4deg'` do tronco). O schema do `reward.elements` continua `{ add, replaces }` sem campo `transform` — preserva não-retroatividade. Trade-off aceito: a info de "qual asset é espelhado" fica hardcoded no `world.tsx` em vez do level config. Aceitável enquanto for caso isolado; se virar padrão recorrente, vira refator do schema.
+
+**Cenário 1×6 linear (não 2D):** Nível 4 introduziu navegação 2D, Nível 5 reforçou com loop. Nível 6 não precisa adicionar dificuldade espacial — o foco é o conceito novo de condicional. Cenário linear deixa o conceito brilhar sem competição.
+
+**Distribuição `[Avatar][SC][CV][CP][CV][CV]` calibrada:** os 3 estados (SC/CV/CP) aparecem nas 3 primeiras células. Ordem pensada pra dar familiaridade incremental sem virar sequência decorada. O CP em col 3 é o caso mais sutil — testa se a criança realmente *olhou* antes de agir.
+
+**Recompensas no Mundo:** 2 pássaros (mesmo asset, 1 espelhado, primeira fauna do MVP) + substituição das 3 plantinhas estágio 3 do Nível 5 por 3 mini-árvores (continuidade narrativa: semente → plantinha → mini-árvore) + 3 flores amarelas decorativas. Planta principal não muda (continua árvore jovem do Nível 5). Background não muda (continua v2). Mudanças "grandes" reservadas pros próximos níveis.
+
+**Princípio "ferramentas antecipadas" aplicado:** texto de conclusão menciona explicitamente que condicional vai ser útil mais pra frente — preparação narrativa pro Nível 10, onde discernimento será vital pra plantar no árido. Texto fixo, não alterar sem alinhamento.
+
+---
+
 ## Dívida Técnica Conhecida
 
 Esta seção registra gaps confirmados entre o que o código **declara** e o que ele **executa**, ou pontos que precisam de verificação antes de serem usados. Diferente do log de decisões acima (que é cronológico e imutável), esta seção é mantida viva — itens entram quando descobertos e saem quando endereçados.

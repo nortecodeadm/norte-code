@@ -1,7 +1,7 @@
 # Níveis — Norte Code MVP
 
-**Última atualização:** 13/05/2026
-**Versão:** 1.4.1 (Nível 5: correção da flor no tronco + árvore jovem antecipada do Nível 6)
+**Última atualização:** 14/05/2026
+**Versão:** 1.5.0 (Nível 6: condicional simples via bloco "tudo em um" + 2 pássaros + mini-árvores + flores amarelas)
 
 ---
 
@@ -265,14 +265,123 @@ A frase final do texto de conclusão ("vai ser útil mais pra frente") planta a 
 
 ---
 
-## Nível 6 — Primeira condicional
+## Nível 6 — Olha antes de plantar (condicional simples) ✅ IMPLEMENTADO
 
-- **Conceito:** condicional (se / então)
-- **Cenário:** avatar anda por caminho; em algumas casas tem semente, em outras não. Planta só onde tem semente.
-- **Blocos:** [Andar] [Plantar] [Se houver semente [Plantar]]
-- **Solução:** [Repetir 5 vezes [Andar, Se houver semente [Plantar]]]
-- **Recompensa visual:** flores formam padrão de canteiro organizado
-- **Texto:** "Você ensinou seu personagem a **decidir**. Isso é uma das coisas mais importantes da programação: saber quando fazer e quando não fazer."
+- **Conceito:** condicional embutido (se → então), via bloco "tudo em um".
+- **Cenário:** grade 1×6 linear. Avatar parte da coluna 0. Distribuição
+  `[Avatar][SC][CV][CP][CV][CV]`:
+  - SC = sem canteiro (chão simples — `"empty"`)
+  - CV = canteiro vazio pronto pra plantar (`"flowerbed"`)
+  - CP = canteiro com semente já plantada (`"seed"`)
+  Os 3 estados aparecem nas 3 primeiras células — familiaridade incremental
+  sem virar sequência decorada.
+- **Blocos disponíveis:** [Direita] [Se vazio, plantar] [Repetir 5×]
+- **Solução-alvo (3 blocos):**
+  ```
+  [Repetir 5× [Direita, Se vazio, plantar]]
+  ```
+- **Solução longa aceita (10 blocos):** 5 iterações manuais de
+  `Direita, Se vazio, plantar`. Cabe em `maxBlocks: 12`.
+- **Texto de conclusão (literal — não alterar):** "Você aprendeu a **olhar
+  antes de fazer**. Nem todo lugar pede a mesma ação. Saber decidir é
+  cuidar bem. Lembra disso — vai ser muito útil mais pra frente."
+
+**Implementação técnica:**
+- Grid: 6×1, player em (0,0).
+- `grid[0][2] = "flowerbed"` (CV), `grid[0][3] = "seed"` (CP),
+  `grid[0][4] = "flowerbed"` (CV), `grid[0][5] = "flowerbed"` (CV).
+  Coluna 0 e 1 já são `"empty"` (SC).
+- Condição de vitória: `custom` — as 3 CV (cols 2, 4, 5) devem virar
+  `"seed"`. O CP de col 3 continua intocado.
+- Max blocos: 12 (contagem plana inclui filhos de containers).
+- Reward: 8 operações no Mundo permanente (ver abaixo).
+- Arquivo: `lib/levels/index.ts` → `createLevel6()`.
+
+**Mecânica nova — bloco "tudo em um" `if_canteiro_vazio_then_plantar`:**
+- Bloco sólido único — **NÃO** é envelope, **NÃO** tem slot interno,
+  **NÃO** tem modo de edição. Vai pro programa via tap simples na paleta,
+  igual aos blocos de movimento. Cor roxa clara `#A88FD9` (categoria
+  condicional, distinta dos azuis dos movimentos e do laranja do loop).
+- **Comportamento de execução** (em `lib/interpreter/interpreter.ts`):
+  - Se célula atual é CV (`"flowerbed"`): planta (vira `"seed"`),
+    emite step com `action: "plant"` + `conditionResult: true`.
+  - Se célula atual é CP (`"seed"`), SC (`"empty"`) ou qualquer outro:
+    não faz nada, emite step com `conditionResult: false` (sem
+    `worldChanges`).
+- **Feedback visual durante execução** (`components/level/ProgramArea.tsx`):
+  - `conditionResult: true` → bloco pulsa em **verde** (`#5D8A3C`, a mesma
+    cor do bloco `plant` — associação: "a ação que aconteceu aqui foi um
+    plantio").
+  - `conditionResult: false` → bloco pulsa em **cinza claro** (`#BDBDBD`,
+    indicando "ignorou" sem ser punitivo).
+- **Princípio pedagógico:** o condicional é a ÚNICA forma de plantar
+  neste nível. `plant` solto não entra na paleta. A criança aprende que
+  plantar só acontece quando a condição é verdadeira — o conceito
+  brilha sem competição.
+
+**Mecânica nova — bloco `repeat_5`:**
+- Idêntico ao `repeat_3` do Nível 5, com N=5 hardcoded.
+- Princípio "N hardcoded no bloco" mantido. Loop com N variável fica
+  reservado pra Nível 8+.
+- Na paleta do Nível 6, só `repeat_5` aparece (paleta é por nível, não
+  acumulativa). `repeat_3` não fica disponível aqui.
+- Reusa todo o aparato de UX já estabelecido pelo `repeat_3`: modo
+  edição via toque no envelope, botão "Pronto ✓", validação de vazio,
+  indicador "✎ Adicionando blocos dentro de Repetir 5×".
+
+**Campo novo no `ExecutionStep`:**
+- `conditionResult?: boolean` — opcional, aditivo. Steps dos Níveis 1-5
+  não emitem (campo undefined → comportamento atual preservado, não-
+  retroatividade). Apenas o bloco condicional embutido emite.
+
+**Mensagens de erro contextuais:**
+- Sai da grade (6º `move_right` na coluna 5): "Esse lado não dá. O
+  caminho continua em outra direção." (mesma do Nível 4-5).
+- Programa termina com canteiros vazios remanescentes:
+  "Ainda há canteiros vazios. Olha de novo onde o avatar passou."
+- Criança usa só o condicional sem `move_right` (avatar fica parado):
+  mensagem específica em `getContextualError` — "O avatar precisa andar
+  pra encontrar canteiros. Use o bloco Direita." Caso edge raro, mas
+  evita o "Monte seu programa!" confuso que dispararia com programa
+  não-vazio antes.
+
+**Recompensas no Mundo permanente — 8 operações:**
+
+Este nível marca a **primeira fauna do MVP**.
+
+1. `bird_lvl6_a` — pássaro pousado no tronco caído com flor.
+2. `bird_lvl6_b` — pássaro pousado na pedra. **Mesmo asset**
+   (`mundo_passaro_pousado.jpg`) mas **espelhado horizontalmente** no
+   render do `app/world.tsx` via `transform: [{ scaleX: -1 }]`. Parece
+   um "casal" virado em direções opostas. O schema do `reward.elements`
+   continua `{ add, replaces }` sem campo `transform` — o mirror mora
+   no render, não no level config (preserva não-retroatividade).
+3. `mini_tree_lvl6_a` **substitui** `plant_stage3_lvl5_a` — a plantinha
+   estágio 3 do Nível 5 cresceu pra mini-árvore.
+4. `mini_tree_lvl6_b` **substitui** `plant_stage3_lvl5_b`.
+5. `mini_tree_lvl6_c` **substitui** `plant_stage3_lvl5_c`.
+6. `yellow_flower_lvl6_a` — flor amarela decorativa (asset novo
+   `mundo_flor_amarela.jpg`).
+7. `yellow_flower_lvl6_b` — mesma flor amarela, posição diferente.
+8. `yellow_flower_lvl6_c` — mesma flor amarela, posição diferente.
+
+**Cadeia de substituição das sementes do Nível 4 (estendida no Nível 6):**
+`seed_lvl4_a/b/c → plant_stage3_lvl5_a/b/c → mini_tree_lvl6_a/b/c`.
+Continuidade narrativa: as sementes que a criança plantou no Nível 4
+viraram plantinhas regadas no Nível 5, e agora cresceram em mini-árvores.
+
+**Planta principal NÃO muda neste nível.** Continua sendo árvore jovem
+do Nível 5. Evolução pra árvore frutífera reservada pro Nível 7.
+
+**Background do Mundo NÃO muda neste nível.** Continua sendo v2.
+Background v3 reservado pro Nível 8.
+
+**Conexão com Nível 10 (ferramenta antecipada):**
+A frase final "vai ser muito útil mais pra frente" planta a semente
+de que condicional vai voltar com força no Nível 10, onde discernimento
+será vital pra plantar no árido (não dá pra plantar em qualquer canto —
+só onde há terra fértil). Princípio "ferramentas antecipadas" registrado
+em `DECISIONS.md`.
 
 ## Nível 7 — Condicional com duas ações (se/senão)
 
