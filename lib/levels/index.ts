@@ -423,16 +423,21 @@ function createLevel5(): LevelDefinition {
         // visual radical do MVP). Mesma lógica de substituição usada pra
         // plantas. Ver DECISIONS.md ("background é substituível").
         { add: "background_mundo_v2", replaces: "background_mundo_v1" },
-        // Operação 2 — as 3 sementes do Nível 4 viram plantinhas estágio 3.
+        // Operação 2 — planta principal evolui de mini-árvore pra árvore
+        // jovem (antecipada do Nível 6 conforme decisão tomada na entrega
+        // do Nível 5 — reforça o "salto visual forte" deste nível).
+        { add: "young_tree_lvl5", replaces: "mini_tree_lvl4" },
+        // Operação 3 — as 3 sementes do Nível 4 viram plantinhas estágio 3.
         // Pulam estágio 2 (broto) — sinal de que regar acelerou crescimento.
         { add: "plant_stage3_lvl5_a", replaces: "seed_lvl4_a" },
         { add: "plant_stage3_lvl5_b", replaces: "seed_lvl4_b" },
         { add: "plant_stage3_lvl5_c", replaces: "seed_lvl4_c" },
-        // Operação 3 — +2 flores decorativas (total no Mundo passa de 2 pra 4).
+        // Operação 4 — +2 flores decorativas (total no Mundo passa de 2 pra 4).
         { add: "flower_lvl5_a" },
         { add: "flower_lvl5_b" },
-        // Operação 4 — flor brota do tronco caído (símbolo: vida vence até
-        // o que parecia morto).
+        // Operação 5 — flor brota do tronco caído. SUBSTITUI o tronco
+        // (asset flor_no_tronco.png inclui o tronco + flor integrados,
+        // mesma proporção 1426×624). Ver DECISIONS.md sobre essa correção.
         { add: "flower_no_tronco" },
       ],
     },

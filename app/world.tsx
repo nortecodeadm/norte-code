@@ -55,6 +55,12 @@ const WORLD_LAYOUT = {
   // pra abrir espaço pras 3 sementes na frente. Posição placeholder — Gui calibra.
   miniArvore: { top: pctH(50), left: pctW(35), width: pctW(28) },
 
+  // Recompensa Nível 5 — árvore jovem SUBSTITUI a mini-árvore (antecipada
+  // do Nível 6 conforme decisão tomada na entrega do Nível 5). Mais alta
+  // que a mini-árvore (PNG 606×903 vs 784×1176), top um pouco mais baixo
+  // pra ficar bem posicionada. Posição placeholder — Gui calibra.
+  arvoreJovem: { top: pctH(40), left: pctW(33), width: pctW(32) },
+
   // Recompensa Nível 4 — 3 sementes plantadas neste nível, lado a lado na frente
   // da cena. Posições placeholder — Gui calibra.
   sementeLvl4A: { bottom: pctH(4), left: pctW(32), width: pctW(10) },
@@ -95,6 +101,7 @@ const MUNDO_BROTO = require("../assets/mundo/mundo_broto.png");
 const MUNDO_BROTO_CRESCIDO = require("../assets/mundo/mundo_broto_crescido.png");
 const MUNDO_FLOR = require("../assets/mundo/mundo_flor.png");
 const MUNDO_MINI_ARVORE = require("../assets/mundo/mundo_mini_arvore.png");
+const MUNDO_ARVORE_JOVEM = require("../assets/mundo/mundo_arvore_jovem.png");
 const MUNDO_PLANTINHA_LVL5 = require("../assets/mundo/plantinha_estagio3.png");
 const MUNDO_FLOR_NO_TRONCO = require("../assets/mundo/flor_no_tronco.png");
 
@@ -113,6 +120,7 @@ export default function WorldScreen() {
   const [showGrownSprout, setShowGrownSprout] = useState(false);
   const [showFlower, setShowFlower] = useState(false);
   const [showMiniArvore, setShowMiniArvore] = useState(false);
+  const [showArvoreJovem, setShowArvoreJovem] = useState(false);
   const [showSeedLvl4A, setShowSeedLvl4A] = useState(false);
   const [showSeedLvl4B, setShowSeedLvl4B] = useState(false);
   const [showSeedLvl4C, setShowSeedLvl4C] = useState(false);
@@ -170,20 +178,31 @@ export default function WorldScreen() {
       storage.keys.WORLD_ELEMENTS
     );
     console.log('[world] worldElements loaded:', worldElements);
+    const hasArvoreJovem = worldElements?.includes("young_tree_lvl5") ?? false;
     const hasMiniArvore = worldElements?.includes("mini_tree_lvl4") ?? false;
     const hasGrownSprout = worldElements?.includes("grown_sprout_lvl3") ?? false;
     const hasSprout = worldElements?.includes("sprout_lvl2") ?? false;
     const hasSeed = worldElements?.includes("seed_lvl1") ?? false;
     const hasFlower = worldElements?.includes("flower_lvl3") ?? false;
 
-    // Substitution chain da planta principal:
-    //   mini_arvore (lvl4) > grown_sprout (lvl3) > sprout (lvl2) > seed (lvl1).
-    // Mini-árvore é renderizada em posição própria (mais ao fundo) e SUBSTITUI
-    // visualmente o broto crescido — quando ela aparece, broto crescido some.
-    setShowMiniArvore(hasMiniArvore);
-    setShowGrownSprout(hasGrownSprout && !hasMiniArvore);
-    setShowSprout(hasSprout && !hasGrownSprout && !hasMiniArvore);
-    setShowSeed(hasSeed && !hasSprout && !hasGrownSprout && !hasMiniArvore);
+    // Substitution chain da planta principal (consolidada após Nível 5):
+    //   young_tree (lvl5) > mini_arvore (lvl4) > grown_sprout (lvl3)
+    //   > sprout (lvl2) > seed (lvl1).
+    // Cada estágio renderiza em posição própria. Quando um estágio mais
+    // evoluído aparece, os anteriores somem (só o mais evoluído brilha).
+    setShowArvoreJovem(hasArvoreJovem);
+    setShowMiniArvore(hasMiniArvore && !hasArvoreJovem);
+    setShowGrownSprout(hasGrownSprout && !hasMiniArvore && !hasArvoreJovem);
+    setShowSprout(
+      hasSprout && !hasGrownSprout && !hasMiniArvore && !hasArvoreJovem
+    );
+    setShowSeed(
+      hasSeed &&
+        !hasSprout &&
+        !hasGrownSprout &&
+        !hasMiniArvore &&
+        !hasArvoreJovem
+    );
     setShowFlower(hasFlower);
 
     // Recompensas do Nível 4: 3 sementes plantadas + 1 flor decorativa nova.
@@ -444,6 +463,30 @@ export default function WorldScreen() {
           >
             <Image
               source={MUNDO_MINI_ARVORE}
+              resizeMode="contain"
+              style={{ width: "100%", height: "100%" }}
+            />
+          </Animated.View>
+        )}
+
+        {/* Z-layer 3.95: Árvore jovem (recompensa do Nível 5, antecipada do
+             Nível 6) — substitui a mini-árvore na cadeia da planta principal.
+             Asset 606×903 RGBA. Posição placeholder. */}
+        {showArvoreJovem && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                top: WORLD_LAYOUT.arvoreJovem.top,
+                left: WORLD_LAYOUT.arvoreJovem.left,
+                width: WORLD_LAYOUT.arvoreJovem.width,
+                aspectRatio: 606 / 903,
+              },
+            ]}
+          >
+            <Image
+              source={MUNDO_ARVORE_JOVEM}
               resizeMode="contain"
               style={{ width: "100%", height: "100%" }}
             />
