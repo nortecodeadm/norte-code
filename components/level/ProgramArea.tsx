@@ -103,15 +103,16 @@ const CONTAINER_TYPES: ReadonlySet<BlockType> = new Set<BlockType>([
 const CONDITION_TRUE_COLOR = "#5D8A3C";
 const CONDITION_FALSE_COLOR = "#BDBDBD";
 
-// Decide cor do texto (escuro ou branco) baseado na luminância do fundo —
-// fórmula YIQ. Usado quando o bloco está ativo (fundo colorido) pra evitar
-// branco-sobre-claro de baixo contraste (ex: cinza do conditionResult false).
+// Decide cor do texto (preto ou branco) baseado na luminância do fundo —
+// fórmula YIQ. Threshold 120 alinha com BlockPalette: fundos médios como
+// o azul #4A90D9 ganham texto preto pra evitar branco-sobre-claro de
+// baixo contraste. Usado quando o bloco está ativo (fundo colorido).
 function getContrastTextColor(hex: string): string {
   const r = parseInt(hex.slice(1, 3), 16);
   const g = parseInt(hex.slice(3, 5), 16);
   const b = parseInt(hex.slice(5, 7), 16);
   const yiq = (r * 299 + g * 587 + b * 114) / 1000;
-  return yiq >= 140 ? "#1F2937" : "#FFFFFF";
+  return yiq >= 120 ? "#000000" : "#FFFFFF";
 }
 
 export function isContainerBlock(type: BlockType): boolean {

@@ -15,16 +15,17 @@ interface BlockPaletteProps {
   disabled?: boolean;
 }
 
-// Decide cor do texto (escuro ou branco) baseado na luminância do fundo.
-// Usa a fórmula YIQ: cores com luminância <140 ganham texto branco; cores
-// claras ganham texto escuro. Garante contraste legível em qualquer paleta
-// futura sem precisar lembrar de ajustar pra cada cor nova.
+// Decide cor do texto (preto ou branco) baseado na luminância do fundo,
+// pela fórmula YIQ. Threshold 120 (mais agressivo) força fundos médios
+// como azul #4A90D9 e lavanda #7B68EE a ganharem texto preto — caso
+// contrário ficavam branco-sobre-claro de baixo contraste. Preto puro
+// em vez de #1F2937 maximiza o contraste em fundos médios.
 function getContrastTextColor(hex: string): string {
   const r = parseInt(hex.slice(1, 3), 16);
   const g = parseInt(hex.slice(3, 5), 16);
   const b = parseInt(hex.slice(5, 7), 16);
   const yiq = (r * 299 + g * 587 + b * 114) / 1000;
-  return yiq >= 140 ? "#1F2937" : "#FFFFFF";
+  return yiq >= 120 ? "#000000" : "#FFFFFF";
 }
 
 // Block visual config
@@ -112,8 +113,8 @@ export function BlockPalette({
                   borderRadius: 12,
                   // Borda escura em volta do bloco — silhueta que dá
                   // sensação de "peça/bloco" em qualquer cor de fundo.
-                  borderWidth: 3,
-                  borderColor: "rgba(0,0,0,0.45)",
+                  borderWidth: 2,
+                  borderColor: "rgba(0,0,0,0.3)",
                   flexDirection: "row",
                   alignItems: "center",
                   gap: 6,
