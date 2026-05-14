@@ -1,7 +1,7 @@
 # Arquitetura — Norte Code MVP
 
-**Última atualização:** 05/05/2026
-**Versão:** 0.6.0 (Semana 3 Doc2 — Tela Mundo real + Nome Avatar + UX Nível 1)
+**Última atualização:** 13/05/2026
+**Versão:** 0.7.0 (Nível 5 — programa passa a suportar blocos com filhos + background do Mundo é substituível)
 
 ---
 
@@ -123,15 +123,20 @@ O interpretador é o **núcleo do app**. Arquitetura:
 4. **GoalCondition** — Verificada ao final da execução
 
 **Tipos de nó AST:**
-- `action` — Folhas: walk_forward, plant, water, turn_left, turn_right, pick_fruit
-- `loop` — Repetição N vezes (níveis 4+)
-- `if` — Condicional com then/else (níveis 6+)
+- `action` — Folhas: walk_forward, plant, water, turn_left, turn_right, pick_fruit, move_right/left/up/down
+- `loop` — Repetição N vezes (níveis 5+; `repeat_3` da UI vira `LoopNode { times: 3 }`)
+- `if` — Condicional com then/else (níveis 6+, pendente)
+
+**Estrutura do programa (camada UI):**
+A partir do Nível 5, `ProgramBlock` aceita campo opcional `children?: ProgramBlock[]`. Programa deixa de ser array linear e passa a ser árvore — blocos estruturais (containers, ex: `repeat_3`) carregam seus filhos no slot interno. Conversão `ProgramBlock[] → ASTNode[]` é recursiva: blocos com filhos viram `LoopNode` (ou `IfNode` no futuro). Blocos folha viram `ActionNode`. Princípio de não-retroatividade preservado: Níveis 1-4 não declaram `children` e continuam executando idênticos.
 
 **Componentes visuais:**
 - `BlockPalette` — Blocos disponíveis (tap-to-add)
-- `ProgramArea` — Programa montado (tap-to-remove)
+- `ProgramArea` — Programa montado (tap-to-remove). A partir do Nível 5 renderiza envelopes pros containers (Container/Simple block rows separados).
 - `ExecuteButton` — Botão executar (idle/running/success/error)
 - `LevelScene` — Grid visual do nível
+
+**UX "modo edição via toque"** — padrão pra qualquer bloco com filhos. Tap em container na paleta cria envelope vazio + entra em modo edição. Próximos taps na paleta inserem dentro do envelope. Sai via tap no envelope ou botão "Pronto ✓". Validação de envelope vazio na saída. Ver `DECISIONS.md`.
 
 Documentação detalhada em `docs/INTERPRETER.md`.
 
@@ -280,7 +285,7 @@ A Tela Mundo segue princípios de ilustração de livro infantil com hierarquia 
 
 1. **Offline-first**: o app deve funcionar 100% sem internet após primeira abertura
 2. **Interpretador client-side**: toda lógica de execução roda no device, não no servidor
-3. **Mundo permanente com transição visual**: após nível 5, o cenário muda (jardim → terreno árido). A arquitetura de renderização do mundo deve suportar múltiplos "biomas"
+3. **Mundo permanente com background substituível**: o `ImageBackground` da Tela Mundo escolhe entre `mundo_terreno_vazio.png` (v1) e `background_mundo_v2.png` (v2 — desbloqueado no Nível 5) baseado em `WORLD_ELEMENTS`. O Nível 10 fará uma segunda substituição radical (background árido). Padrão: `{ add: "background_mundo_vN", replaces: "background_mundo_vN-1" }` na reward do nível.
 4. **Arquitetura aberta para missões especiais**: embora não implementadas no MVP, a estrutura de carregamento de cenários deve prever cenários temporários isolados do mundo permanente
 5. **Sem mecânicas viciantes**: nenhum streak, timer, loot box ou moeda premium na arquitetura
 6. **SafeAreaView sempre de `react-native-safe-area-context`**: nunca usar o SafeAreaView nativo do `react-native` (só funciona no iOS). `SafeAreaProvider` envolve o app inteiro no `_layout.tsx`

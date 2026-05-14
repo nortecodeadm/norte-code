@@ -1,7 +1,7 @@
 # Interpretador de Blocos — Norte Code
 
 **Última atualização:** 13/05/2026
-**Versão:** 1.4.0 (Nível 4 jogável — `move_left` ativo em paleta + `failReason` em `ExecutionStep`)
+**Versão:** 1.5.0 (Nível 5 jogável — bloco `repeat_3` + estrutura de programa com filhos)
 
 ---
 
@@ -81,7 +81,7 @@ O campo `id` é opcional e usado para highlight visual durante execução.
 - `pick_fruit` em célula sem fruta → idem.
 - O engine não falha nem aborta — a aprendizagem por tentativa e erro é fundamental no método (ver decisão "Botão Executar: ativo com ≥1 bloco" em DECISIONS.md).
 
-### 2.3 Loop (níveis 4+)
+### 2.3 Loop (níveis 5+)
 
 Repete um bloco de statements N vezes:
 
@@ -90,14 +90,17 @@ Repete um bloco de statements N vezes:
   "type": "loop",
   "times": 3,
   "body": [
-    { "type": "action", "name": "walk_forward" },
-    { "type": "action", "name": "plant" }
+    { "type": "action", "name": "move_right" }
   ],
   "id": "blk_loop_1"
 }
 ```
 
-O campo `times` define quantas iterações. O `body` pode conter qualquer tipo de nó, incluindo loops aninhados.
+O campo `times` define quantas iterações. O `body` pode conter qualquer tipo de nó, incluindo loops aninhados (o engine suporta — não há restrição em runtime).
+
+**Origem na UI (Nível 5):** o bloco `repeat_3` da paleta vira `LoopNode { times: 3, ... }` no AST. O campo `times` é hardcoded em 3 pelo conversor `blocksToAST` em `app/level/[id].tsx`. Variar N na UI só acontece em níveis posteriores (Nível 8 — pendente).
+
+**Comportamento em falha:** se algum nó dentro do `body` retorna `fail_move` (bate em pedra ou sai da grade), `executeLoop` para a iteração atual via `ctx.error` (na verdade não há erro hard — o controle volta porque `executeBlock` retorna ao detectar próximo step com falha). Mensagem contextual é montada pela UI a partir do `failReason` do primeiro `fail_move` da execução (mesma lógica do Nível 4 — não regressa).
 
 ### 2.4 Conditional (níveis 6+)
 
@@ -131,6 +134,58 @@ O campo `else` é opcional. Se omitido, nada acontece quando a condição é fal
 | `fruits_equal` | `player.inventory.fruits` igual a N (`conditionValue`) | **Declarada em `ConditionType` mas não implementada em `evaluateCondition` — sempre retorna `false`.** Ver dívida técnica em DECISIONS.md. |
 
 Todas as condições implementadas hoje olham a **célula atual do player**. Condições que dependem de inventário ou estado global do mundo (como `fruits_equal`) exigem extensão do `evaluateCondition`.
+
+---
+
+### 2.5 Estrutura de programa na UI — blocos com filhos (Nível 5+)
+
+A partir do Nível 5, a camada de UI suporta **blocos estruturais** (containers) que aceitam filhos. Hoje só um bloco é container — `repeat_3` — mas o padrão está preparado pra todas as estruturas aninhadas dos níveis 6-9 (condicional, if/else, função).
+
+**Tipo `ProgramBlock` (camada UI, definido em `components/level/ProgramArea.tsx`):**
+
+```typescript
+interface ProgramBlock {
+  id: string;
+  type: BlockType;
+  children?: ProgramBlock[]; // Opcional: definido só em containers
+}
+```
+
+Quando `children` é `undefined`, o bloco é simples (folha) — `Níveis 1-4` continuam funcionando idênticos, sem qualquer mudança de comportamento.
+
+**Predicado `isContainerBlock(type)`** em `ProgramArea.tsx` enumera quais tipos são containers. Hoje: apenas `repeat_3`. Estruturas dos níveis seguintes serão adicionadas conforme entrarem.
+
+**Conversão `ProgramBlock[]` → `ASTNode[]`** (recursiva, em `app/level/[id].tsx`):
+
+```typescript
+function blocksToAST(blocks: ProgramBlock[]): ASTNode[] {
+  return blocks.map((b): ASTNode => {
+    if (b.type === "repeat_3") {
+      return {
+        type: "loop",
+        times: 3,
+        body: blocksToAST(b.children ?? []),
+        id: b.id,
+      };
+    }
+    return { type: "action", name: b.type, id: b.id };
+  });
+}
+```
+
+Demais utilitários recursivos (`countBlocks`, `removeBlockById`, `insertInContainer`, `findBlockById`) cuidam de manter a árvore consistente quando a criança adiciona, remove ou edita blocos.
+
+**Contagem de `maxBlocks`** é PLANA — cada bloco conta 1, incluindo filhos. O contador no header do `ProgramArea` usa o prop `totalCount` calculado com `countBlocks(programBlocks)`.
+
+**UX "modo edição via toque"** (decisão de produto registrada em `DECISIONS.md`):
+- Estado `editingContainerId` em `app/level/[id].tsx` aponta pro envelope ativo.
+- Tap em `repeat_3` na paleta cria envelope vazio + entra automaticamente em modo edição.
+- Tap em outro bloco da paleta enquanto modo está ativo: bloco entra DENTRO do envelope (via `insertInContainer`).
+- Tap no header do envelope alterna o modo. Botão "Pronto ✓" também sai. Tap fora encerra também (planejado — primeira versão só cobre tap no envelope/botão).
+- Saída valida se envelope tem ao menos 1 filho — se não, exibe mensagem amigável e mantém modo aberto.
+- Aninhamento profundo (`repeat_3` dentro de `repeat_3`) é bloqueado na função `handleAddBlock` — alinhado com "O que NÃO fazer" do briefing do Nível 5.
+
+**Persistência:** programa NÃO é persistido em disco (AsyncStorage). Vive em `useState` local — mesmo padrão dos Níveis 1-4. Se a criança sai da tela e volta, o programa começa vazio (mesmo comportamento dos níveis anteriores). Se quiser persistência de rascunho no futuro, vira tarefa de BACKLOG.
 
 ---
 

@@ -1,7 +1,7 @@
 # Níveis — Norte Code MVP
 
 **Última atualização:** 13/05/2026
-**Versão:** 1.3.0 (Nível 4 jogável)
+**Versão:** 1.4.0 (Nível 5 jogável — bloco repeat_3 + primeira mudança radical do Mundo)
 
 ---
 
@@ -187,14 +187,73 @@ O bloco `move_left` (coluna -1, absoluto) já estava implementado no interpretad
 - 1 flor decorativa (`flower_lvl4`) reusa o asset `mundo_flor.png` em posição livre.
 - Posições são placeholder — Gui calibra visualmente após implementação.
 
-## Nível 5 — Loop com variação de quantidade
+## Nível 5 — Bloco de loop fixo (repeat_3) ✅ IMPLEMENTADO
 
-- **Conceito:** loop (reforço, com escolha de N)
-- **Cenário:** avatar rega 5 brotos em sequência
-- **Blocos:** [Andar] [Regar] [Repetir N vezes [...]] (N selecionável: 2, 3, 4, 5)
-- **Solução:** [Repetir 5 vezes [Andar, Regar]]
-- **Recompensa visual:** brotos viram flores, caminho de pedras começa
-- **Texto:** "Você escolheu quantas vezes repetir. Esse é o jeito de cuidar bem: na medida certa."
+- **Conceito:** loop com N fixo. Introduz o primeiro bloco "estrutura de controle" do projeto (aceita filhos no slot interno).
+- **Função pedagógica:** par com o Nível 4. A criança refaz o MESMO trajeto do Nível 4 (rega as 3 sementes que plantou) mas agora com o bloco `[Repetir 3×]` disponível. Sente o alívio de fazer mais com menos (princípio "necessidade antes da ferramenta").
+- **Cenário:** mesma grade 4×4 do Nível 4, mesmas 6 pedras, mesmos 3 canteiros — agora com sementes (`seed`) já plantadas aguardando rega.
+- **Blocos:** [Direita →] [Esquerda ←] [Subir ↑] [Descer ↓] [💧 Regar] [🔄 Repetir 3×]
+- **Solução-alvo (9 blocos):**
+  ```
+  [Repetir 3× [Direita]][Regar]   → C1 em (0,3)
+  [Repetir 3× [Descer]][Regar]    → C2 em (3,3)
+  [Repetir 3× [Esquerda]][Regar]  → C3 em (3,0)
+  ```
+- **Solução longa aceita:** versão sem `repeat_3` no padrão do Nível 4 mas com `Regar` em vez de `Plantar` (12 blocos exatos — ainda cabe em maxBlocks 14).
+- **Texto de conclusão:** "Olha que esperto! Em vez de mandar o mesmo movimento três vezes, você usou o bloco de **repetir**. Programar bem é fazer mais com menos. Lembra disso — vai ser útil mais pra frente."
+
+**Implementação técnica:**
+- Grid: 4×4, player em (0,0)
+- 6 rochas (mesmas posições do Nível 4): `grid[1][0]`, `grid[2][0]`, `grid[1][1]`, `grid[1][2]`, `grid[2][1]`, `grid[2][2]`
+- 3 canteiros já plantados: `grid[0][3]`, `grid[3][3]`, `grid[3][0]` com content === `"seed"`
+- Condição de vitória: `custom` (C1, C2 e C3 todos com content === `"sprout"`)
+- Max blocos: 14 (contagem plana, inclui filhos de containers)
+- Reward: multi-element com 7 operações no Mundo permanente
+- Arquivo: `lib/levels/index.ts` → `createLevel5()`
+
+**Mecânica nova — bloco `repeat_3` (estrutura aninhada):**
+- Primeiro bloco do projeto que aceita FILHOS no slot interno.
+- `BlockType` ganhou variante `repeat_3`. `ProgramBlock` ganhou campo opcional `children?: ProgramBlock[]`.
+- O conversor `Block → AST` em `app/level/[id].tsx` virou recursivo: `repeat_3` com filhos vira `LoopNode { times: 3, body: blocksToAST(children) }`. Demais blocos viram `ActionNode` (igual antes — não-retroativo).
+- Se algum filho falha durante a execução (bate em pedra, sai da grade), o loop INTEIRO para. Mensagem de erro contextual normal — mesma lógica do Nível 4 via `failReason`.
+
+**UX nova — "Modo edição via toque":**
+- Tap no bloco `repeat_3` na paleta cria envelope vazio na lista do programa. O envelope entra automaticamente em modo edição.
+- Tap em outro bloco da paleta enquanto modo está ativo: o bloco entra DENTRO do envelope.
+- Tap no cabeçalho do envelope alterna o modo (entra/sai). Tap no botão "Pronto ✓" também sai.
+- **Validação na saída:** se envelope estiver vazio, mostra "Coloca pelo menos um bloco dentro do repetir." e mantém o modo aberto (não pune).
+- **Indicador permanente no topo** enquanto modo está ativo: "✎ Adicionando blocos dentro de Repetir 3×".
+- **Feedback visual no envelope:** em modo edição a borda fica mais grossa, fundo clareia, dica interna muda de "Toque no envelope pra adicionar blocos dentro" pra "Toque nos blocos acima — eles entram aqui".
+
+Padrão de UX aplicável a TODAS as estruturas aninhadas futuras (condicional do Nível 6, if/else do Nível 7, função do Nível 9). Ver `DECISIONS.md`.
+
+**Mensagens de erro contextuais (configuradas no nível):**
+- Bate em pedra: "Hmm, tem uma pedra aí. Tenta outro caminho." (mesma do Nível 4)
+- Sai da grade: "Esse lado não dá. O caminho continua em outra direção."
+- Esqueceu de regar: "Você esqueceu de regar! Cada canteiro precisa de um \"Regar\"."
+- Não regou todos: "Você ainda não regou todos os canteiros. Olha o caminho de novo." (`not_at_watering_spot`)
+- Genérico: "Quase! Olha onde estão os canteiros e tenta outro caminho."
+
+**Recompensas no Mundo permanente — 7 operações:**
+
+Esta é a PRIMEIRA grande mudança visual do Mundo permanente do MVP.
+
+1. `background_mundo_v2` substitui `background_mundo_v1` — mesma cena com graminha esparsa pelo solo e florestinha em silhueta no horizonte (asset NOVO).
+2. `plant_stage3_lvl5_a` substitui `seed_lvl4_a` — plantinha estágio 3 ocupa a posição da semente plantada no Nível 4 (asset NOVO, reusado nas 3 plantinhas).
+3. `plant_stage3_lvl5_b` substitui `seed_lvl4_b`.
+4. `plant_stage3_lvl5_c` substitui `seed_lvl4_c`.
+5. `flower_lvl5_a` — +1 flor decorativa (reuso do asset da flor do Nível 3).
+6. `flower_lvl5_b` — +1 flor decorativa (mesmo asset).
+7. `flower_no_tronco` — flor brota do tronco caído (asset NOVO, sobreposto ao tronco existente). Símbolo: vida vence até o que parecia morto.
+
+**Cadeia de substituição da planta principal** (estendida pra registrar o padrão consolidado):
+`seed_lvl1 → sprout_lvl2 → grown_sprout_lvl3 → mini_tree_lvl4`. A mini-árvore do Nível 4 PERMANECE no Nível 5 — vai evoluir pra árvore jovem no Nível 6.
+
+**Cadeia de substituição das sementes do Nível 4:**
+`seed_lvl4_a/b/c → plant_stage3_lvl5_a/b/c`. As sementes plantadas no Nível 4 viram plantinhas estágio 3 quando regadas no Nível 5 (pula estágio 2 — sinal de que regar acelerou o crescimento).
+
+**Conexão com Nível 10 (ferramenta antecipada):**
+A frase final do texto de conclusão ("vai ser útil mais pra frente") planta a semente de que loop vai ser útil de novo no recomeço. No árido, a criança vai precisar replantar muito — loop é o que permite plantar rápido. Princípio pedagógico registrado em `DECISIONS.md`.
 
 ---
 
