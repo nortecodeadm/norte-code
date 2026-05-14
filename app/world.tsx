@@ -128,11 +128,13 @@ const WORLD_LAYOUT = {
   florBrancaLvl7D: { bottom: pctH(15), right: pctW(8), width: pctW(8) },
 
   // Recompensa Nível 7 "tronco com flor e esquilo": SUBSTITUI o tronco
-  // (não sobrepõe). Mesma posição/proporção do tronco/flor-no-tronco.
-  // Asset mundo_tronco_com_flor_e_esquilo (3072×1344 ≈ 2.286, ~igual
-  // ao tronco original 1426/624 ≈ 2.285 — entra exatamente no lugar).
-  // O source do Image do tronco é trocado via state showTroncoEsquilo
-  // (que tem prioridade sobre showFlorNoTronco). Sem entrada no LAYOUT.
+  // do Nível 5, mas com posição/tamanho próprios porque o conteúdo
+  // visual do asset (3072×1344) tem composição diferente do tronco
+  // original — usar o WORLD_LAYOUT.tronco com aspectRatio antigo
+  // empurra o esquilo pra fora da área visível. Quando showTroncoEsquilo
+  // está ativo, o `<Image>` do tronco original deixa de renderizar e
+  // este aqui entra no lugar. Posição placeholder — Gui calibra.
+  troncoEsquilo: { top: pctH(21.5), right: pctW(68), width: pctW(28) },
 
   // UI
   botaoPlay: { bottom: pctH(90), right: pctW(6) },
@@ -445,30 +447,46 @@ export default function WorldScreen() {
             }}
           />
 
-          {/* Tronco — upper right area. Cadeia de substituição tripla:
-              - default: MUNDO_TRONCO (1426×624)
-              - após Nível 5: MUNDO_FLOR_NO_TRONCO (mesma proporção)
-              - após Nível 7: MUNDO_TRONCO_FLOR_ESQUILO (3072×1344, ≈mesma
-                proporção 2.286 vs 2.285 — substitui exatamente no lugar).
-              Mais evoluído tem prioridade — Nível 7 esconde flor_no_tronco. */}
-          <Image
-            source={
-              showTroncoEsquilo
-                ? MUNDO_TRONCO_FLOR_ESQUILO
-                : showFlorNoTronco
-                  ? MUNDO_FLOR_NO_TRONCO
-                  : MUNDO_TRONCO
-            }
-            resizeMode="contain"
-            style={{
-              position: "absolute",
-              top: WORLD_LAYOUT.tronco.top,
-              right: WORLD_LAYOUT.tronco.right,
-              width: WORLD_LAYOUT.tronco.width,
-              transform: [{ rotate: '-4deg' }],
-              aspectRatio: 1426 / 624,
-            }}
-          />
+          {/* Tronco — upper right area. Cadeia tronco original → tronco
+              com flor (Nível 5), substituição direta por terem proporção
+              idêntica (1426×624). Quando showTroncoEsquilo está ativo
+              (Nível 7), o tronco com esquilo entra como elemento próprio
+              embaixo, e este tronco aqui some pra não duplicar. */}
+          {!showTroncoEsquilo && (
+            <Image
+              source={showFlorNoTronco ? MUNDO_FLOR_NO_TRONCO : MUNDO_TRONCO}
+              resizeMode="contain"
+              style={{
+                position: "absolute",
+                top: WORLD_LAYOUT.tronco.top,
+                right: WORLD_LAYOUT.tronco.right,
+                width: WORLD_LAYOUT.tronco.width,
+                transform: [{ rotate: '-4deg' }],
+                aspectRatio: 1426 / 624,
+              }}
+            />
+          )}
+
+          {/* Tronco com flor e esquilo (recompensa Nível 7) — render
+              próprio porque o conteúdo visual do asset (3072×1344) tem
+              composição diferente do tronco original. Posição placeholder
+              herdada do tronco como ponto de partida — Gui calibra
+              (provavelmente vai precisar width maior + top diferente
+              pra acomodar o esquilo). */}
+          {showTroncoEsquilo && (
+            <Image
+              source={MUNDO_TRONCO_FLOR_ESQUILO}
+              resizeMode="contain"
+              style={{
+                position: "absolute",
+                top: WORLD_LAYOUT.troncoEsquilo.top,
+                right: WORLD_LAYOUT.troncoEsquilo.right,
+                width: WORLD_LAYOUT.troncoEsquilo.width,
+                transform: [{ rotate: '-4deg' }],
+                aspectRatio: 3072 / 1344,
+              }}
+            />
+          )}
         </Animated.View>
 
         {/* Z-layer 2: Avatar — bottom left, large */}
