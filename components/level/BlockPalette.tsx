@@ -87,11 +87,19 @@ export function BlockPalette({
         {availableBlocks.map((type) => {
           const config = BLOCK_CONFIG[type];
           return (
-            // Sem shadow/elevation no wrapper: no Android, elevation
-            // projeta sombra em todos os lados e pode parecer "borda
-            // grossa colorida". A unidade do bloco fica marcada apenas
-            // pelo contorno fino da borderWidth no Pressable.
-            <View key={type} style={{ borderRadius: 12 }}>
+            // Borda no wrapper externo (View), não no Pressable: no
+            // Android, Pressable com borderRadius+background pode pintar
+            // o background por cima da borda do mesmo componente. Pôr
+            // a borda numa View pai resolve, pois o background do filho
+            // não atinge a área da borda do pai.
+            <View
+              key={type}
+              style={{
+                borderRadius: 12,
+                borderWidth: 2,
+                borderColor: "#000000",
+              }}
+            >
               <Pressable
                 onPress={() => !disabled && onBlockTap(type)}
                 style={({ pressed }) => ({
@@ -101,12 +109,6 @@ export function BlockPalette({
                   paddingHorizontal: 14,
                   paddingVertical: 10,
                   borderRadius: 12,
-                  // Borda fininha em volta do bloco — contorno discreto
-                  // que delimita o bloco como unidade sem virar moldura.
-                  // Cor sólida (não rgba): no celular do Gui, 0.35 alpha
-                  // ficava invisível mesmo sem a sombra em volta.
-                  borderWidth: 1,
-                  borderColor: "#000000",
                   flexDirection: "row",
                   alignItems: "center",
                   gap: 6,
