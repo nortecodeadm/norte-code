@@ -5,7 +5,13 @@
 **Para:** Dev Temporário ativo (atualmente Claude Code, em substituição ao Manus)
 **Via:** Gui
 **Data:** Maio/2026
-**Versão:** 2.8 — Refinamentos durante implementação do Nível 5.
+**Versão:** 2.9 — Nível 5 entregue e validado.
+
+**Changelog v2.9:**
+- Nível 5 marcado como ✅ IMPLEMENTADO. 16 commits no `origin/main`, mais recente `5c57312`.
+- Seção 10 (Estado Atual de Implementação) atualizada — Nível 5 vai pra "Funcionando", Nível 6 vira "Pendente próximo".
+- Tronco caído passa a ser registrado como "elemento substituível" (igual plantas e background).
+- Princípio "ferramentas antecipadas" registrado nas decisões.
 
 **Changelog v2.8:**
 - Nível 5 ganha mais 2 recompensas no Mundo permanente:
@@ -478,7 +484,7 @@ Quando a criança aperta "Executar":
 
 ---
 
-#### Nível 5 — Bloco de Repetição (loop fixo) — PENDENTE (próximo a implementar)
+#### Nível 5 — Bloco de Repetição (loop fixo) ✅ IMPLEMENTADO
 
 - **Conceito de programação:** loop com N fixo (`[Repetir 3×]`).
 - **Função pedagógica:** par com o Nível 4. A criança refaz o MESMO trajeto do Nível 4 (rega as 3 sementes que plantou) mas agora com bloco de loop disponível. Sente o alívio de fazer mais com menos. Princípio "necessidade antes da ferramenta".
@@ -822,9 +828,13 @@ A cada commit que mude lógica/arquitetura, atualizar a doc correspondente.
 - Nível 2 (Sequência mais longa) — solução [Andar][Andar][Plantar][Andar][Regar]
 - Nível 3 (Direção em grade 2D) — introduz `move_right`, `move_up`, `move_down`. Solução tipo [Descer][Direita][Direita][Subir][Plantar]
 - Nível 4 (Sequência longa + `move_left`) — grade 4×4 com caminho em "U" de 12 blocos. Introduz `move_left`. Cenário com 6 pedras forçando rota única em sentido horário. Padrão "3 movimentos + 1 plant" repetido 3 vezes (preparação pedagógica do Nível 5)
-- Sistema de recompensas com substituição em cadeia (`seed_lvl1` → `sprout_lvl2` → `grown_sprout_lvl3` → `mini_tree_lvl4`)
+- Nível 5 (Loop fixo com bloco `[Repetir 3×]`) — mesma grade do Nível 4 com 3 sementes pra regar. Introduz bloco `repeat_3` e mudança estrutural na representação de programa (passa a suportar blocos com filhos). UX "modo edição via toque" pra adicionar blocos dentro do envelope. Solução-alvo 9 blocos vs 12 do Nível 4 (alívio pedagógico). Tela do nível vira rolável + autoscroll ao executar
+- Sistema de recompensas com substituição em cadeia (`seed_lvl1` → `sprout_lvl2` → `grown_sprout_lvl3` → `mini_tree_lvl4` → `young_tree_lvl5`)
+- Background do Mundo substituível por estágio (`background_v1` → `background_v2` ao concluir Nível 5; espaço pra background árido no Nível 10)
+- Tronco caído substituído por versão com flor brotando ao concluir Nível 5 (mesma lógica de substituição das plantas)
 - Mensagens de erro contextuais por nível (via campo opcional `failReason` no `ExecutionStep`)
 - Princípio narrativo registrado: Mundo permanente é narrativa visual, não decoração (ver `DECISIONS.md`)
+- Princípio pedagógico "ferramentas antecipadas": cada conceito de programação aprendido nos Níveis 5-8 é apresentado também como ferramenta que a criança vai usar pra restaurar o mundo no Nível 10
 - SafeAreaView correto (react-native-safe-area-context)
 - Botão voltar com router.replace('/world')
 - Persistência local (AsyncStorage)
@@ -833,14 +843,13 @@ A cada commit que mude lógica/arquitetura, atualizar a doc correspondente.
 
 ### 🚧 Em implementação
 
-- (Nenhum nível em implementação no momento — próximo é o Nível 5)
+- (Nenhum nível em implementação no momento — próximo é o Nível 6)
 
 ### ⏳ Pendente
 
-- Nível 5 (introdução do bloco `[Repetir N vezes]`) — par pedagógico do Nível 4. Mesmo cenário, mesmos movimentos, mas com bloco de loop. Solução de 9 blocos. Recompensa: 3 sementes do Nível 4 viram plantinhas estágio 3 (pulando broto estágio 2) + 2 flores novas
-- Níveis 6-10
-- Capítulo narrativo entre Nível 5 e 6
-- Transição visual Mundo Fase 1 → Mundo Fase 3
+- Nível 6 (Condicional simples — se → então) — introduz `[Se houver canteiro vazio → Plantar]`. Primeira fauna entra no Mundo (pássaro pousado)
+- Níveis 7-10
+- Capítulo Narrativo (telas dedicadas de história) — pendente de sessão dedicada
 - Acessibilidade (TTS opcional)
 
 ### Pendências técnicas conhecidas
@@ -901,5 +910,5 @@ Ao final:
 
 ---
 
-*Atualizado em Maio/2026 — v2.8*
-*Reflete: roadmap completo dos Níveis 5-10 consolidado, Nível 5 ganha evolução da planta principal pra árvore jovem (antecipada do Nível 6) e substituição do tronco caído pelo tronco com flor. Dev Temporário ativo: Claude Code.*
+*Atualizado em Maio/2026 — v2.9*
+*Reflete: Nível 5 entregue e validado no celular. Origin/main atualmente em commit 5c57312. Próximo nível em fila: Nível 6 (condicional simples). Dev Temporário ativo: Claude Code.*

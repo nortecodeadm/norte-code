@@ -29,12 +29,13 @@
 
 ### Visual / Style Guide
 
-#### 3. Cor dos blocos de movimento — alinhar com Style Guide
-**Origem:** descoberta durante entrega do Nível 4 (Maio/2026).
-**Descrição:** `components/level/BlockPalette.tsx` usa `#4A90D9` pra todos os blocos de movimento. O Style Guide v1.2 define **azul-rio `#5B8AA6`** como cor da categoria movimento. Pequena divergência.
-**O que fazer:** trocar `#4A90D9` por `#5B8AA6` nas 5 entradas do `BLOCK_CONFIG` (move_right, move_left, move_up, move_down, e o que quer que seja o equivalente do `walk_forward`).
-**Impacto:** mudança visual única, afeta blocos de Níveis 1-4. Estética, não funcional. Vale teste rápido no celular pra ver se a cor nova fica boa visualmente.
-**Prioridade:** baixa. Pode ir junto com o item 4.
+#### 3. Cores dos blocos — alinhar com Style Guide
+**Origem:** descoberta durante entregas do Nível 4 e Nível 5 (Maio/2026).
+**Descrição:** divergências entre o código e o Style Guide v1.3 nas cores dos blocos:
+- Blocos de movimento usam `#4A90D9` em `BlockPalette.tsx`; Style Guide define azul-rio `#5B8AA6`.
+- Bloco `repeat_3` usa `#E8853D` (laranja consistente com outros elementos do projeto); Style Guide define `#D4A744` pra categoria similar.
+**O que fazer:** alinhar TODAS as cores de blocos ao Style Guide. Pode ser absorvido pelo item 11 (redesign visual completo dos blocos pré-release) se preferir, em vez de tarefa isolada.
+**Prioridade:** baixa. Será atacado junto com o item 11.
 
 #### 4. Ícone profissional do `move_left`
 **Origem:** entrega do Nível 4 (Maio/2026).
@@ -94,6 +95,22 @@
 
 ---
 
+#### 12. Tap fora do envelope encerra modo de edição
+**Origem:** ajuste defensivo da UX do Nível 5 que ficou pra depois (Maio/2026).
+**Descrição:** quando criança está com o envelope `repeat_3` em modo de edição (adicionando blocos dentro), o único jeito de SAIR do modo hoje é tocando no botão "Pronto ✓" ou no header do envelope. **Tap em outro lugar da tela NÃO encerra o modo.**
+**O que fazer:** implementar overlay com `pointerEvents` configurado seletivamente que detecta tap fora do envelope ativo e encerra o modo (com animação curta de fechamento pra criança ver que saiu).
+**Risco baixo de UX:** botão "Pronto ✓" está visualmente óbvio (redesenhado em iteração no Nível 5 — dourado da marca + verde-jardim + sombra). Criança não fica "presa" no modo, só não tem o atalho intuitivo de tocar fora.
+**Prioridade:** baixa. Polish quality-of-life.
+
+---
+
+#### 13. Polish visual durante execução do repeat_3 — envelope brilha mais sutil
+**Origem:** decisão de implementação do Nível 5 (Maio/2026). Versão atual está funcional.
+**Descrição:** o envelope do `repeat_3` brilha durante execução do loop (mesma cor de glow dos blocos folha quando ativos — implementado via `activeBlockId` no `ProgramArea`, sem mexer no interpretador). Funciona bem, mas é um "polish indireto" — talvez valha uma versão visualmente mais nuançada (ex: pulsar diferente entre as iterações, contador "1/3, 2/3, 3/3" visível durante execução).
+**Prioridade:** muito baixa. Versão atual atende ao objetivo pedagógico.
+
+---
+
 #### 10. Mover protocolos pra `docs/internal/`
 **Origem:** convenção registrada no Protocolo de Dev Temporário v1.1.
 **Descrição:** confirmar que os 3 documentos centrais (`NORTECODE_Protocolo_Dev_Temporario.md`, `NORTECODE_Protocolo_Colaboracao_IAs.md`, e `NORTECODE_Briefing_MVP.md`) estão todos em `docs/internal/`. Se algum estiver em outro lugar (raiz do repo, `docs/` direto), mover.
@@ -105,13 +122,14 @@
 
 ### Maio/2026
 
+- ✅ **Entrega Nível 5 — bloco de loop fixo `[Repetir 3×]` + mudança estrutural pra blocos com filhos** (Maio/2026, 16 commits, commit final `5c57312`). Inclui: tela do nível rolável + autoscroll ao executar; UX "modo edição via toque" pra blocos aninhados; envelope brilha durante execução; botão "Pronto ✓" redesenhado com contraste AAA (2 iterações); tronco caído substituído por versão com flor; planta principal evolui pra árvore jovem (antecipada do Nível 6); botão Play rejoga último nível quando não há próximo.
+- ✅ Briefing MVP atualizado pra v2.9; Style Guide pra v1.3
+- ✅ Atualização Briefing MVP v2.5 → v2.6 → v2.7 → v2.8 → v2.9 (Nível 3, 4 e 5 entregues; roadmap completo dos Níveis 5-10 consolidado; arquivo renomeado pra `NORTECODE_Briefing_MVP.md` sem versão no nome)
 - ✅ Entrega Nível 4 — sequência longa + `move_left` (13/05/2026)
 - ✅ Migração de Manus pra Claude Code como Dev Temporário ativo (Maio/2026)
 - ✅ Atualização Protocolo Dev Temporário v1.0 → v1.1 (commit direto no main como default; convenção de `docs/internal/`)
-- ✅ Atualização Style Guide v1.1 → v1.2 (subseção 9.2.1 de plantas; workflow Gemini ou Canva)
-- ✅ Atualização Briefing MVP v2.5 → v2.6 → v2.7 (Nível 3 e 4 entregues; Nível 5 redesenhado; cadeia de substituição visual documentada; roadmap completo dos Níveis 5-10 consolidado; arquivo renomeado pra `NORTECODE_Briefing_MVP.md` sem versão no nome)
 - ✅ Migração de APK release pra dev build com Fast Refresh (Maio/2026)
-- ✅ Geração do asset `mundo_mini_arvore.png` (Maio/2026)
+- ✅ Geração dos assets: `mundo_mini_arvore.png`, `mundo_arvore_jovem.png`, `background_mundo_v2.png`, `plantinha_estagio3.png`, `flor_no_tronco.png` (Maio/2026)
 
 ---
 
