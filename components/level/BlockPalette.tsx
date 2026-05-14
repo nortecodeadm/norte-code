@@ -111,10 +111,10 @@ export function BlockPalette({
                   paddingHorizontal: 14,
                   paddingVertical: 10,
                   borderRadius: 12,
-                  // Borda escura em volta do bloco — silhueta que dá
-                  // sensação de "peça/bloco" em qualquer cor de fundo.
-                  borderWidth: 2,
-                  borderColor: "rgba(0,0,0,0.3)",
+                  // Borda fininha em volta do bloco — contorno discreto
+                  // que delimita o bloco como unidade sem virar moldura.
+                  borderWidth: 1,
+                  borderColor: "rgba(0,0,0,0.35)",
                   flexDirection: "row",
                   alignItems: "center",
                   gap: 6,
