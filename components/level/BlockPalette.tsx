@@ -96,8 +96,11 @@ export function BlockPalette({
               key={type}
               style={{
                 borderRadius: 12,
-                borderWidth: 2,
+                borderWidth: 1,
                 borderColor: "#000000",
+                // overflow hidden garante que o background do Pressable
+                // interno respeite os cantos arredondados do wrapper.
+                overflow: "hidden",
               }}
             >
               <Pressable
