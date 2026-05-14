@@ -37,9 +37,92 @@ import {
   ProgramArea,
   ExecuteButton,
   LevelScene,
+  isContainerBlock,
   type ProgramBlock,
   type ExecuteState,
 } from "../../components/level";
+
+// ─── Helpers pra programa com filhos (estruturas aninhadas, Nível 5+) ────────
+// Estes utilitários assumem que cada bloco tem ID único na árvore inteira.
+
+// Contagem plana de blocos (inclui filhos). Usada pra checar maxBlocks.
+function countBlocks(blocks: ProgramBlock[]): number {
+  let total = 0;
+  for (const b of blocks) {
+    total += 1;
+    if (b.children) total += countBlocks(b.children);
+  }
+  return total;
+}
+
+// Converte árvore de ProgramBlock pra AST executável (recursivo).
+// repeat_3 vira LoopNode com body recursivo. Demais blocos viram ActionNode.
+function blocksToAST(blocks: ProgramBlock[]): ASTNode[] {
+  return blocks.map((b): ASTNode => {
+    if (b.type === "repeat_3") {
+      return {
+        type: "loop",
+        times: 3,
+        body: blocksToAST(b.children ?? []),
+        id: b.id,
+      };
+    }
+    return { type: "action", name: b.type, id: b.id };
+  });
+}
+
+// Remove um bloco da árvore por id, em qualquer nível de profundidade.
+function removeBlockById(
+  blocks: ProgramBlock[],
+  id: string
+): ProgramBlock[] {
+  const result: ProgramBlock[] = [];
+  for (const b of blocks) {
+    if (b.id === id) continue;
+    if (b.children) {
+      result.push({ ...b, children: removeBlockById(b.children, id) });
+    } else {
+      result.push(b);
+    }
+  }
+  return result;
+}
+
+// Insere um filho dentro de um container específico (por id), em qualquer
+// profundidade. Devolve a árvore atualizada.
+function insertInContainer(
+  blocks: ProgramBlock[],
+  containerId: string,
+  child: ProgramBlock
+): ProgramBlock[] {
+  return blocks.map((b) => {
+    if (b.id === containerId) {
+      return { ...b, children: [...(b.children ?? []), child] };
+    }
+    if (b.children) {
+      return {
+        ...b,
+        children: insertInContainer(b.children, containerId, child),
+      };
+    }
+    return b;
+  });
+}
+
+// Encontra um bloco por id em qualquer profundidade.
+function findBlockById(
+  blocks: ProgramBlock[],
+  id: string
+): ProgramBlock | undefined {
+  for (const b of blocks) {
+    if (b.id === id) return b;
+    if (b.children) {
+      const inChild = findBlockById(b.children, id);
+      if (inChild) return inChild;
+    }
+  }
+  return undefined;
+}
 
 export default function LevelScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -56,6 +139,11 @@ export default function LevelScreen() {
   );
   const [showHint, setShowHint] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  // "Modo edição" dum container (repeat_3 etc): novos taps na paleta entram
+  // pra dentro do envelope. undefined = modo normal (adiciona no topo).
+  const [editingContainerId, setEditingContainerId] = useState<
+    string | undefined
+  >(undefined);
 
   const blockIdCounter = useRef(0);
   const hintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -108,18 +196,37 @@ export default function LevelScreen() {
   // ─── Handlers ──────────────────────────────────────────────────────────
 
   const handleAddBlock = (type: BlockType) => {
-    if (programBlocks.length >= level.maxBlocks) return;
     if (executeState !== "idle" && executeState !== "error") return;
+
+    // Contagem plana (inclui filhos de containers)
+    const currentCount = countBlocks(programBlocks);
+    if (currentCount >= level.maxBlocks) return;
 
     blockIdCounter.current += 1;
     const newBlock: ProgramBlock = {
       id: `blk_${blockIdCounter.current}_${Date.now()}`,
       type,
+      ...(isContainerBlock(type) ? { children: [] } : {}),
     };
-    setProgramBlocks((prev) => [...prev, newBlock]);
+
+    setProgramBlocks((prev) => {
+      // Se há container em modo edição, novo bloco entra DENTRO dele.
+      // Containers aninhados são bloqueados aqui (repeat_3 dentro de repeat_3
+      // não está suportado no MVP — ver "O que NÃO fazer" do briefing N5).
+      if (editingContainerId && !isContainerBlock(type)) {
+        return insertInContainer(prev, editingContainerId, newBlock);
+      }
+      // Container novo sempre vai pro topo da árvore.
+      return [...prev, newBlock];
+    });
+
+    // Container recém-criado entra automaticamente em modo edição.
+    if (isContainerBlock(type)) {
+      setEditingContainerId(newBlock.id);
+    }
+
     setErrorMessage(null);
 
-    // Reset state if was in error
     if (executeState === "error") {
       setExecuteState("idle");
       resetWorld();
@@ -128,14 +235,43 @@ export default function LevelScreen() {
 
   const handleRemoveBlock = (blockId: string) => {
     if (executeState === "running") return;
-    setProgramBlocks((prev) => prev.filter((b) => b.id !== blockId));
+
+    // Se o bloco removido for o container em edição, sai do modo.
+    if (blockId === editingContainerId) {
+      setEditingContainerId(undefined);
+    }
+
+    setProgramBlocks((prev) => removeBlockById(prev, blockId));
     setErrorMessage(null);
 
-    // Reset if was in error/success
     if (executeState !== "idle") {
       setExecuteState("idle");
       resetWorld();
     }
+  };
+
+  // Tap no cabeçalho do envelope: alterna modo edição. Tocar no envelope
+  // que já está em edição encerra o modo (com validação de vazio).
+  const handleContainerToggle = (containerId: string) => {
+    if (executeState === "running") return;
+    if (editingContainerId === containerId) {
+      handleContainerDone();
+      return;
+    }
+    setEditingContainerId(containerId);
+    setErrorMessage(null);
+  };
+
+  // Botão "Pronto ✓": valida que o envelope não está vazio e sai do modo.
+  const handleContainerDone = () => {
+    if (!editingContainerId) return;
+    const container = findBlockById(programBlocks, editingContainerId);
+    if (container && (!container.children || container.children.length === 0)) {
+      setErrorMessage("Coloca pelo menos um bloco dentro do repetir.");
+      return; // modo continua aberto, sem punição
+    }
+    setEditingContainerId(undefined);
+    setErrorMessage(null);
   };
 
   const resetWorld = () => {
@@ -160,14 +296,10 @@ export default function LevelScreen() {
     setActiveBlockId(undefined);
     setErrorMessage(null);
 
-    // Build AST from program blocks
+    // Build AST from program blocks (recursivo — suporta repeat_3 com filhos)
     const ast: ProgramNode = {
       type: "program",
-      body: programBlocks.map((block): ASTNode => ({
-        type: "action",
-        name: block.type,
-        id: block.id,
-      })),
+      body: blocksToAST(programBlocks),
     };
 
     // Execute
@@ -205,12 +337,26 @@ export default function LevelScreen() {
     blocks: ProgramBlock[],
     steps: ExecutionStep[]
   ): string => {
-    const hasPlantBlock = blocks.some((b) => b.type === "plant");
-    const hasMoveBlock = blocks.some((b) =>
-      b.type === "move_forward" || b.type === "move_right" ||
-      b.type === "move_down" || b.type === "move_up" || b.type === "move_left"
+    // Verificação recursiva: blocos dentro de containers (repeat_3) também contam.
+    const anyBlock = (
+      bs: ProgramBlock[],
+      pred: (t: BlockType) => boolean
+    ): boolean =>
+      bs.some(
+        (b) => pred(b.type) || (b.children ? anyBlock(b.children, pred) : false)
+      );
+
+    const hasPlantBlock = anyBlock(blocks, (t) => t === "plant");
+    const hasMoveBlock = anyBlock(
+      blocks,
+      (t) =>
+        t === "move_forward" ||
+        t === "move_right" ||
+        t === "move_down" ||
+        t === "move_up" ||
+        t === "move_left"
     );
-    const hasWaterBlock = blocks.some((b) => b.type === "water");
+    const hasWaterBlock = anyBlock(blocks, (t) => t === "water");
 
     if (!hasMoveBlock && !hasPlantBlock) {
       return "Monte seu programa! Toque nos blocos acima.";
@@ -259,6 +405,24 @@ export default function LevelScreen() {
     }
     if (hasFlowerbedRemaining) {
       return level.errorMessages.not_at_planting_spot || level.errorMessages.plant_wrong_spot || level.errorMessages.wrong_position || "Você precisa andar até o canteiro antes de plantar!";
+    }
+
+    // Nível 5+: o objetivo é regar canteiros já plantados (content === "seed").
+    // Se ainda restam seeds não regadas, a criança não cobriu todos os pontos.
+    const usesWaterOnly =
+      level.availableBlocks.includes("water") &&
+      !level.availableBlocks.includes("plant");
+    if (usesWaterOnly) {
+      const hasUnwateredSeed = finalState.grid.some((row) =>
+        row.some((cell) => cell.content === "seed")
+      );
+      if (hasUnwateredSeed) {
+        return (
+          level.errorMessages.not_at_watering_spot ||
+          level.errorMessages.wrong_path ||
+          "Você ainda não regou todos os canteiros."
+        );
+      }
     }
 
     // Check if watering_spot still unwatered
@@ -319,6 +483,7 @@ export default function LevelScreen() {
     setProgramBlocks([]);
     setExecuteState("idle");
     setErrorMessage(null);
+    setEditingContainerId(undefined);
     resetWorld();
   };
 
@@ -361,6 +526,35 @@ export default function LevelScreen() {
           {level.description}
         </Text>
       </View>
+
+      {/* Indicador de "modo edição" — só aparece quando há container em edição.
+          Garante que a criança sempre sabe que próximos taps vão pra dentro
+          do envelope. Ver decisão de UX em DECISIONS.md (modo via toque). */}
+      {editingContainerId && (
+        <View className="px-6 pt-1">
+          <View
+            style={{
+              backgroundColor: "#FFF4E5",
+              borderRadius: 10,
+              paddingHorizontal: 12,
+              paddingVertical: 6,
+              borderWidth: 1,
+              borderColor: "#E8853D",
+            }}
+          >
+            <Text
+              style={{
+                fontFamily: "Nunito-SemiBold",
+                fontSize: 11,
+                color: "#A0522D",
+                textAlign: "center",
+              }}
+            >
+              ✎ Adicionando blocos dentro de Repetir 3×
+            </Text>
+          </View>
+        </View>
+      )}
 
       {/* Scene — fixed height, does not grow */}
       <LevelScene world={worldState} />
@@ -405,8 +599,12 @@ export default function LevelScreen() {
         <ProgramArea
           blocks={programBlocks}
           onBlockRemove={handleRemoveBlock}
+          editingContainerId={editingContainerId}
+          onContainerToggle={handleContainerToggle}
+          onContainerDone={handleContainerDone}
           activeBlockId={activeBlockId}
           maxBlocks={level.maxBlocks}
+          totalCount={countBlocks(programBlocks)}
           disabled={executeState === "running"}
         />
       </View>

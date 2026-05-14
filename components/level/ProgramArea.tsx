@@ -1,8 +1,11 @@
 /**
  * ProgramArea — Shows the blocks the child has assembled into a program.
  *
- * MVP: Vertical list of blocks. Tap a block to remove it.
- * Blocks highlight during execution playback.
+ * Suporta blocos com filhos (children) — usado por estruturas aninhadas
+ * como `repeat_3` (Nível 5+). Quando um bloco com filhos está em "modo de
+ * edição", o envelope dele é destacado visualmente e novos toques na paleta
+ * entram pra dentro do envelope. O contrato da UX está documentado em
+ * DECISIONS.md ("modo de edição via toque").
  */
 
 import React from "react";
@@ -12,14 +15,28 @@ import type { BlockType } from "../../lib/interpreter";
 export interface ProgramBlock {
   id: string;
   type: BlockType;
+  /**
+   * Filhos de blocos estruturais (ex: repeat_3). Quando undefined, o bloco
+   * é simples (action). Quando definido, o bloco é envelope e os filhos são
+   * executados dentro dele pela camada de interpretação.
+   */
+  children?: ProgramBlock[];
 }
 
 interface ProgramAreaProps {
   blocks: ProgramBlock[];
   onBlockRemove: (id: string) => void;
+  /** Identifica o envelope atualmente em "modo edição" (recebe novos taps). */
+  editingContainerId?: string;
+  /** Toca no envelope: alterna o modo de edição. */
+  onContainerToggle?: (id: string) => void;
+  /** Botão "Pronto ✓" — sai do modo edição. */
+  onContainerDone?: () => void;
   activeBlockId?: string; // Block currently being executed (for highlight)
   maxBlocks: number;
   disabled?: boolean;
+  /** Conta plana de blocos (incluindo filhos), usada pra exibir contador. */
+  totalCount?: number;
 }
 
 const BLOCK_COLORS: Record<BlockType, string> = {
@@ -34,6 +51,7 @@ const BLOCK_COLORS: Record<BlockType, string> = {
   water: "#4ECDC4",
   pick_fruit: "#F5A623",
   repeat: "#E8853D",
+  repeat_3: "#E8853D",
   if_condition: "#D4577B",
   if_else: "#D4577B",
   define_function: "#8E44AD",
@@ -53,6 +71,7 @@ const BLOCK_LABELS: Record<BlockType, string> = {
   water: "💧 Regar",
   pick_fruit: "🍎 Pegar",
   repeat: "🔄 Repetir",
+  repeat_3: "🔄 Repetir 3×",
   if_condition: "? Se...",
   if_else: "?! Se/Senão",
   define_function: "📦 Definir",
@@ -60,13 +79,241 @@ const BLOCK_LABELS: Record<BlockType, string> = {
   stop: "⏹ Parar",
 };
 
+const CONTAINER_TYPES: ReadonlySet<BlockType> = new Set<BlockType>([
+  "repeat_3",
+]);
+
+export function isContainerBlock(type: BlockType): boolean {
+  return CONTAINER_TYPES.has(type);
+}
+
+function SimpleBlockRow({
+  block,
+  index,
+  isActive,
+  onRemove,
+  disabled,
+  indent = 0,
+}: {
+  block: ProgramBlock;
+  index: number;
+  isActive: boolean;
+  onRemove: (id: string) => void;
+  disabled: boolean;
+  indent?: number;
+}) {
+  const color = BLOCK_COLORS[block.type];
+  return (
+    <Pressable
+      onPress={() => !disabled && onRemove(block.id)}
+      style={({ pressed }) => ({
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: isActive ? color : `${color}22`,
+        borderLeftWidth: 4,
+        borderLeftColor: color,
+        borderRadius: 8,
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        marginLeft: indent,
+        opacity: pressed && !disabled ? 0.6 : 1,
+        transform: [{ scale: isActive ? 1.02 : 1 }],
+      })}
+    >
+      <Text
+        style={{
+          fontFamily: "Nunito-Regular",
+          fontSize: 11,
+          color: "#7A9E7E",
+          marginRight: 8,
+          width: 18,
+        }}
+      >
+        {index}.
+      </Text>
+      <Text
+        style={{
+          fontFamily: "Nunito-SemiBold",
+          fontSize: 13,
+          color: isActive ? "#FFFFFF" : color,
+          flex: 1,
+        }}
+      >
+        {BLOCK_LABELS[block.type]}
+      </Text>
+      {!disabled && <Text style={{ fontSize: 12, color: "#CCC" }}>✕</Text>}
+    </Pressable>
+  );
+}
+
+function ContainerBlockRow({
+  block,
+  index,
+  isActive,
+  isEditing,
+  onToggle,
+  onDone,
+  onRemove,
+  disabled,
+  activeBlockId,
+}: {
+  block: ProgramBlock;
+  index: number;
+  isActive: boolean;
+  isEditing: boolean;
+  onToggle: () => void;
+  onDone: () => void;
+  onRemove: (id: string) => void;
+  disabled: boolean;
+  activeBlockId?: string;
+}) {
+  const color = BLOCK_COLORS[block.type];
+  const children = block.children ?? [];
+  const isEmpty = children.length === 0;
+
+  return (
+    <View
+      style={{
+        borderWidth: isEditing ? 2 : 1.5,
+        borderColor: isEditing ? color : `${color}55`,
+        borderRadius: 12,
+        backgroundColor: isEditing ? `${color}1A` : `${color}0D`,
+        padding: 10,
+      }}
+    >
+      {/* Cabeçalho do envelope — tap pra alternar modo edição */}
+      <Pressable
+        onPress={() => !disabled && onToggle()}
+        style={({ pressed }) => ({
+          flexDirection: "row",
+          alignItems: "center",
+          opacity: pressed && !disabled ? 0.7 : 1,
+        })}
+      >
+        <Text
+          style={{
+            fontFamily: "Nunito-Regular",
+            fontSize: 11,
+            color: "#7A9E7E",
+            marginRight: 8,
+            width: 18,
+          }}
+        >
+          {index}.
+        </Text>
+        <Text
+          style={{
+            fontFamily: "Nunito-Bold",
+            fontSize: 14,
+            color: isActive ? "#FFFFFF" : color,
+            flex: 1,
+            backgroundColor: isActive ? color : "transparent",
+            paddingHorizontal: isActive ? 6 : 0,
+            borderRadius: 4,
+          }}
+        >
+          {BLOCK_LABELS[block.type]}
+        </Text>
+        {!disabled && !isEditing && (
+          <Pressable
+            hitSlop={8}
+            onPress={() => onRemove(block.id)}
+            style={{ paddingHorizontal: 6 }}
+          >
+            <Text style={{ fontSize: 12, color: "#CCC" }}>✕</Text>
+          </Pressable>
+        )}
+      </Pressable>
+
+      {/* Slot interno */}
+      <View
+        style={{
+          marginTop: 8,
+          paddingLeft: 12,
+          borderLeftWidth: 2,
+          borderLeftColor: `${color}55`,
+          gap: 6,
+        }}
+      >
+        {isEmpty ? (
+          <View
+            style={{
+              paddingVertical: 10,
+              paddingHorizontal: 12,
+              borderRadius: 8,
+              borderWidth: 1,
+              borderStyle: "dashed",
+              borderColor: isEditing ? color : `${color}55`,
+              alignItems: "center",
+            }}
+          >
+            <Text
+              style={{
+                fontFamily: "Nunito-SemiBold",
+                fontSize: 12,
+                color: isEditing ? color : "#A0B8A4",
+                textAlign: "center",
+              }}
+            >
+              {isEditing
+                ? "Toque nos blocos acima — eles entram aqui"
+                : "Toque no envelope pra adicionar blocos dentro"}
+            </Text>
+          </View>
+        ) : (
+          children.map((child, childIdx) => (
+            <SimpleBlockRow
+              key={child.id}
+              block={child}
+              index={childIdx + 1}
+              isActive={activeBlockId === child.id}
+              onRemove={onRemove}
+              disabled={disabled}
+            />
+          ))
+        )}
+      </View>
+
+      {/* Botão "Pronto ✓" — só aparece em modo edição */}
+      {isEditing && !disabled && (
+        <Pressable
+          onPress={onDone}
+          style={({ pressed }) => ({
+            marginTop: 10,
+            alignSelf: "flex-end",
+            backgroundColor: pressed ? "#1F5F3F" : "#2A7A4F",
+            paddingHorizontal: 16,
+            paddingVertical: 8,
+            borderRadius: 10,
+          })}
+        >
+          <Text
+            style={{
+              fontFamily: "Nunito-Bold",
+              fontSize: 13,
+              color: "#FFFFFF",
+            }}
+          >
+            Pronto ✓
+          </Text>
+        </Pressable>
+      )}
+    </View>
+  );
+}
+
 export function ProgramArea({
   blocks,
   onBlockRemove,
+  editingContainerId,
+  onContainerToggle,
+  onContainerDone,
   activeBlockId,
   maxBlocks,
   disabled = false,
+  totalCount,
 }: ProgramAreaProps) {
+  const count = totalCount ?? blocks.length;
   return (
     <View style={{ flex: 1 }} className="mx-4 rounded-2xl bg-white/80 border border-garden-green/10 p-3">
       {/* Header */}
@@ -80,14 +327,14 @@ export function ProgramArea({
           style={{
             fontFamily: "Nunito-Regular",
             fontSize: 11,
-            color: blocks.length >= maxBlocks ? "#D4577B" : "#7A9E7E",
+            color: count >= maxBlocks ? "#D4577B" : "#7A9E7E",
           }}
         >
-          {blocks.length === 0
+          {count === 0
             ? ""
-            : blocks.length >= maxBlocks
-              ? `${blocks.length} blocos (máx.)`
-              : `${blocks.length} bloco${blocks.length > 1 ? "s" : ""}`}
+            : count >= maxBlocks
+              ? `${count} blocos (máx.)`
+              : `${count} bloco${count > 1 ? "s" : ""}`}
         </Text>
       </View>
 
@@ -123,51 +370,31 @@ export function ProgramArea({
           </View>
         ) : (
           blocks.map((block, index) => {
-            const isActive = activeBlockId === block.id;
-            const color = BLOCK_COLORS[block.type];
-
+            if (isContainerBlock(block.type)) {
+              return (
+                <ContainerBlockRow
+                  key={block.id}
+                  block={block}
+                  index={index + 1}
+                  isActive={activeBlockId === block.id}
+                  isEditing={editingContainerId === block.id}
+                  onToggle={() => onContainerToggle?.(block.id)}
+                  onDone={() => onContainerDone?.()}
+                  onRemove={onBlockRemove}
+                  disabled={disabled}
+                  activeBlockId={activeBlockId}
+                />
+              );
+            }
             return (
-              <Pressable
+              <SimpleBlockRow
                 key={block.id}
-                onPress={() => !disabled && onBlockRemove(block.id)}
-                style={({ pressed }) => ({
-                  flexDirection: "row",
-                  alignItems: "center",
-                  backgroundColor: isActive ? color : `${color}22`,
-                  borderLeftWidth: 4,
-                  borderLeftColor: color,
-                  borderRadius: 8,
-                  paddingHorizontal: 12,
-                  paddingVertical: 8,
-                  opacity: pressed && !disabled ? 0.6 : 1,
-                  transform: [{ scale: isActive ? 1.02 : 1 }],
-                })}
-              >
-                <Text
-                  style={{
-                    fontFamily: "Nunito-Regular",
-                    fontSize: 11,
-                    color: "#7A9E7E",
-                    marginRight: 8,
-                    width: 16,
-                  }}
-                >
-                  {index + 1}.
-                </Text>
-                <Text
-                  style={{
-                    fontFamily: "Nunito-SemiBold",
-                    fontSize: 13,
-                    color: isActive ? "#FFFFFF" : color,
-                    flex: 1,
-                  }}
-                >
-                  {BLOCK_LABELS[block.type]}
-                </Text>
-                {!disabled && (
-                  <Text style={{ fontSize: 12, color: "#CCC" }}>✕</Text>
-                )}
-              </Pressable>
+                block={block}
+                index={index + 1}
+                isActive={activeBlockId === block.id}
+                onRemove={onBlockRemove}
+                disabled={disabled}
+              />
             );
           })
         )}

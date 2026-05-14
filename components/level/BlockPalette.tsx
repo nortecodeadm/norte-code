@@ -31,6 +31,7 @@ const BLOCK_CONFIG: Record<
   water: { label: "Regar", color: "#4ECDC4", icon: "💧" },
   pick_fruit: { label: "Pegar", color: "#F5A623", icon: "🍎" },
   repeat: { label: "Repetir", color: "#E8853D", icon: "🔄" },
+  repeat_3: { label: "Repetir 3×", color: "#E8853D", icon: "🔄" },
   if_condition: { label: "Se...", color: "#D4577B", icon: "?" },
   if_else: { label: "Se/Senão", color: "#D4577B", icon: "?!" },
   define_function: { label: "Definir", color: "#8E44AD", icon: "📦" },
