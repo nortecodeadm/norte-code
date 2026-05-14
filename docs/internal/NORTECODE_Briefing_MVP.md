@@ -5,7 +5,15 @@
 **Para:** Dev Temporário ativo (atualmente Claude Code, em substituição ao Manus)
 **Via:** Gui
 **Data:** Maio/2026
-**Versão:** 2.10 — Sessão de alinhamento dos Níveis 6-8 (planejamento sem briefing técnico).
+**Versão:** 2.11 — Nível 6 entregue e validado.
+
+**Changelog v2.11:**
+- Nível 6 marcado como ✅ IMPLEMENTADO. 19 commits no main local (3 base + 16 de polish visual descobertos no teste).
+- Seção 10 atualizada — Nível 6 vai pra "Funcionando", Nível 7 vira próximo na fila.
+- 2 padrões técnicos descobertos no Nível 6 e estabelecidos pro futuro:
+  - Legenda do mapa em `LevelScene.tsx` é adaptativa baseada no conteúdo do grid (preserva legenda dos Níveis 1-4).
+  - Função `getContrastTextColor(bgColor)` calcula cor de texto automaticamente — usar em todo bloco novo.
+- Saga das bordas dos blocos no Android documentada (8 commits de troubleshooting): conhecimento técnico real sobre como View+Pressable+Border renderiza, evita dor em níveis futuros.
 
 **Changelog v2.10:**
 - Níveis 6, 7 e 8 detalhados com decisões da sessão de alinhamento.
@@ -522,7 +530,7 @@ Quando a criança aperta "Executar":
 
 ---
 
-#### Nível 6 — Condicional simples (se → então) — PENDENTE (próximo a implementar)
+#### Nível 6 — Condicional simples (se → então) ✅ IMPLEMENTADO
 
 - **Conceito de programação:** condicional. "Se acontecer X, então faça Y."
 - **Função pedagógica:** introdução do **discernimento**. Até agora a criança fazia coisas em sequência. Agora ela aprende a **olhar antes de agir**. Mordomia exige discernimento — não é todo solo que recebe semente.
@@ -535,12 +543,14 @@ Quando a criança aperta "Executar":
 - **Blocos disponíveis:** `move_right`, `[Se canteiro vazio → Plantar]`, `[Repetir 5×]`.
 - **Solução-alvo:** `[Repetir 5× [→, Se canteiro vazio → Plantar]]` — programa enxuto que aplica condicional dentro de loop.
 - **Mudança no Mundo permanente:**
-  - **Primeira fauna:** 1 pássaro pousado em algum ponto do cenário (asset novo, marcante — pássaro pequeno, paleta suave).
-  - **3 plantinhas estágio 3 do Nível 5 viram 3 mini-árvores** (continuidade visual da história: as plantinhas que a criança regou agora cresceram). Reusa asset `mini_tree_lvl4.png` que já existe — 3 instâncias nas posições das plantinhas anteriores.
+  - **Primeira fauna:** **2 pássaros** pousados no Mundo (mesmo asset `mundo_passaro_pousado.png`, uma das instâncias espelhada horizontalmente pra parecerem "casal" virado em direções opostas). 1 pousa no tronco caído com flor, 1 pousa na pedra. Gui calibra posições. Asset paleta azul-claro + creme + bico amarelo (evita marrom pra não confundir com solo).
+  - **3 plantinhas estágio 3 do Nível 5 viram 3 mini-árvores** (continuidade visual da história das sementes do Nível 4 que foram regadas no 5 e agora cresceram). Reusa asset `mundo_mini_arvore.png` que já existe — 3 instâncias nas posições das plantinhas anteriores.
+  - **+3 flores amarelas decorativas novas** (asset `mundo_flor_amarela.png` — paleta amarela soft com miolo dourado, dialoga com a flor rosa existente do Nível 3). Adicionam cor e diversidade ao jardim.
   - Planta principal (árvore jovem) NÃO evolui neste nível. Reservado pro Nível 7.
 - **Assets novos necessários:**
-  - `mundo_passaro_pousado.png` (estilo Style Guide — formas arredondadas, paleta suave, pose calma)
-  - Asset do bloco `[Se canteiro vazio → Plantar]` — visual da paleta, conforme padrão de blocos novos.
+  - `mundo_passaro_pousado.png` (✅ já gerado — pássaro pequeno, azul-claro com barriga creme, paleta sem marrom)
+  - `mundo_flor_amarela.png` (✅ já gerado — flor amarela soft, mesma família visual da flor rosa do Nível 3)
+  - Asset visual do bloco `if_canteiro_vazio_then_plantar` na paleta (categoria CONTROLE/CONDICIONAL — diferenciar do laranja do `repeat_3`, usar cor própria pra condicionais).
 - **Texto de conclusão (rascunho):** "Você aprendeu a **olhar antes de fazer**. Nem todo lugar pede a mesma ação. Saber decidir é cuidar bem."
 - **Conexão com Nível 10:** condicional vai permitir diagnóstico do solo árido — "se solo tem umidade → planta; senão → continua andando até achar solo bom". Discernimento é vital pra lidar com terreno difícil.
 
@@ -844,11 +854,17 @@ A cada commit que mude lógica/arquitetura, atualizar a doc correspondente.
 - Nível 2 (Sequência mais longa) — solução [Andar][Andar][Plantar][Andar][Regar]
 - Nível 3 (Direção em grade 2D) — introduz `move_right`, `move_up`, `move_down`. Solução tipo [Descer][Direita][Direita][Subir][Plantar]
 - Nível 4 (Sequência longa + `move_left`) — grade 4×4 com caminho em "U" de 12 blocos. Introduz `move_left`. Cenário com 6 pedras forçando rota única em sentido horário. Padrão "3 movimentos + 1 plant" repetido 3 vezes (preparação pedagógica do Nível 5)
-- Nível 5 (Loop fixo com bloco `[Repetir 3×]`) — mesma grade do Nível 4 com 3 sementes pra regar. Introduz bloco `repeat_3` e mudança estrutural na representação de programa (passa a suportar blocos com filhos). UX "modo edição via toque" pra adicionar blocos dentro do envelope. Solução-alvo 9 blocos vs 12 do Nível 4 (alívio pedagógico). Tela do nível vira rolável + autoscroll ao executar
+- Nível 5 (Loop fixo com bloco `[Repetir 3×]`) — mesma grade do Nível 4 com 3 sementes pra regar. Introduz bloco `repeat_3` e mudança estrutural na representação de programa (passa a suportar blocos com filhos). UX "modo edição via toque" pra adicionar blocos aninhados. Solução-alvo 9 blocos vs 12 do Nível 4 (alívio pedagógico). Tela do nível vira rolável + autoscroll ao executar
+- Nível 6 (Condicional simples) — grade 1×6 linear com `[Avatar][SC][CV][CP][CV][CV]`. Introduz bloco `if_canteiro_vazio_then_plantar` (bloco sólido único, comportamento condicional embutido) e `repeat_5`. Estados de célula visíveis antes da execução. Feedback visual durante execução: bloco condicional pulsa verde quando condição é verdadeira, cinza quando falsa (via campo `conditionResult` em `ExecutionStep`). Princípio "ferramentas antecipadas" reforçado no texto de conclusão
 - Sistema de recompensas com substituição em cadeia (`seed_lvl1` → `sprout_lvl2` → `grown_sprout_lvl3` → `mini_tree_lvl4` → `young_tree_lvl5`)
-- Background do Mundo substituível por estágio (`background_v1` → `background_v2` ao concluir Nível 5; espaço pra background árido no Nível 10)
-- Tronco caído substituído por versão com flor brotando ao concluir Nível 5 (mesma lógica de substituição das plantas)
+- Continuidade visual das 3 plantas secundárias: 3 sementes do Nível 4 → 3 plantinhas estágio 3 do Nível 5 → 3 mini-árvores do Nível 6
+- Background do Mundo substituível por estágio (`background_v1` → `background_v2` ao concluir Nível 5; espaço pra background v3 no Nível 8; árido no Nível 10)
+- Tronco caído substituído por versão com flor brotando ao concluir Nível 5
+- Primeira fauna no Mundo permanente (2 pássaros — mesmo asset com mirror em uma instância, no Nível 6)
+- Diversidade cromática de flores no Mundo (flores rosa do Nível 3 + flores amarelas do Nível 6)
 - Mensagens de erro contextuais por nível (via campo opcional `failReason` no `ExecutionStep`)
+- Legenda do mapa adaptativa em `LevelScene.tsx` — distingue automaticamente entre "só canteiro vazio", "só canteiro plantado", e "ambos" com base no conteúdo do grid. Padrão estabelecido pra próximos níveis
+- Função `getContrastTextColor(bgColor)` baseada em luminância YIQ — calcula texto preto ou branco automaticamente conforme cor de fundo do bloco. Aplicada na paleta e no `ProgramArea`. Padrão pra blocos novos
 - Princípio narrativo registrado: Mundo permanente é narrativa visual, não decoração (ver `DECISIONS.md`)
 - Princípio pedagógico "ferramentas antecipadas": cada conceito de programação aprendido nos Níveis 5-8 é apresentado também como ferramenta que a criança vai usar pra restaurar o mundo no Nível 10
 - SafeAreaView correto (react-native-safe-area-context)
@@ -859,13 +875,14 @@ A cada commit que mude lógica/arquitetura, atualizar a doc correspondente.
 
 ### 🚧 Em implementação
 
-- (Nenhum nível em implementação no momento — próximo é o Nível 6)
+- (Nenhum nível em implementação no momento — próximo é o Nível 7)
 
 ### ⏳ Pendente
 
-- Nível 6 (Condicional simples — se → então) — introduz `[Se houver canteiro vazio → Plantar]`. Primeira fauna entra no Mundo (pássaro pousado)
-- Níveis 7-10
+- Nível 7 (If/else — condicional com dois ramos) — discernimento amadurecido. Árvore principal evolui pra árvore frutífera. Esquilo entra como segunda peça de fauna
+- Níveis 8-10
 - Capítulo Narrativo (telas dedicadas de história) — pendente de sessão dedicada
+- Sessão estratégica dedicada à mecânica da serpente (Níveis 9 e 10) — pendente
 - Acessibilidade (TTS opcional)
 
 ### Pendências técnicas conhecidas
@@ -926,5 +943,5 @@ Ao final:
 
 ---
 
-*Atualizado em Maio/2026 — v2.10*
-*Reflete: Nível 5 entregue. Níveis 6, 7 e 8 com planejamento detalhado em sessão dedicada. Próximo passo: alinhamento final do Nível 6 (cenário, prompt de asset, briefing técnico). Dev Temporário ativo: Claude Code.*
+*Atualizado em Maio/2026 — v2.11*
+*Reflete: Nível 6 entregue e validado no celular. 19 commits aguardando push. Próximo nível em fila: Nível 7 (if/else, árvore frutífera, esquilo). Dev Temporário ativo: Claude Code.*

@@ -81,33 +81,53 @@
 ### Documentação
 
 #### 11. Redesign visual completo dos blocos antes do release do MVP
-**Origem:** decisão do Gui durante implementação do Nível 5 (Maio/2026).
-**Descrição:** os blocos atuais (movimento, plant, water, repeat_3, etc.) estão visualmente funcionais mas básicos — cores chapadas, ícones unicode/emoji ou placeholders simples, sem tratamento visual rico que combine com a identidade do Norte Code. Antes de fechar o MVP pra apresentação/release, fazer um redesign coeso de TODA a paleta de blocos.
-**O que fazer:**
+**Origem:** decisão do Gui durante implementação do Nível 5 (Maio/2026). Enriquecido com descobertas do Nível 6.
+**Descrição:** os blocos atuais (movimento, plant, water, repeat_3, repeat_5, condicional, etc.) estão visualmente funcionais mas básicos — cores chapadas, ícones unicode/emoji ou placeholders simples, sem tratamento visual rico que combine com a identidade do Norte Code. Antes de fechar o MVP, fazer um redesign coeso de TODA a paleta.
+**Padrões já estabelecidos durante implementações (manter no redesign):**
+- Função `getContrastTextColor(bgColor)` baseada em luminância YIQ (threshold 120) — calcula texto preto/branco automaticamente conforme fundo do bloco. Reusar em todo bloco novo.
+- Bordas no Android: aplicar borda no wrapper `View` externo (não no `Pressable` interno), e juntar `backgroundColor + borderRadius + borderWidth + borderColor` na mesma camada. Separar borda de fundo gera problemas com `borderRadius` e `overflow`. Descoberto no Nível 6 após 8 commits de troubleshooting.
+- Visual "outline" dos blocos: cor original do bloco aplicada na borda com sufixo `66` (≈40% alpha) pra ficar sutil; texto preto/branco via `getContrastTextColor`.
+- Layout interno: `flexDirection: column` com emoji em cima + texto embaixo (centralizado) é o padrão atual.
+- Legenda do mapa adaptativa em `LevelScene.tsx`: distingue automaticamente entre "só canteiro vazio", "só canteiro plantado", e "ambos" com base no conteúdo do grid. Padrão pra próximos níveis.
+**O que fazer no redesign:**
 - Definir identidade visual final dos blocos (estilo, profundidade, ícones, tipografia interna)
-- Gerar/desenhar ícones profissionais pra cada tipo de bloco
-- Alinhar cores ao Style Guide v1.2 (resolve simultaneamente os itens 3 e 4 do BACKLOG — divergência de `#4A90D9` vs `#5B8AA6` nos movimentos, e `#E8853D` vs `#D4A744` no repeat)
-- Polir estados visuais (normal, hover/pressed, ativo durante execução, dentro do envelope, etc.)
-- Considerar se o envelope do `repeat_3` (e futuros containers do Nível 6+) precisa de identidade visual mais forte que a atual
-**Pré-requisito:** ter TODOS os tipos de bloco do MVP implementados (Níveis 6-10 podem trazer novos: condicional, função, variável). Fazer o redesign DEPOIS de todos os níveis prontos, pra não retrabalhar.
-**Quando fazer:** fase de polish do MVP, antes do release. Tarefa grande, não bloqueia desenvolvimento dos níveis.
-**Prioridade:** média-alta (pré-release). Bloqueia release final, mas não bloqueia desenvolvimento dos próximos níveis.
+- Gerar/desenhar ícones profissionais pra cada tipo de bloco (substituir unicode/emoji)
+- Alinhar cores ao Style Guide v1.3 (resolve itens 3 e 4 do BACKLOG simultaneamente)
+- Polir estados visuais (normal, pressed, ativo durante execução, dentro do envelope, condicional pulsando verde/cinza)
+- Considerar identidade visual mais forte pra envelopes (`repeat_3`, `repeat_5`, e futuros containers)
+**Pré-requisito:** ter TODOS os tipos de bloco do MVP implementados (Níveis 7-10 podem trazer novos: if/else, função). Fazer DEPOIS de todos os níveis prontos.
+**Prioridade:** média-alta (pré-release).
 
 ---
 
 #### 12. Tap fora do envelope encerra modo de edição
 **Origem:** ajuste defensivo da UX do Nível 5 que ficou pra depois (Maio/2026).
-**Descrição:** quando criança está com o envelope `repeat_3` em modo de edição (adicionando blocos dentro), o único jeito de SAIR do modo hoje é tocando no botão "Pronto ✓" ou no header do envelope. **Tap em outro lugar da tela NÃO encerra o modo.**
+**Descrição:** quando criança está com o envelope `repeat_3` ou `repeat_5` em modo de edição (adicionando blocos dentro), o único jeito de SAIR do modo hoje é tocando no botão "Pronto ✓" ou no header do envelope. **Tap em outro lugar da tela NÃO encerra o modo.**
 **O que fazer:** implementar overlay com `pointerEvents` configurado seletivamente que detecta tap fora do envelope ativo e encerra o modo (com animação curta de fechamento pra criança ver que saiu).
-**Risco baixo de UX:** botão "Pronto ✓" está visualmente óbvio (redesenhado em iteração no Nível 5 — dourado da marca + verde-jardim + sombra). Criança não fica "presa" no modo, só não tem o atalho intuitivo de tocar fora.
-**Prioridade:** baixa. Polish quality-of-life.
+**Prioridade:** baixa.
 
 ---
 
 #### 13. Polish visual durante execução do repeat_3 — envelope brilha mais sutil
 **Origem:** decisão de implementação do Nível 5 (Maio/2026). Versão atual está funcional.
-**Descrição:** o envelope do `repeat_3` brilha durante execução do loop (mesma cor de glow dos blocos folha quando ativos — implementado via `activeBlockId` no `ProgramArea`, sem mexer no interpretador). Funciona bem, mas é um "polish indireto" — talvez valha uma versão visualmente mais nuançada (ex: pulsar diferente entre as iterações, contador "1/3, 2/3, 3/3" visível durante execução).
-**Prioridade:** muito baixa. Versão atual atende ao objetivo pedagógico.
+**Descrição:** o envelope dos `repeat_*` brilha durante execução. Funciona bem, mas talvez valha versão mais nuançada (ex: pulsar diferente entre iterações, contador "1/3, 2/3, 3/3" visível durante execução).
+**Prioridade:** muito baixa.
+
+---
+
+#### 14. Distinção visual entre canteiro vazio (CV) e canteiro plantado (CP) — revisar
+**Origem:** Nível 6 (Maio/2026).
+**Descrição:** o Nível 6 usa o asset de canteiro existente (`flowerbed`) com semente sobreposta pra representar CP. Funciona, mas a distinção entre CV e CP pode ser sutil demais pra criança de 7 anos identificar à primeira vista. Vale revisitar visualmente no Nível 7 (que também usa essa distinção implicitamente — `Se planta seca → Regar; senão se canteiro vazio → Plantar`).
+**O que fazer:** observar no teste se a criança distingue CV de CP sem hesitação. Se houver dúvida, gerar asset mais distintivo (broto verde já saindo no CP, contraste maior, brilho sutil).
+**Prioridade:** média. Pedagogicamente importante.
+
+---
+
+#### 15. Assets .jpg com conteúdo PNG funcionam neste setup
+**Origem:** observação durante implementação do Nível 6 (Maio/2026).
+**Descrição:** os assets `mundo_passaro_pousado.jpg` e `mundo_flor_amarela.jpg` foram gerados com extensão `.jpg` mas conteúdo PNG (RGBA com transparência). Testado e confirmado: o Metro bundler detecta os magic bytes corretamente, transparência preservada, renderização normal no Expo SDK atual. **Não renomear automaticamente** assets `.jpg` quando o conteúdo for PNG — comportamento estável.
+**Status:** comportamento conhecido e validado. Item registrado pra próximas IAs não redescobrirem.
+**Prioridade:** nenhuma (não é tarefa, é documentação).
 
 ---
 
@@ -122,14 +142,16 @@
 
 ### Maio/2026
 
-- ✅ **Entrega Nível 5 — bloco de loop fixo `[Repetir 3×]` + mudança estrutural pra blocos com filhos** (Maio/2026, 16 commits, commit final `5c57312`). Inclui: tela do nível rolável + autoscroll ao executar; UX "modo edição via toque" pra blocos aninhados; envelope brilha durante execução; botão "Pronto ✓" redesenhado com contraste AAA (2 iterações); tronco caído substituído por versão com flor; planta principal evolui pra árvore jovem (antecipada do Nível 6); botão Play rejoga último nível quando não há próximo.
-- ✅ Briefing MVP atualizado pra v2.9; Style Guide pra v1.3
-- ✅ Atualização Briefing MVP v2.5 → v2.6 → v2.7 → v2.8 → v2.9 (Nível 3, 4 e 5 entregues; roadmap completo dos Níveis 5-10 consolidado; arquivo renomeado pra `NORTECODE_Briefing_MVP.md` sem versão no nome)
-- ✅ Entrega Nível 4 — sequência longa + `move_left` (13/05/2026)
-- ✅ Migração de Manus pra Claude Code como Dev Temporário ativo (Maio/2026)
-- ✅ Atualização Protocolo Dev Temporário v1.0 → v1.1 (commit direto no main como default; convenção de `docs/internal/`)
-- ✅ Migração de APK release pra dev build com Fast Refresh (Maio/2026)
-- ✅ Geração dos assets: `mundo_mini_arvore.png`, `mundo_arvore_jovem.png`, `background_mundo_v2.png`, `plantinha_estagio3.png`, `flor_no_tronco.png` (Maio/2026)
+- ✅ **Entrega Nível 6 — condicional simples (`if_canteiro_vazio_then_plantar`)** (14/05/2026, 19 commits — 3 base + 16 polish visual). Inclui: bloco condicional sólido único com feedback verde/cinza durante execução; bloco `repeat_5`; campo `conditionResult?: boolean` em `ExecutionStep`; legenda do mapa adaptativa; função `getContrastTextColor()` YIQ; saga das bordas dos blocos no Android (8 commits de troubleshooting); recompensas no Mundo (2 pássaros com mirror, 3 mini-árvores substituem plantinhas estágio 3, 3 flores amarelas).
+- ✅ Briefing MVP atualizado pra v2.11.
+- ✅ **Entrega Nível 5 — bloco de loop fixo `[Repetir 3×]` + mudança estrutural pra blocos com filhos** (Maio/2026, 16 commits, commit final `5c57312`).
+- ✅ Atualização Briefing MVP v2.5 → v2.6 → v2.7 → v2.8 → v2.9 → v2.10 → v2.11.
+- ✅ Style Guide v1.1 → v1.2 → v1.3.
+- ✅ Entrega Nível 4 — sequência longa + `move_left` (13/05/2026).
+- ✅ Migração de Manus pra Claude Code como Dev Temporário ativo (Maio/2026).
+- ✅ Atualização Protocolo Dev Temporário v1.0 → v1.1.
+- ✅ Migração de APK release pra dev build com Fast Refresh.
+- ✅ Geração dos assets: `mundo_mini_arvore.png`, `mundo_arvore_jovem.png`, `background_mundo_v2.png`, `plantinha_estagio3.png`, `flor_no_tronco.png`, `mundo_passaro_pousado.jpg`, `mundo_flor_amarela.jpg`.
 
 ---
 
