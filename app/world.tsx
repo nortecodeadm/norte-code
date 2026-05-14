@@ -11,6 +11,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { getPlayer, type PlayerData } from "../lib/player";
 import { getCurrentUserId } from "../lib/auth";
+import { getTotalLevels } from "../lib/levels";
 import { Avatar } from "../components/Avatar";
 import { Mascote } from "../components/Mascote";
 import { storage } from "../lib/storage";
@@ -114,7 +115,10 @@ const MUNDO_FLOR_NO_TRONCO = require("../assets/mundo/flor_no_tronco.png");
 export default function WorldScreen() {
   const router = useRouter();
   const [player, setPlayer] = useState<PlayerData | null>(null);
-  const [nextLevel, setNextLevel] = useState(1);
+  // Nível que o botão Play vai abrir. Em geral é o "próximo não-completado",
+  // mas se a criança já passou de todos os níveis implementados, vira o
+  // último (modo "rejogar") até que mais níveis sejam adicionados.
+  const [levelToPlay, setLevelToPlay] = useState(1);
   const [showSeed, setShowSeed] = useState(false);
   const [showSprout, setShowSprout] = useState(false);
   const [showGrownSprout, setShowGrownSprout] = useState(false);
@@ -161,17 +165,23 @@ export default function WorldScreen() {
       setPlayer(data);
     }
 
-    // Check level progress to determine next level
+    // Determina qual nível o botão Play vai abrir.
+    // Regra: primeiro nível não-completado, EXCETO quando esse "próximo"
+    // ainda não foi implementado — aí cai pro último completado (rejogar).
+    // Garante que o botão sempre faz algo útil mesmo quando a criança já
+    // alcançou o limite atual do que está pronto.
+    const totalImplemented = getTotalLevels();
     const progress = await storage.get<Record<number, boolean>>(
       storage.keys.LEVEL_PROGRESS
     );
+    let next = 1;
     if (progress) {
-      let next = 1;
       while (progress[next] === true && next <= 10) {
         next++;
       }
-      setNextLevel(next);
     }
+    // Se o "próximo" já passou do que foi implementado, repete o último.
+    setLevelToPlay(next <= totalImplemented ? next : totalImplemented);
 
     // Check world element rewards (with substitution logic)
     const worldElements = await storage.get<string[]>(
@@ -262,8 +272,7 @@ export default function WorldScreen() {
   }, []);
 
   const handlePlayPress = () => {
-    if (nextLevel > 10) return;
-    router.push(`/level/${nextLevel}`);
+    router.push(`/level/${levelToPlay}`);
   };
 
   if (!player) {
