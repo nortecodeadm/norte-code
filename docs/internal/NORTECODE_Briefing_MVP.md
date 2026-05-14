@@ -5,7 +5,14 @@
 **Para:** Dev Temporário ativo (atualmente Claude Code, em substituição ao Manus)
 **Via:** Gui
 **Data:** Maio/2026
-**Versão:** 2.9 — Nível 5 entregue e validado.
+**Versão:** 2.10 — Sessão de alinhamento dos Níveis 6-8 (planejamento sem briefing técnico).
+
+**Changelog v2.10:**
+- Níveis 6, 7 e 8 detalhados com decisões da sessão de alinhamento.
+- **Nível 6:** cenário 1×6 linear definido. Distribuição: avatar inicial + 3 canteiros vazios + 1 canteiro plantado + 1 sem canteiro. As 3 plantinhas estágio 3 do Nível 5 viram 3 mini-árvores. Primeira fauna entra (pássaro).
+- **Nível 7:** árvore principal evolui pra árvore frutífera (asset estático, número de frutos decidido pelo modelo de geração). 3 mini-árvores do Nível 6 mantêm posição. Esquilo entra.
+- **Nível 8:** transformação visual major — background v3 completo (gramado predominante, várias árvores próximas, árvore frutífera central destacada) substitui v2. Planta principal e 3 mini-árvores migram do primeiro plano pro background. Cesta com frutas em primeiro plano.
+- Princípio narrativo registrado: elementos antigos migram pro background conforme novos níveis acontecem — abre espaço visual e cria sensação de profundidade temporal (a sementinha do Nível 1 virou parte da paisagem permanente).
 
 **Changelog v2.9:**
 - Nível 5 marcado como ✅ IMPLEMENTADO. 16 commits no `origin/main`, mais recente `5c57312`.
@@ -515,20 +522,25 @@ Quando a criança aperta "Executar":
 
 ---
 
-#### Nível 6 — Condicional simples (se → então) — PENDENTE
+#### Nível 6 — Condicional simples (se → então) — PENDENTE (próximo a implementar)
 
 - **Conceito de programação:** condicional. "Se acontecer X, então faça Y."
 - **Função pedagógica:** introdução do **discernimento**. Até agora a criança fazia coisas em sequência. Agora ela aprende a **olhar antes de agir**. Mordomia exige discernimento — não é todo solo que recebe semente.
-- **Função narrativa:** primeira fauna entra no Mundo permanente. Sinal de que a vida não é só vegetação — agora há criaturas. A planta principal evolui pra árvore jovem.
-- **Cenário do nível (esboço):** grade 2D maior (sugestão: 3×5). Caminho linear de células. Algumas células têm canteiro vazio, outras têm canteiro com semente já plantada, outras estão vazias. Criança planta SÓ onde tem canteiro vazio.
-- **Blocos disponíveis:** `move_right`, `[Se houver canteiro vazio → Plantar]`, `[Repetir N×]`.
-- **Solução-alvo:** `[Repetir 5× [Direita, Se canteiro vazio → Plantar]]`.
+- **Função narrativa:** primeira fauna entra no Mundo permanente. Sinal de que a vida não é só vegetação — agora há criaturas. As 3 plantinhas estágio 3 do Nível 5 evoluem pra 3 mini-árvores (continuidade da história do cuidado).
+- **Cenário do nível:** grade **1×6 linear**. Avatar começa na primeira célula (à esquerda). As 5 células seguintes têm distribuição:
+  - 3 com canteiro vazio (criança planta)
+  - 1 com canteiro já plantado (criança ignora — condicional retorna falso)
+  - 1 sem canteiro algum (criança só passa por cima — condicional retorna falso)
+  - Ordem das células sortida (a ser definida no briefing técnico — não pode ser "3 vazios seguidos, depois 2 não-vazios" porque vira sequência previsível; alternar)
+- **Blocos disponíveis:** `move_right`, `[Se canteiro vazio → Plantar]`, `[Repetir 5×]`.
+- **Solução-alvo:** `[Repetir 5× [→, Se canteiro vazio → Plantar]]` — programa enxuto que aplica condicional dentro de loop.
 - **Mudança no Mundo permanente:**
-  - Primeira fauna: 1 pássaro pousado em algum ponto do cenário (asset novo, marcante).
-  - +1 ou +2 plantinhas no chão.
-  - Planta principal NÃO evolui neste nível (já tinha evoluído pra árvore jovem no Nível 5 — evolução pra árvore frutífera fica reservada pro Nível 7).
+  - **Primeira fauna:** 1 pássaro pousado em algum ponto do cenário (asset novo, marcante — pássaro pequeno, paleta suave).
+  - **3 plantinhas estágio 3 do Nível 5 viram 3 mini-árvores** (continuidade visual da história: as plantinhas que a criança regou agora cresceram). Reusa asset `mini_tree_lvl4.png` que já existe — 3 instâncias nas posições das plantinhas anteriores.
+  - Planta principal (árvore jovem) NÃO evolui neste nível. Reservado pro Nível 7.
 - **Assets novos necessários:**
-  - `passaro_pousado.png` (estilo Style Guide — formas arredondadas, paleta suave)
+  - `mundo_passaro_pousado.png` (estilo Style Guide — formas arredondadas, paleta suave, pose calma)
+  - Asset do bloco `[Se canteiro vazio → Plantar]` — visual da paleta, conforme padrão de blocos novos.
 - **Texto de conclusão (rascunho):** "Você aprendeu a **olhar antes de fazer**. Nem todo lugar pede a mesma ação. Saber decidir é cuidar bem."
 - **Conexão com Nível 10:** condicional vai permitir diagnóstico do solo árido — "se solo tem umidade → planta; senão → continua andando até achar solo bom". Discernimento é vital pra lidar com terreno difícil.
 
@@ -538,17 +550,19 @@ Quando a criança aperta "Executar":
 
 - **Conceito de programação:** if/else. "Se X, faça Y; senão, faça Z."
 - **Função pedagógica:** discernimento amadurecido. A criança não só "vê e age" — tem duas respostas possíveis dependendo do que vê.
-- **Função narrativa:** árvore frutífera aparece — sinaliza que o jardim agora produz. Visualmente antecipa a coleta de frutas do Nível 8.
+- **Função narrativa:** árvore principal (árvore jovem do Nível 5) **evolui pra árvore frutífera** — sinaliza que o jardim agora produz. Visualmente antecipa a coleta de frutas do Nível 8.
 - **Cenário do nível (esboço):** caminho com células variadas. Algumas têm canteiros vazios, outras têm plantinhas secas que precisam de rega, outras estão vazias.
 - **Blocos disponíveis:** `move_right`, `[Se planta seca → Regar; senão se canteiro vazio → Plantar]`, `[Repetir N×]`.
 - **Solução-alvo:** `[Repetir 6× [Direita, Se planta seca → Regar; senão se canteiro vazio → Plantar]]`.
 - **Mudança no Mundo permanente:**
-  - Árvore frutífera aparece (asset novo, ou variação da árvore_jovem com frutos sobrepostos — definir na hora da implementação). Frutos em vermelho-fruta suave (#B5483A da paleta).
-  - +1 esquilo aparece no chão (segunda peça de fauna).
+  - **Árvore principal:** árvore jovem (`young_tree_lvl5`) substituída por árvore frutífera (`fruit_tree_lvl7`). Asset novo. Decisão simplificadora: **árvore frutífera é estática** — não tem "versão parcialmente colhida" mesmo após coleta do Nível 8.
+  - **Número de frutos:** não especificado no prompt do asset — deixa a criatividade do Gemini/Canva decidir uma quantidade visualmente equilibrada (provavelmente 4-7 frutos).
+  - **3 mini-árvores do Nível 6:** mantêm posição (não evoluem mais). Visualmente coexistem com a árvore frutífera central.
+  - **1 esquilo** aparece no chão (segunda peça de fauna). Asset novo.
   - Mais grama, mais flores espalhadas — consolida "jardim maduro".
 - **Assets novos necessários:**
-  - `arvore_frutifera.png`
-  - `esquilo.png` (em pose calma, paleta suave)
+  - `mundo_arvore_frutifera.png` (sucessora da árvore jovem — com frutos)
+  - `mundo_esquilo.png` (em pose calma, paleta suave)
 - **Texto de conclusão (rascunho):** "Agora você sabe escolher entre dois caminhos. Cuidar é responder ao que cada coisa precisa — não tratar tudo igual."
 - **Conexão com Nível 10:** if/else permite escolhas críticas com pouca água — "se solo tem umidade → planta semente; senão → continua andando". Sem if/else, criança gasta sementes em terra ruim.
 
@@ -558,21 +572,23 @@ Quando a criança aperta "Executar":
 
 - **Conceito de programação:** variável. "Guardar um número e usá-lo depois."
 - **Função pedagógica:** consciência de **quantidade**. Cuidar não é "fazer pra sempre" — é "fazer até atingir o que é necessário". Mordomia tem medida.
-- **Função narrativa:** primeira ideia de **provisão guardada** (cesta com 3 frutas). Pequenos animais consolidam ambiente vivo.
+- **Função narrativa:** primeira ideia de **provisão guardada** (cesta com 3 frutas). Mais importante: o jardim atinge maturidade plena visualmente — o que era cuidado individual passa a ser **paisagem**.
 - **Cenário do nível (esboço):** árvore frutífera no canto da grade. Ao lado, uma cesta vazia. Indicador na tela: "Frutas: 0 / 3". Criança precisa pegar EXATAMENTE 3 frutas e parar.
 - **Blocos disponíveis:** `move_right`, `move_left`, `move_up`, `move_down`, `[Pegar fruta (frutas + 1)]`, `[Se frutas = 3 → Parar]`, `[Repetir N×]`.
 - **Solução-alvo:** `[Repetir até frutas = 3 [Andar até árvore, Pegar fruta]]`.
-- **Mudança no Mundo permanente:**
-  - Cesta com 3 frutas aparece num canto do Mundo (símbolo de provisão guardada).
+- **Mudança no Mundo permanente — TRANSFORMAÇÃO VISUAL MAJOR:**
+  - **Background v2 → background v3** (substituição completa, igual à do Nível 5). Diferença marcante: **gramado predominante** em vez de terra com tufos esparsos. Várias árvores em primeiro plano (não mais silhuetas distantes), com **uma árvore frutífera central destacada** (representando narrativamente a continuidade da sementinha plantada no Nível 1). Asset único — não é camada sobre v2.
+  - **A árvore principal e as 3 mini-árvores DESAPARECEM do primeiro plano** — passam a fazer parte do background v3. Coerência narrativa: "o jardim virou paisagem".
+  - **Cesta com 3 frutas** aparece no primeiro plano, perto da posição do avatar visual (Gui calibra posição depois). Asset novo.
   - Mascote ganha animação de "comer fruta" no level summary (não no Mundo permanente).
-  - 1 ou 2 elementos pequenos de fauna (borboleta, formiga ou similar).
-  - **Decisão simplificadora:** a árvore frutífera NÃO muda visualmente (não tem "versão parcialmente colhida"). A coleta acontece logicamente, mas a árvore permanece igual.
-  - Planta principal não muda neste nível.
+  - **1-2 elementos pequenos de fauna** novos (borboleta, formiga ou similar).
 - **Assets novos necessários:**
-  - `cesta_com_frutas.png`
-  - 1-2 elementos pequenos de fauna
+  - `background_mundo_v3.png` (substitui v2; gramado predominante, várias árvores próximas, árvore frutífera central destacada)
+  - `mundo_cesta_com_frutas.png`
+  - 1-2 elementos pequenos de fauna (a definir)
 - **Texto de conclusão (rascunho):** "Você usou um **lugar pra guardar** uma informação (quantas frutas). Isso se chama variável. Cuidar bem é saber a quantidade certa — não pegar tudo, não pegar de menos."
 - **Conexão com Nível 10:** variável permite no árido **racionar sementes** com a água disponível. Sem variável, criança não consegue medir quanto plantar.
+- **Decisão estratégica registrada:** o "movimento dos elementos para o background" no Nível 8 é a forma de **abrir espaço visual** pros assets do Nível 9-10 sem sobrecarregar a cena. Também cria sensação de profundidade temporal: a sementinha do Nível 1 virou parte da paisagem permanente do jardim. Princípio narrativo aplicado.
 
 ---
 
@@ -910,5 +926,5 @@ Ao final:
 
 ---
 
-*Atualizado em Maio/2026 — v2.9*
-*Reflete: Nível 5 entregue e validado no celular. Origin/main atualmente em commit 5c57312. Próximo nível em fila: Nível 6 (condicional simples). Dev Temporário ativo: Claude Code.*
+*Atualizado em Maio/2026 — v2.10*
+*Reflete: Nível 5 entregue. Níveis 6, 7 e 8 com planejamento detalhado em sessão dedicada. Próximo passo: alinhamento final do Nível 6 (cenário, prompt de asset, briefing técnico). Dev Temporário ativo: Claude Code.*
