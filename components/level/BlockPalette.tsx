@@ -87,36 +87,34 @@ export function BlockPalette({
         {availableBlocks.map((type) => {
           const config = BLOCK_CONFIG[type];
           return (
-            // Bloco "outline": interior transparente, borda colorida
-            // com a cor original do bloco. Texto preto pra contrastar
-            // com o fundo claro da tela (warm-white). Esse padrão deixa
-            // a paleta mais leve visualmente e dá pra cada bloco brilhar
-            // pela cor da borda sem peso de fundo cheio.
+            // Bloco "outline": interior transparente, borda colorida.
+            // Cor da borda recebe sufixo 66 (≈40% alpha) pra ficar
+            // suave/desbotada, no mesmo registro visual da borda do
+            // box "Seu programa" (border-garden-green/10).
             <View
               key={type}
               style={{
                 backgroundColor: "transparent",
                 borderRadius: 12,
                 borderWidth: 2,
-                borderColor: disabled ? "#CCC" : config.color,
+                borderColor: disabled ? "#CCC" : `${config.color}66`,
               }}
             >
               <Pressable
                 onPress={() => !disabled && onBlockTap(type)}
-                style={({ pressed }) => ({
-                  opacity: pressed ? 0.5 : 1,
+                style={{
                   paddingHorizontal: 14,
                   paddingVertical: 10,
                   flexDirection: "row",
                   alignItems: "center",
                   gap: 6,
-                })}
+                }}
               >
-                <Text style={{ fontSize: 16 }}>{config.icon}</Text>
+                <Text style={{ fontSize: 14 }}>{config.icon}</Text>
                 <Text
                   style={{
                     fontFamily: "Nunito-Bold",
-                    fontSize: 13,
+                    fontSize: 11,
                     color: "#000000",
                   }}
                 >
