@@ -54,7 +54,7 @@ const BLOCK_CONFIG: Record<
   if_canteiro_vazio_then_plantar: {
     label: "Se vazio, plantar",
     color: "#A88FD9",
-    icon: "⭕🌱",
+    icon: "⭕ 🌱",
   },
   define_function: { label: "Definir", color: "#8E44AD", icon: "📦" },
   call_function: { label: "Fazer", color: "#8E44AD", icon: "▶" },
@@ -96,12 +96,12 @@ export function BlockPalette({
                 paddingHorizontal: 14,
                 paddingVertical: 10,
                 borderRadius: 12,
-                // Borda escura sutil em volta do bloco — silhueta que dá
-                // sensação de "peça/bloco" e ajuda a destacar o item como
-                // unidade clicável. Funciona em qualquer cor de fundo via
-                // rgba (não depende de cor base do bloco).
-                borderWidth: 2,
-                borderColor: "rgba(0,0,0,0.18)",
+                // Borda escura em volta do bloco — silhueta que dá sensação
+                // de "peça/bloco" e ajuda a destacar o item como unidade
+                // clicável. Funciona em qualquer cor de fundo via rgba
+                // (não depende de cor base do bloco).
+                borderWidth: 3,
+                borderColor: "rgba(0,0,0,0.45)",
                 flexDirection: "row",
                 alignItems: "center",
                 gap: 6,

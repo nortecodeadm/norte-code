@@ -85,7 +85,7 @@ const BLOCK_LABELS: Record<BlockType, string> = {
   repeat_5: "🔄 Repetir 5×",
   if_condition: "? Se...",
   if_else: "?! Se/Senão",
-  if_canteiro_vazio_then_plantar: "⭕🌱 Se vazio, plantar",
+  if_canteiro_vazio_then_plantar: "⭕ 🌱 Se vazio, plantar",
   define_function: "📦 Definir",
   call_function: "▶ Fazer",
   stop: "⏹ Parar",
