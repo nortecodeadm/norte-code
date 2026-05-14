@@ -760,6 +760,20 @@ Padrão de UX para qualquer bloco com slot de filhos (estrutura aninhada) no Nor
 
 ---
 
+### [13/05/2026] Correções na entrega do Nível 5: substituição vs sobreposição + árvore jovem antecipada
+
+Após teste no celular, duas correções foram feitas:
+
+**1. Flor no tronco: substituição, não sobreposição.** A primeira implementação renderizava `flor_no_tronco.png` por cima do tronco original (mesma posição/rotação), o que gerava risco de calibração e divergia do padrão estabelecido. Correção: source do `Image` do tronco passa a alternar entre `mundo_tronco.png` e `flor_no_tronco.png` baseado em `WORLD_ELEMENTS` conter `flower_no_tronco`. O asset novo já inclui o tronco + flor integrados na mesma proporção 1426×624 — substituição direta, zero calibração.
+
+Padrão correto consolidado: **elementos que evoluem no Mundo permanente sempre substituem, mesmo quando o "novo" parece um "antigo + detalhe"**. Sobreposição fica reservada pra casos onde os dois elementos coexistem visualmente (ex: flores decorativas e a planta principal — coexistem em posições diferentes).
+
+**2. Árvore jovem antecipada do Nível 6 pro Nível 5.** Decisão tomada durante a entrega: a evolução da planta principal pra árvore jovem (`young_tree_lvl5`) entra no Nível 5 em vez do 6, pra reforçar o "salto visual forte" estabelecido como princípio deste nível (background v2, grama, fauna ausente ainda mas vegetação amadurecida). Cadeia consolidada: `seed_lvl1 → sprout_lvl2 → grown_sprout_lvl3 → mini_tree_lvl4 → young_tree_lvl5`. A próxima evolução (árvore frutífera) continua no Nível 7 conforme roadmap.
+
+Asset `mundo_arvore_jovem.png` (606×903 RGBA) renderizado em posição própria (placeholder no `WORLD_LAYOUT.arvoreJovem`). O briefing do Nível 6 perde a recompensa "mini-árvore → árvore jovem" — fica como nota pro Estrategista revisar o que entra como recompensa visual lá em vez (sugestão: outra peça de fauna ou consolidação da vegetação).
+
+---
+
 ## Dívida Técnica Conhecida
 
 Esta seção registra gaps confirmados entre o que o código **declara** e o que ele **executa**, ou pontos que precisam de verificação antes de serem usados. Diferente do log de decisões acima (que é cronológico e imutável), esta seção é mantida viva — itens entram quando descobertos e saem quando endereçados.

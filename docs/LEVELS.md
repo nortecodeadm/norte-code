@@ -1,7 +1,7 @@
 # Níveis — Norte Code MVP
 
 **Última atualização:** 13/05/2026
-**Versão:** 1.4.0 (Nível 5 jogável — bloco repeat_3 + primeira mudança radical do Mundo)
+**Versão:** 1.4.1 (Nível 5: correção da flor no tronco + árvore jovem antecipada do Nível 6)
 
 ---
 
@@ -208,7 +208,7 @@ O bloco `move_left` (coluna -1, absoluto) já estava implementado no interpretad
 - 3 canteiros já plantados: `grid[0][3]`, `grid[3][3]`, `grid[3][0]` com content === `"seed"`
 - Condição de vitória: `custom` (C1, C2 e C3 todos com content === `"sprout"`)
 - Max blocos: 14 (contagem plana, inclui filhos de containers)
-- Reward: multi-element com 7 operações no Mundo permanente
+- Reward: multi-element com 8 operações no Mundo permanente
 - Arquivo: `lib/levels/index.ts` → `createLevel5()`
 
 **Mecânica nova — bloco `repeat_3` (estrutura aninhada):**
@@ -234,23 +234,27 @@ Padrão de UX aplicável a TODAS as estruturas aninhadas futuras (condicional do
 - Não regou todos: "Você ainda não regou todos os canteiros. Olha o caminho de novo." (`not_at_watering_spot`)
 - Genérico: "Quase! Olha onde estão os canteiros e tenta outro caminho."
 
-**Recompensas no Mundo permanente — 7 operações:**
+**Recompensas no Mundo permanente — 8 operações:**
 
 Esta é a PRIMEIRA grande mudança visual do Mundo permanente do MVP.
 
 1. `background_mundo_v2` substitui `background_mundo_v1` — mesma cena com graminha esparsa pelo solo e florestinha em silhueta no horizonte (asset NOVO).
-2. `plant_stage3_lvl5_a` substitui `seed_lvl4_a` — plantinha estágio 3 ocupa a posição da semente plantada no Nível 4 (asset NOVO, reusado nas 3 plantinhas).
-3. `plant_stage3_lvl5_b` substitui `seed_lvl4_b`.
-4. `plant_stage3_lvl5_c` substitui `seed_lvl4_c`.
-5. `flower_lvl5_a` — +1 flor decorativa (reuso do asset da flor do Nível 3).
-6. `flower_lvl5_b` — +1 flor decorativa (mesmo asset).
-7. `flower_no_tronco` — flor brota do tronco caído (asset NOVO, sobreposto ao tronco existente). Símbolo: vida vence até o que parecia morto.
+2. `young_tree_lvl5` substitui `mini_tree_lvl4` — planta principal evolui de mini-árvore pra árvore jovem (asset NOVO `mundo_arvore_jovem.png`, 606×903 RGBA). **Antecipação do Nível 6 pro Nível 5** — reforça o "salto visual forte" deste nível.
+3. `plant_stage3_lvl5_a` substitui `seed_lvl4_a` — plantinha estágio 3 ocupa a posição da semente plantada no Nível 4 (asset NOVO, reusado nas 3 plantinhas).
+4. `plant_stage3_lvl5_b` substitui `seed_lvl4_b`.
+5. `plant_stage3_lvl5_c` substitui `seed_lvl4_c`.
+6. `flower_lvl5_a` — +1 flor decorativa (reuso do asset da flor do Nível 3).
+7. `flower_lvl5_b` — +1 flor decorativa (mesmo asset).
+8. `flower_no_tronco` — flor brota do tronco caído. **SUBSTITUI** o tronco original (não sobrepõe): o asset `flor_no_tronco.png` (1426×624) tem o tronco + flor integrados na mesma proporção do tronco antigo, então entra exatamente no lugar. Símbolo: vida vence até o que parecia morto.
 
-**Cadeia de substituição da planta principal** (estendida pra registrar o padrão consolidado):
-`seed_lvl1 → sprout_lvl2 → grown_sprout_lvl3 → mini_tree_lvl4`. A mini-árvore do Nível 4 PERMANECE no Nível 5 — vai evoluir pra árvore jovem no Nível 6.
+**Cadeia de substituição da planta principal** (consolidada após Nível 5):
+`seed_lvl1 → sprout_lvl2 → grown_sprout_lvl3 → mini_tree_lvl4 → young_tree_lvl5`. Cada estágio renderiza em posição própria; quando um mais evoluído aparece, os anteriores somem. A próxima evolução (árvore frutífera) entra no Nível 7.
 
 **Cadeia de substituição das sementes do Nível 4:**
 `seed_lvl4_a/b/c → plant_stage3_lvl5_a/b/c`. As sementes plantadas no Nível 4 viram plantinhas estágio 3 quando regadas no Nível 5 (pula estágio 2 — sinal de que regar acelerou o crescimento).
+
+**Substituição do tronco:**
+`mundo_tronco.png → flor_no_tronco.png`. O source do `Image` do tronco no `app/world.tsx` alterna baseado em `WORLD_ELEMENTS` conter `flower_no_tronco`. Padrão idêntico à substituição do background v1 → v2.
 
 **Conexão com Nível 10 (ferramenta antecipada):**
 A frase final do texto de conclusão ("vai ser útil mais pra frente") planta a semente de que loop vai ser útil de novo no recomeço. No árido, a criança vai precisar replantar muito — loop é o que permite plantar rápido. Princípio pedagógico registrado em `DECISIONS.md`.
