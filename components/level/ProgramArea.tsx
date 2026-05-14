@@ -87,6 +87,19 @@ export function isContainerBlock(type: BlockType): boolean {
   return CONTAINER_TYPES.has(type);
 }
 
+// Verifica se algum descendant (filho, neto, etc) do bloco tem o id buscado.
+// Usado pra destacar o envelope de um container quando o interpretador está
+// executando um filho dele — pedagogicamente, a criança precisa enxergar que
+// o envelope INTEIRO está "rodando", não só o filho folha.
+function containsBlockId(block: ProgramBlock, id: string): boolean {
+  if (!block.children) return false;
+  for (const child of block.children) {
+    if (child.id === id) return true;
+    if (containsBlockId(child, id)) return true;
+  }
+  return false;
+}
+
 function SimpleBlockRow({
   block,
   index,
@@ -171,13 +184,24 @@ function ContainerBlockRow({
   const children = block.children ?? [];
   const isEmpty = children.length === 0;
 
+  // Envelope brilha quando algum descendant está sendo executado.
+  // Mesma estética visual de bloco-folha ativo (background colorido + texto
+  // branco). Lógica 100% na UI — interpretador não emite step pra LoopNode.
+  const isAnyDescendantActive =
+    activeBlockId !== undefined && containsBlockId(block, activeBlockId);
+  const isHighlighted = isActive || isAnyDescendantActive;
+
   return (
     <View
       style={{
-        borderWidth: isEditing ? 2 : 1.5,
-        borderColor: isEditing ? color : `${color}55`,
+        borderWidth: isEditing || isHighlighted ? 2 : 1.5,
+        borderColor: isEditing || isHighlighted ? color : `${color}55`,
         borderRadius: 12,
-        backgroundColor: isEditing ? `${color}1A` : `${color}0D`,
+        backgroundColor: isHighlighted
+          ? `${color}33`
+          : isEditing
+            ? `${color}1A`
+            : `${color}0D`,
         padding: 10,
       }}
     >
@@ -205,10 +229,10 @@ function ContainerBlockRow({
           style={{
             fontFamily: "Nunito-Bold",
             fontSize: 14,
-            color: isActive ? "#FFFFFF" : color,
+            color: isHighlighted ? "#FFFFFF" : color,
             flex: 1,
-            backgroundColor: isActive ? color : "transparent",
-            paddingHorizontal: isActive ? 6 : 0,
+            backgroundColor: isHighlighted ? color : "transparent",
+            paddingHorizontal: isHighlighted ? 6 : 0,
             borderRadius: 4,
           }}
         >
