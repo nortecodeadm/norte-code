@@ -87,21 +87,11 @@ export function BlockPalette({
         {availableBlocks.map((type) => {
           const config = BLOCK_CONFIG[type];
           return (
-            // Wrapper só pra sombra/elevation. No Android, ter elevation
-            // no MESMO View que tem borderWidth pode mascarar a borda —
-            // separar resolve. O Pressable interno cuida do toque/scale
-            // e da borda; o wrapper só projeta a sombra.
-            <View
-              key={type}
-              style={{
-                borderRadius: 12,
-                shadowColor: config.color,
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.3,
-                shadowRadius: 4,
-                elevation: 3,
-              }}
-            >
+            // Sem shadow/elevation no wrapper: no Android, elevation
+            // projeta sombra em todos os lados e pode parecer "borda
+            // grossa colorida". A unidade do bloco fica marcada apenas
+            // pelo contorno fino da borderWidth no Pressable.
+            <View key={type} style={{ borderRadius: 12 }}>
               <Pressable
                 onPress={() => !disabled && onBlockTap(type)}
                 style={({ pressed }) => ({
