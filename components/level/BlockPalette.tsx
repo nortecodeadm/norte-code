@@ -103,8 +103,10 @@ export function BlockPalette({
                   borderRadius: 12,
                   // Borda fininha em volta do bloco — contorno discreto
                   // que delimita o bloco como unidade sem virar moldura.
+                  // Cor sólida (não rgba): no celular do Gui, 0.35 alpha
+                  // ficava invisível mesmo sem a sombra em volta.
                   borderWidth: 1,
-                  borderColor: "rgba(0,0,0,0.35)",
+                  borderColor: "#000000",
                   flexDirection: "row",
                   alignItems: "center",
                   gap: 6,
