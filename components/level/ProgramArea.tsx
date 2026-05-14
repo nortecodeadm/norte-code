@@ -66,6 +66,7 @@ const BLOCK_COLORS: Record<BlockType, string> = {
   if_condition: "#D4577B",
   if_else: "#D4577B",
   if_canteiro_vazio_then_plantar: "#A88FD9",
+  if_canteiro_com_semente_then_regar_else_if_canteiro_vazio_then_plantar: "#A88FD9",
   define_function: "#8E44AD",
   call_function: "#8E44AD",
   stop: "#95A5A6",
@@ -88,6 +89,8 @@ const BLOCK_LABELS: Record<BlockType, string> = {
   if_condition: "? Se...",
   if_else: "?! Se/Senão",
   if_canteiro_vazio_then_plantar: "⭕ 🌱 Se vazio, plantar",
+  if_canteiro_com_semente_then_regar_else_if_canteiro_vazio_then_plantar:
+    "🌱💧 ⭕🌱 Se com semente, regar; senão se vazio, plantar",
   define_function: "📦 Definir",
   call_function: "▶ Fazer",
   stop: "⏹ Parar",

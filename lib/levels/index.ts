@@ -552,6 +552,122 @@ function createLevel6(): LevelDefinition {
   };
 }
 
+// ─── Level 7: Condicional com 2 ramos (if/else) ─────────────────────────────
+// Amadurece o discernimento do Nível 6: criança não só "age ou não", ela
+// ESCOLHE entre 2 ações. Grade 1×6 linear:
+//   [Avatar][CP][CV][CP][CV][CP]
+// 3 CPs (canteiros com semente, precisam ser regados) intercalados com
+// 2 CVs (canteiros vazios, precisam ser plantados). Solução-alvo (3 blocos):
+//   [Repetir 5× [Direita, Se com semente, regar; senão se vazio, plantar]]
+// O bloco condicional é o ÚNICO jeito de agir (sem plant/water soltos).
+
+function createLevel7(): LevelDefinition {
+  const gridWidth = 6;
+  const gridHeight = 1;
+
+  const grid: Cell[][] = [];
+  for (let y = 0; y < gridHeight; y++) {
+    const row: Cell[] = [];
+    for (let x = 0; x < gridWidth; x++) {
+      row.push({ position: { x, y }, content: "empty" });
+    }
+    grid.push(row);
+  }
+
+  // [Avatar][CP][CV][CP][CV][CP]
+  // col 0 = "empty" (chão, avatar). Demais alternam CP/CV.
+  grid[0][1].content = "seed";       // CP — vai ser regada
+  grid[0][2].content = "flowerbed";  // CV — vai ser plantada
+  grid[0][3].content = "seed";       // CP — vai ser regada
+  grid[0][4].content = "flowerbed";  // CV — vai ser plantada
+  grid[0][5].content = "seed";       // CP — vai ser regada
+
+  const initialWorld: WorldState = {
+    grid,
+    gridWidth,
+    gridHeight,
+    player: {
+      position: { x: 0, y: 0 },
+      direction: "east",
+      inventory: { fruits: 0 },
+    },
+    goalCondition: {
+      type: "custom",
+      check: (state: WorldState) => {
+        // Estado final correto:
+        //   cols 1, 3, 5 (CP originais) → "sprout" (foram regadas)
+        //   cols 2, 4    (CV originais) → "seed"   (foram plantadas, sem rega)
+        // Não há tempo no mesmo programa pra regar o que acabou de
+        // ser plantado — esse é o ponto pedagógico do nível.
+        const cp1 = state.grid[0][1].content === "sprout";
+        const cv2 = state.grid[0][2].content === "seed";
+        const cp3 = state.grid[0][3].content === "sprout";
+        const cv4 = state.grid[0][4].content === "seed";
+        const cp5 = state.grid[0][5].content === "sprout";
+        return cp1 && cv2 && cp3 && cv4 && cp5;
+      },
+    },
+  };
+
+  return {
+    id: 7,
+    title: "Cuidar de jeitos diferentes",
+    description:
+      "Cada canteiro precisa de uma coisa. Use 'Se com semente, regar; senão se vazio, plantar' dentro do Repetir.",
+    hint:
+      "O bloco roxo decide sozinho: rega onde já tem semente, planta onde tá vazio. Tenta [Repetir 5× [Direita, Se com semente, regar; senão se vazio, plantar]].",
+    objective: "💧🌱 Regue o que tem semente, plante o que está vazio",
+    gridWidth,
+    gridHeight,
+    initialWorld,
+    availableBlocks: [
+      "move_right",
+      "if_canteiro_com_semente_then_regar_else_if_canteiro_vazio_then_plantar",
+      "repeat_5",
+    ],
+    // maxBlocks: 12
+    // Solução elegante: 3 blocos (Repetir 5× + 2 dentro).
+    // Solução longa sem repeat_5: 10 blocos (5 iterações manuais).
+    // Margem de 2 sobre a solução longa — mesmo padrão dos Níveis 5-6.
+    maxBlocks: 12,
+    errorMessages: {
+      out_of_grid: "Esse lado não dá. O caminho continua em outra direção.",
+      // Programa terminou mas alguma célula ainda precisa ser cuidada
+      // (canteiro vazio não plantado, ou semente não regada).
+      not_at_planting_spot:
+        "Ainda há canteiros pra cuidar. Olha de novo onde o avatar passou.",
+      wrong_path:
+        "Ainda há canteiros pra cuidar. Olha de novo onde o avatar passou.",
+      didnt_move:
+        "O avatar precisa andar pra encontrar canteiros. Use o bloco Direita.",
+    },
+    reward: {
+      message:
+        "Agora você sabe escolher entre dois caminhos. Cuidar é responder ao que cada coisa precisa — não tratar tudo igual. Lembra disso — vai ser muito importante mais pra frente.",
+      elements: [
+        // Operação 1 — árvore principal evolui de jovem pra frutífera.
+        // Asset novo mundo_arvore_frutifera (1024×1024 RGBA). Cadeia
+        // estendida: seed → sprout → grown_sprout → mini_tree → young_tree → fruit_tree.
+        { add: "fruit_tree_lvl7", replaces: "young_tree_lvl5" },
+        // Operação 2 — tronco caído com flor ganha esquilo morando dentro.
+        // Asset mundo_tronco_com_flor_e_esquilo SUBSTITUI o anterior na
+        // mesma posição/rotação (proporções ~idênticas, 3072×1344 vs
+        // 1426×624 — ambas ≈2.28). Símbolo amadurecido: vida vence até
+        // o que parecia morto E abriga novas formas de vida.
+        { add: "fallen_log_with_flower_and_squirrel_lvl7", replaces: "flower_no_tronco" },
+        // Operação 3 — 1 esquilo decorativo no chão (asset mundo_esquilo).
+        // Segunda fauna do MVP (depois dos pássaros do Nível 6).
+        { add: "squirrel_lvl7_ground" },
+        // Operação 4 — 4 flores brancas decorativas espalhadas.
+        { add: "white_flower_lvl7_a" },
+        { add: "white_flower_lvl7_b" },
+        { add: "white_flower_lvl7_c" },
+        { add: "white_flower_lvl7_d" },
+      ],
+    },
+  };
+}
+
 // ─── Level Registry ──────────────────────────────────────────────────────────────────────────
 
 const LEVELS: LevelDefinition[] = [
@@ -561,6 +677,7 @@ const LEVELS: LevelDefinition[] = [
   createLevel4(),
   createLevel5(),
   createLevel6(),
+  createLevel7(),
 ];
 
 export function getLevel(id: number): LevelDefinition | undefined {

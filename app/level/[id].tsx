@@ -369,9 +369,16 @@ export default function LevelScreen() {
       );
 
     const hasPlantBlock = anyBlock(blocks, (t) => t === "plant");
-    const hasConditionalPlant = anyBlock(
+    // Inclui ambos os blocos condicionais embutidos (Nível 6 e Nível 7) —
+    // do ponto de vista da heurística "tem ou não tem alguma ação no
+    // programa", os dois contam. A criança que coloca só o condicional
+    // sem mover precisa do mesmo conselho ("ande primeiro") em ambos.
+    const hasConditionalAction = anyBlock(
       blocks,
-      (t) => t === "if_canteiro_vazio_then_plantar"
+      (t) =>
+        t === "if_canteiro_vazio_then_plantar" ||
+        t ===
+          "if_canteiro_com_semente_then_regar_else_if_canteiro_vazio_then_plantar"
     );
     const hasMoveBlock = anyBlock(
       blocks,
@@ -386,11 +393,11 @@ export default function LevelScreen() {
 
     // "Programa só com bloco condicional sem mover" cai numa msg específica
     // — a heurística antiga falava "Monte seu programa!" mesmo com blocos
-    // presentes, o que confundiria a criança no Nível 6.
-    if (!hasMoveBlock && !hasPlantBlock && !hasConditionalPlant) {
+    // presentes, o que confundiria a criança nos Níveis 6 e 7.
+    if (!hasMoveBlock && !hasPlantBlock && !hasConditionalAction) {
       return "Monte seu programa! Toque nos blocos acima.";
     }
-    if (!hasMoveBlock && hasConditionalPlant && !hasPlantBlock) {
+    if (!hasMoveBlock && hasConditionalAction && !hasPlantBlock) {
       return (
         level.errorMessages.didnt_move ||
         "O avatar precisa andar pra encontrar canteiros. Use o bloco Direita."

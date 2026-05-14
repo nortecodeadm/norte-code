@@ -26,6 +26,7 @@ export type BlockType =
   | "if_condition"
   | "if_else"
   | "if_canteiro_vazio_then_plantar"
+  | "if_canteiro_com_semente_then_regar_else_if_canteiro_vazio_then_plantar"
   | "define_function"
   | "call_function"
   | "stop";
@@ -109,6 +110,8 @@ export function createBlock(
     if_condition: "Se...",
     if_else: "Se... senão...",
     if_canteiro_vazio_then_plantar: "Se vazio, plantar",
+    if_canteiro_com_semente_then_regar_else_if_canteiro_vazio_then_plantar:
+      "Se com semente, regar; senão se vazio, plantar",
     define_function: "Definir",
     call_function: "Fazer",
     stop: "Parar",

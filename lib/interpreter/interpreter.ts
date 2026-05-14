@@ -306,6 +306,47 @@ function executeAction(node: ActionNode, ctx: ExecutionContext): void {
       break;
     }
 
+    // Bloco "tudo em um" do Nível 7: condicional com 2 ramos (if/else).
+    //   SE célula é CP ("seed")        → rega ("seed" → "sprout"), emite "water"
+    //   SENÃO SE célula é CV ("flowerbed") → planta ("flowerbed" → "seed"), emite "plant"
+    //   SENÃO                          → no-op, emite "none"
+    // A UI mapeia conditionResult pra cor do glow (verde/azul/cinza).
+    // O `action` do step reflete a ação concreta executada — usa "water"
+    // ou "plant" pra integrar com toda a infra existente de animação.
+    case "if_canteiro_com_semente_then_regar_else_if_canteiro_vazio_then_plantar": {
+      const cell = world.grid[player.position.y][player.position.x];
+      if (cell.content === "seed") {
+        worldChanges = [
+          {
+            position: { ...player.position },
+            from: "seed",
+            to: "sprout" as CellContent,
+          },
+        ];
+        cell.content = "sprout";
+        action = "water";
+        conditionResult = "water";
+      } else if (cell.content === "flowerbed") {
+        worldChanges = [
+          {
+            position: { ...player.position },
+            from: "flowerbed",
+            to: "seed" as CellContent,
+          },
+        ];
+        cell.content = "seed";
+        action = "plant";
+        conditionResult = "plant";
+      } else {
+        // Célula sem canteiro ou qualquer outro estado — ignora.
+        // action genérico pra step continuar contabilizando o tempo
+        // de animação. UI dá feedback "cinza" via conditionResult.
+        action = "plant";
+        conditionResult = "none";
+      }
+      break;
+    }
+
     case "water": {
       const cell = world.grid[player.position.y][player.position.x];
       if (cell.content === "seed" || cell.content === "sprout") {
