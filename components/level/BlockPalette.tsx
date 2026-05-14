@@ -125,7 +125,7 @@ export function BlockPalette({
                   gap: 2,
                 }}
               >
-                <Text style={{ fontSize: 16 }}>{config.icon}</Text>
+                <Text style={{ fontSize: 14 }}>{config.icon}</Text>
                 <Text
                   style={{
                     fontFamily: "Nunito-Bold",
