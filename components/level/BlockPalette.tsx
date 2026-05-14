@@ -87,25 +87,24 @@ export function BlockPalette({
         {availableBlocks.map((type) => {
           const config = BLOCK_CONFIG[type];
           return (
-            // Wrapper carrega TUDO: borda + background + borderRadius.
-            // No Android, separar a borda (View) do background (Pressable)
-            // faz a borda renderizar como retângulo enquanto o background
-            // interno é arredondado. Juntando os dois no mesmo nível, o
-            // Android desenha borda e fundo respeitando o borderRadius.
+            // Bloco "outline": interior transparente, borda colorida
+            // com a cor original do bloco. Texto preto pra contrastar
+            // com o fundo claro da tela (warm-white). Esse padrão deixa
+            // a paleta mais leve visualmente e dá pra cada bloco brilhar
+            // pela cor da borda sem peso de fundo cheio.
             <View
               key={type}
               style={{
-                backgroundColor: disabled ? "#CCC" : config.color,
+                backgroundColor: "transparent",
                 borderRadius: 12,
-                borderWidth: 1,
-                borderColor: "#000000",
-                overflow: "hidden",
+                borderWidth: 2,
+                borderColor: disabled ? "#CCC" : config.color,
               }}
             >
               <Pressable
                 onPress={() => !disabled && onBlockTap(type)}
                 style={({ pressed }) => ({
-                  opacity: pressed ? 0.7 : 1,
+                  opacity: pressed ? 0.5 : 1,
                   paddingHorizontal: 14,
                   paddingVertical: 10,
                   flexDirection: "row",
@@ -118,7 +117,7 @@ export function BlockPalette({
                   style={{
                     fontFamily: "Nunito-Bold",
                     fontSize: 13,
-                    color: getContrastTextColor(config.color),
+                    color: "#000000",
                   }}
                 >
                   {config.label}
