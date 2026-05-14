@@ -58,13 +58,13 @@ const BLOCK_CONFIG: Record<
     icon: "⭕ 🌱",
   },
   // Bloco "tudo em um" do Nível 7 (if/else). Mesma cor do Nível 6 — pertence
-  // à categoria condicional. Ícone duplo com "/" separa visualmente os 2
-  // ramos: 🌱💧 (regar uma semente) / ⭕🌱 (plantar num vazio). Label quebra
-  // em 2 linhas pra acomodar o texto longo dentro do bloco da paleta.
+  // à categoria condicional. Ícone duplo com "  /  " (2 espaços de cada lado)
+  // separa visualmente os 2 ramos: 🌱💧 (regar uma semente) e ⭕🌱 (plantar
+  // num vazio). Label quebra em 2 linhas pra acomodar o texto longo.
   if_canteiro_com_semente_then_regar_else_if_canteiro_vazio_then_plantar: {
     label: "Se com semente, regar;\nsenão, se vazio, plantar",
     color: "#A88FD9",
-    icon: "🌱💧 / ⭕🌱",
+    icon: "🌱💧  /  ⭕🌱",
   },
   define_function: { label: "Definir", color: "#8E44AD", icon: "📦" },
   call_function: { label: "Fazer", color: "#8E44AD", icon: "▶" },
@@ -99,7 +99,10 @@ export function BlockPalette({
             // Bloco "outline": interior transparente, borda colorida.
             // Cor da borda recebe sufixo 66 (≈40% alpha) pra ficar
             // suave/desbotada, no mesmo registro visual da borda do
-            // box "Seu programa" (border-garden-green/10).
+            // box "Seu programa". Altura fixa garante que todos os
+            // blocos da paleta tenham o mesmo tamanho — emoji+texto
+            // ficam centralizados vertical e horizontalmente, mesmo
+            // pra labels curtos (1 linha) ou longos (2 linhas).
             <View
               key={type}
               style={{
@@ -107,12 +110,14 @@ export function BlockPalette({
                 borderRadius: 12,
                 borderWidth: 2,
                 borderColor: disabled ? "#CCC" : `${config.color}66`,
+                height: 72,
+                justifyContent: "center",
               }}
             >
               <Pressable
                 onPress={() => !disabled && onBlockTap(type)}
                 style={{
-                  paddingHorizontal: 12,
+                  paddingHorizontal: 14,
                   paddingVertical: 8,
                   flexDirection: "column",
                   alignItems: "center",
