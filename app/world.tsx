@@ -76,9 +76,10 @@ const WORLD_LAYOUT = {
   florLvl5A: { top: pctH(58), left: pctW(8), width: pctW(7) },
   florLvl5B: { top: pctH(70), right: pctW(8), width: pctW(7) },
 
-  // Recompensa Nível 5 — flor brota do tronco caído. O asset tem a mesma
-  // proporção do tronco (1426×624) pra sobrepor exatamente.
-  florNoTronco: { top: pctH(21.5), right: pctW(68), width: pctW(28) },
+  // Recompensa Nível 5 "flor no tronco": SUBSTITUI o tronco (não sobrepõe).
+  // Posição/proporção idênticas ao `tronco` — asset novo (1426×624) entra
+  // exatamente no lugar. O source do Image do tronco é trocado via state
+  // `showFlorNoTronco`. Sem entrada própria no WORLD_LAYOUT.
 
   // UI
   botaoPlay: { bottom: pctH(90), right: pctW(6) },
@@ -281,9 +282,13 @@ export default function WorldScreen() {
             }}
           />
 
-          {/* Tronco — upper right area, slightly lower */}
+          {/* Tronco — upper right area. Quando a recompensa do Nível 5
+              `flower_no_tronco` está ativa, o asset é substituído por
+              `flor_no_tronco.png` (tronco+flor integrado, mesma proporção
+              1426×624 — substituição direta, zero calibração). Padrão de
+              substituição, igual à cadeia das plantas. */}
           <Image
-            source={MUNDO_TRONCO}
+            source={showFlorNoTronco ? MUNDO_FLOR_NO_TRONCO : MUNDO_TRONCO}
             resizeMode="contain"
             style={{
               position: "absolute",
@@ -638,30 +643,9 @@ export default function WorldScreen() {
           </Animated.View>
         )}
 
-        {/* Z-layer 4.4: Flor brota do tronco caído (recompensa Nível 5).
-             Mesma posição/proporção do tronco — sobrepõe exatamente. Símbolo:
-             vida vence até o que parecia morto. */}
-        {showFlorNoTronco && (
-          <Animated.View
-            style={[
-              fadeStyle,
-              {
-                position: "absolute",
-                top: WORLD_LAYOUT.florNoTronco.top,
-                right: WORLD_LAYOUT.florNoTronco.right,
-                width: WORLD_LAYOUT.florNoTronco.width,
-                aspectRatio: 1426 / 624,
-                transform: [{ rotate: "-4deg" }],
-              },
-            ]}
-          >
-            <Image
-              source={MUNDO_FLOR_NO_TRONCO}
-              resizeMode="contain"
-              style={{ width: "100%", height: "100%" }}
-            />
-          </Animated.View>
-        )}
+        {/* Recompensa Nível 5 "flor no tronco": NÃO renderiza nada aqui.
+             A substituição é feita direto no source do tronco lá em cima
+             (mesma proporção 1426×624 — asset novo entra no lugar). */}
 
         {/* Z-layer 5: UI — Play button */}
         <Animated.View
