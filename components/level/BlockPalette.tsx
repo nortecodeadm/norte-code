@@ -87,31 +87,27 @@ export function BlockPalette({
         {availableBlocks.map((type) => {
           const config = BLOCK_CONFIG[type];
           return (
-            // Borda no wrapper externo (View), não no Pressable: no
-            // Android, Pressable com borderRadius+background pode pintar
-            // o background por cima da borda do mesmo componente. Pôr
-            // a borda numa View pai resolve, pois o background do filho
-            // não atinge a área da borda do pai.
+            // Wrapper carrega TUDO: borda + background + borderRadius.
+            // No Android, separar a borda (View) do background (Pressable)
+            // faz a borda renderizar como retângulo enquanto o background
+            // interno é arredondado. Juntando os dois no mesmo nível, o
+            // Android desenha borda e fundo respeitando o borderRadius.
             <View
               key={type}
               style={{
+                backgroundColor: disabled ? "#CCC" : config.color,
                 borderRadius: 12,
                 borderWidth: 1,
                 borderColor: "#000000",
-                // overflow hidden garante que o background do Pressable
-                // interno respeite os cantos arredondados do wrapper.
                 overflow: "hidden",
               }}
             >
               <Pressable
                 onPress={() => !disabled && onBlockTap(type)}
                 style={({ pressed }) => ({
-                  backgroundColor: disabled ? "#CCC" : config.color,
                   opacity: pressed ? 0.7 : 1,
-                  transform: [{ scale: pressed ? 0.95 : 1 }],
                   paddingHorizontal: 14,
                   paddingVertical: 10,
-                  borderRadius: 12,
                   flexDirection: "row",
                   alignItems: "center",
                   gap: 6,
