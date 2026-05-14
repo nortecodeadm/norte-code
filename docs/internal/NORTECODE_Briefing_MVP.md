@@ -5,7 +5,17 @@
 **Para:** Dev Temporário ativo (atualmente Claude Code, em substituição ao Manus)
 **Via:** Gui
 **Data:** Maio/2026
-**Versão:** 2.11 — Nível 6 entregue e validado.
+**Versão:** 2.12 — Alinhamento final do Nível 7 (planejamento sem briefing técnico inicial — briefing técnico saiu em paralelo).
+
+**Changelog v2.12:**
+- Nível 7 detalhado com decisões da sessão de alinhamento de hoje:
+  - Cenário 1×6 linear `[Avatar][CP][CV][CP][CV][CP]` (não mais "caminho com células variadas" vago).
+  - Decisão simplificadora: **sem estado "planta seca" novo** — reusa o `CellContent: "seed"` que já existe. Conceito: "canteiro com semente" precisa ser regado. Ciclo natural já estabelecido nos Níveis 1-2 reaproveitado.
+  - Reuso do `repeat_5` do Nível 6 (não cria `repeat_6`).
+  - Recompensas concretizadas: 2 esquilos (1 brotando do tronco caído, 1 no chão), 4 flores brancas com matinho, árvore frutífera. Asset novo do tronco-com-esquilo combinado ao tronco-com-flor existente.
+  - Princípio narrativo do tronco amadurece: "vida vencendo o que parecia morto" passa de vegetal pra animal.
+  - Migração técnica: campo `conditionResult` em `ExecutionStep` migra de `boolean` (Nível 6) pra `string` (`"plant" | "water" | "none"`). Não-retroativo: comportamento do Nível 6 preservado.
+  - Texto de conclusão consolidado com frase "ferramentas antecipadas".
 
 **Changelog v2.11:**
 - Nível 6 marcado como ✅ IMPLEMENTADO. 19 commits no main local (3 base + 16 de polish visual descobertos no teste).
@@ -556,24 +566,37 @@ Quando a criança aperta "Executar":
 
 ---
 
-#### Nível 7 — Se / senão (condicional com dois ramos) — PENDENTE
+#### Nível 7 — Se / senão (condicional com dois ramos) — PENDENTE (próximo a implementar)
 
-- **Conceito de programação:** if/else. "Se X, faça Y; senão, faça Z."
-- **Função pedagógica:** discernimento amadurecido. A criança não só "vê e age" — tem duas respostas possíveis dependendo do que vê.
-- **Função narrativa:** árvore principal (árvore jovem do Nível 5) **evolui pra árvore frutífera** — sinaliza que o jardim agora produz. Visualmente antecipa a coleta de frutas do Nível 8.
-- **Cenário do nível (esboço):** caminho com células variadas. Algumas têm canteiros vazios, outras têm plantinhas secas que precisam de rega, outras estão vazias.
-- **Blocos disponíveis:** `move_right`, `[Se planta seca → Regar; senão se canteiro vazio → Plantar]`, `[Repetir N×]`.
-- **Solução-alvo:** `[Repetir 6× [Direita, Se planta seca → Regar; senão se canteiro vazio → Plantar]]`.
-- **Mudança no Mundo permanente:**
-  - **Árvore principal:** árvore jovem (`young_tree_lvl5`) substituída por árvore frutífera (`fruit_tree_lvl7`). Asset novo. Decisão simplificadora: **árvore frutífera é estática** — não tem "versão parcialmente colhida" mesmo após coleta do Nível 8.
-  - **Número de frutos:** não especificado no prompt do asset — deixa a criatividade do Gemini/Canva decidir uma quantidade visualmente equilibrada (provavelmente 4-7 frutos).
-  - **3 mini-árvores do Nível 6:** mantêm posição (não evoluem mais). Visualmente coexistem com a árvore frutífera central.
-  - **1 esquilo** aparece no chão (segunda peça de fauna). Asset novo.
-  - Mais grama, mais flores espalhadas — consolida "jardim maduro".
+- **Conceito de programação:** if/else. "Se X, faça Y; senão se W, faça Z."
+- **Função pedagógica:** discernimento amadurecido. A criança não só "vê e age" — escolhe entre **duas ações** dependendo do contexto da célula. Quarto conceito de programação do MVP.
+- **Função narrativa:** árvore principal (árvore jovem do Nível 5) **evolui pra árvore frutífera** — sinaliza que o jardim agora produz. Visualmente antecipa o Nível 8. Tronco caído com flor ganha **morador** — esquilo brotando da cavidade. Coerência narrativa: "vida vencendo o que parecia morto" amadurece (de vegetal pra animal).
+- **Cenário do nível:** grade **1×6 linear**. Avatar começa na coluna 0 (chão simples). Distribuição: `[Avatar][CP][CV][CP][CV][CP]` — 3 canteiros com semente (CP, precisam ser regados) + 2 canteiros vazios (CV, precisam ser plantados).
+- **Decisão simplificadora:** sem estado "planta seca" novo. Reusa o `CellContent` existente: `"seed"` representa CP (precisa de rega), `"flowerbed"` representa CV (precisa ser plantado). Ciclo natural já estabelecido nos Níveis 1-2 (plantar → regar → cresce) é reaproveitado.
+- **Blocos disponíveis:** `move_right`, `if_canteiro_com_semente_then_regar_else_if_canteiro_vazio_then_plantar` (bloco sólido único, cor roxa `#A88FD9` — mesma categoria visual do Nível 6), `repeat_5` (reuso do Nível 6).
+- **Solução-alvo:** `[Repetir 5× [Direita, Se com semente regar; senão se vazio plantar]]` — 3 blocos.
+- **Solução longa aceita:** 10 blocos (5 iterações manuais de `[Direita, if/else]`).
+- **`maxBlocks`:** 12 (margem de 2 sobre a solução longa, padrão do Nível 6).
+- **Feedback visual durante execução:**
+  - Ramo "regar" executou → bloco pulsa **azul-rio** `#5B8AA6` (cor do regar)
+  - Ramo "plantar" executou → bloco pulsa **verde** `#5D8A3C` (cor do plant, mesma do Nível 6)
+  - Nenhum ramo executou → bloco pulsa **cinza claro** `#BDBDBD`
+- **Migração técnica importante:** campo `conditionResult` em `ExecutionStep` migra de `boolean` (Nível 6) pra `string` (`"plant" | "water" | "none"`). Mudança não-retroativa: comportamento do Nível 6 preservado (`true → "plant"`, `false → "none"`). Renderização passa a tratar string.
+- **Mudança no Mundo permanente — múltiplas operações:**
+  - **Substituir árvore principal:** árvore jovem (`young_tree_lvl5`) → árvore frutífera (`fruit_tree_lvl7`). Asset novo. Asset estático (sem versão parcialmente colhida — decisão simplificadora prévia).
+  - **Substituir tronco caído com flor:** versão atual → versão com esquilo brotando da cavidade do lado esquerdo (`fallen_log_with_flower_lvl5` → `fallen_log_with_flower_and_squirrel_lvl7`). Mesma posição/rotação.
+  - **Adicionar 1 esquilo no chão:** segundo esquilo, perto da árvore frutífera. Mesmo asset do esquilo do tronco (visualmente idêntico — "a mesma criatura aparece em dois lugares").
+  - **Adicionar 4 flores brancas com matinho:** asset novo com tufos de grama na base (cria sensação de "mais verde no solo"). 4 instâncias do mesmo asset, espalhadas.
+  - 3 mini-árvores do Nível 6: **mantêm posição**.
+  - 2 pássaros do Nível 6: **mantêm posição**.
+  - 3 flores amarelas do Nível 6: **mantêm posição**.
+  - Background do Mundo: **não muda** (continua v2). Background v3 reservado pro Nível 8.
 - **Assets novos necessários:**
-  - `mundo_arvore_frutifera.png` (sucessora da árvore jovem — com frutos)
-  - `mundo_esquilo.png` (em pose calma, paleta suave)
-- **Texto de conclusão (rascunho):** "Agora você sabe escolher entre dois caminhos. Cuidar é responder ao que cada coisa precisa — não tratar tudo igual."
+  - `mundo_arvore_frutifera.png` (sucessora da árvore jovem — com frutos; número de frutos livre na geração)
+  - `mundo_esquilo.png` ✅ (já gerado — paleta cinza-azulado pra dialogar com o pássaro)
+  - `mundo_tronco_com_flor_e_esquilo.png` ✅ (já gerado — esquilo brotando da cavidade esquerda do tronco)
+  - `mundo_flor_branca.png` ✅ (já gerado — flor branca off-white com tufos de grama na base)
+- **Texto de conclusão:** "Agora você sabe escolher entre dois caminhos. Cuidar é responder ao que cada coisa precisa — não tratar tudo igual. Lembra disso — vai ser muito importante mais pra frente."
 - **Conexão com Nível 10:** if/else permite escolhas críticas com pouca água — "se solo tem umidade → planta semente; senão → continua andando". Sem if/else, criança gasta sementes em terra ruim.
 
 ---
@@ -943,5 +966,5 @@ Ao final:
 
 ---
 
-*Atualizado em Maio/2026 — v2.11*
-*Reflete: Nível 6 entregue e validado no celular. 19 commits aguardando push. Próximo nível em fila: Nível 7 (if/else, árvore frutífera, esquilo). Dev Temporário ativo: Claude Code.*
+*Atualizado em Maio/2026 — v2.12*
+*Reflete: Nível 6 entregue. Nível 7 alinhado e briefing técnico pronto (próximo a implementar). Próximo passo após Nível 7 entregue: alinhamento do Nível 8 (variável + transformação visual major do Mundo). Dev Temporário ativo: Claude Code.*
