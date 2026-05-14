@@ -58,12 +58,13 @@ const BLOCK_CONFIG: Record<
     icon: "⭕ 🌱",
   },
   // Bloco "tudo em um" do Nível 7 (if/else). Mesma cor do Nível 6 — pertence
-  // à categoria condicional. Ícone duplo representa os 2 ramos: 🌱💧 (se há
-  // semente, rega) e ⭕🌱 (senão se vazio, planta).
+  // à categoria condicional. Ícone duplo com "/" separa visualmente os 2
+  // ramos: 🌱💧 (regar uma semente) / ⭕🌱 (plantar num vazio). Label quebra
+  // em 2 linhas pra acomodar o texto longo dentro do bloco da paleta.
   if_canteiro_com_semente_then_regar_else_if_canteiro_vazio_then_plantar: {
-    label: "Se com semente, regar; senão se vazio, plantar",
+    label: "Se com semente, regar;\nsenão, se vazio, plantar",
     color: "#A88FD9",
-    icon: "🌱💧 ⭕🌱",
+    icon: "🌱💧 / ⭕🌱",
   },
   define_function: { label: "Definir", color: "#8E44AD", icon: "📦" },
   call_function: { label: "Fazer", color: "#8E44AD", icon: "▶" },

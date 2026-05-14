@@ -111,7 +111,7 @@ export function createBlock(
     if_else: "Se... senão...",
     if_canteiro_vazio_then_plantar: "Se vazio, plantar",
     if_canteiro_com_semente_then_regar_else_if_canteiro_vazio_then_plantar:
-      "Se com semente, regar; senão se vazio, plantar",
+      "Se com semente, regar;\nsenão, se vazio, plantar",
     define_function: "Definir",
     call_function: "Fazer",
     stop: "Parar",
