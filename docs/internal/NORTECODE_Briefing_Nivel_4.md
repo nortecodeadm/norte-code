@@ -14,7 +14,7 @@ Você está atuando como Dev Temporário do Norte Code. Antes de qualquer linha 
 
 1. **Leia o `NORTECODE_Protocolo_Dev_Temporario.md`** — define seu papel e o cenário operacional (você se encaixa no **Cenário A**: tem acesso ao filesystem local e git CLI).
 2. **Leia o `NORTECODE_Protocolo_Colaboracao_IAs.md`** — define o fluxo geral e as regras de não-retroatividade.
-3. **Leia o `NORTECODE_Briefing_MVP_v2_5.md`** — visão completa do produto, decisões já tomadas, estado atual da implementação (Níveis 1, 2, 3 prontos; Nível 4 = sua tarefa).
+3. **Leia o `NORTECODE_Briefing_MVP.md`** — visão completa do produto, decisões já tomadas, estado atual da implementação (Níveis 1, 2, 3 prontos; Nível 4 = sua tarefa).
 4. **Inspecione o código existente antes de gerar nada** — especialmente `lib/levels/index.ts`, `lib/interpreter/blocks.ts`, `lib/interpreter/interpreter.ts`, `lib/interpreter/world-state.ts`, `components/level/BlockPalette.tsx` e `app/world.tsx`. Você NÃO deve assumir como o código está estruturado — leia e siga o padrão existente.
 
 Se algo neste briefing conflitar com o que existe no código, **PARE e pergunte ao Gui antes de prosseguir**. Não chute.
@@ -89,7 +89,7 @@ No **Nível 5** (briefing futuro), as 3 sementes serão regadas e virarão 3 pla
 
 ### Princípio de não-retroatividade
 
-Seguindo a regra 4.6 do Briefing MVP v2.5: este nível ADICIONA estruturas, não refatora as anteriores. O Nível 4 reusa a estrutura `grid.cells[row][col]` já existente desde o Nível 3. Sem mexer em Níveis 1, 2 ou 3.
+Seguindo a regra 4.6 do Briefing MVP: este nível ADICIONA estruturas, não refatora as anteriores. O Nível 4 reusa a estrutura `grid.cells[row][col]` já existente desde o Nível 3. Sem mexer em Níveis 1, 2 ou 3.
 
 ---
 

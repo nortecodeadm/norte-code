@@ -296,7 +296,7 @@ Algumas IAs leem automaticamente documentos anexados a uma base de conhecimento 
 - Outras IAs com sistema equivalente
 
 **Nesse caso, a IA NÃO precisa pedir que o Gui cole nada.** Apenas:
-1. Confirma quais documentos consegue ver (lista no chat: "tenho acesso a Briefing v2.5, Protocolo Dev Temporário, etc.")
+1. Confirma quais documentos consegue ver (lista no chat: "tenho acesso a Briefing MVP, Protocolo Dev Temporário, Style Guide, etc.")
 2. Pede ao Gui a **tarefa específica** ou **briefing técnico da tarefa** (se houver)
 3. Identifica cenário operacional (A ou B — GitHub access) e prossegue
 
@@ -445,7 +445,7 @@ Quando a tarefa estiver concluída:
 1. Dev Temporário produz **Relatório de Execução final**
 2. **Cenário A:** commits já estão no `main` (default). Se foi uma exceção em branch, Gui mergeia.
 3. **Cenário B:** Gui aplica todas as mudanças no repo manualmente
-4. Briefing v2.5 (estado de implementação) é atualizado (Claude pode ajudar nessa atualização)
+4. Briefing MVP (Seção 10 — Estado de Implementação) é atualizado (Claude pode ajudar nessa atualização)
 5. Quando Manus voltar, Gui pode passar o relatório pra ele tomar pé
 
 ---
