@@ -163,6 +163,27 @@ if img.mode == "P":
 
 ---
 
+#### 23. Padrão "tipo de dados separado por camada"
+**Origem:** Mascote-Gabarito (Maio/2026). Briefing técnico sugeria reusar `ProgramBlock[]` pro campo `optimalSolution`, mas isso criaria dependência inversa (`lib/levels` → `components/`). Claude Code propôs criar `OptimalSolutionBlock` em `lib/levels` (sem `id`, mais enxuto), com conversão pra `ProgramBlock` em runtime via `optimalToProgramBlocks` com ids estáveis.
+**Padrão estabelecido:** quando um dado precisa atravessar camadas arquiteturais, criar tipo próprio na camada de origem em vez de reusar tipo de camada superior. Evita acoplamento.
+**Aplicação futura:** quando o Nível 9 introduzir conceito novo (função?) que precisar trafegar entre camadas, considerar o mesmo padrão.
+**Status:** padrão registrado.
+**Prioridade:** documentação. Aplicar caso a caso.
+
+---
+
+#### 24. Padrão "guardas defensivas em features assíncronas"
+**Origem:** Mascote-Gabarito (Maio/2026). A cena do mascote-gabarito dura ~5s (respiração + mensagem + execução + pós-execução). Sem proteção, criança podia tocar botões durante a cena e gerar estado inconsistente. Claude Code adicionou 3 guardas defensivas:
+- Bloqueio de reentrada em `handleExecute` quando `success === true`
+- Reset de `executor` e `showTransition` em `handleReset` (sem estado órfão)
+- Fallback pro fluxo antigo se `player` não carregar (sem mascote = volta a comportamento pre-feature)
+**Padrão estabelecido:** features que envolvem múltiplas animações sequenciais ou estado assíncrono devem ter guardas explícitas contra (a) reentrada por toque do usuário, (b) reset que deixa estado órfão, (c) ausência de dados que a feature depende.
+**Aplicação futura:** sessão da serpente no Nível 9 vai envolver execução paralela criança+mascote com queda no meio — vai precisar de mais guardas defensivas que o mascote-gabarito.
+**Status:** padrão registrado.
+**Prioridade:** processo. Aplicar sempre.
+
+---
+
 #### 19. Padrão "calibração visual após transformação major do background"
 **Origem:** Nível 8 (Maio/2026). Quando o Mundo passa por mudança de background v_N → v_(N+1) + migração de elementos pro background, TODOS os elementos persistentes precisam de re-calibração visual, mesmo que tecnicamente eles "não mudaram". Razão: o **fundo visual** mudou — a "linha do chão", a "linha do horizonte", a densidade do meio-campo são diferentes do background anterior. O que estava em `bottom 30%` em cima da terra do v2 está em `bottom 30%` em cima do gramado do v3, mas o ponto de referência visual mudou.
 **Caso mais dramático no Nível 8:** `troncoEsquiloLvl8` precisou de `bottom -21.5% → bottom 35%` (mudança de 56 pontos percentuais) — sem essa calibração, o tronco com flor + esquilo desapareceria visualmente fora da tela.
@@ -209,8 +230,9 @@ if img.mode == "P":
 
 ### Maio/2026
 
+- ✅ **Entrega Mascote como Gabarito Visual (Níveis 7 e 8)** (Maio/2026, 4 commits). Implementação aditiva-retroativa nos Níveis 7 e 8 (princípio de não-retroatividade preservado — Níveis 1-6 intocados). Após a execução bem-sucedida do programa da criança, o mascote refaz a tarefa aplicando a solução ótima (`optimalSolution` na config). Frentes entregues: campo `optimalSolution` + tipo `OptimalSolutionBlock`; componente `TransitionMessage` novo; substituição de sprite no `LevelScene` via prop `executor`; ProgramArea em modo "exibição" durante 2ª execução; humor "atento" do mascote (existente); pluralização do `successText`. 3 guardas defensivas (sem estado órfão). 3 timings calibrados (500ms / 1.8s / 1.2s). Fundação narrativa pra Nível 9 pronta.
 - ✅ **Entrega Nível 8 — variável (contador) + repeat_until + transformação visual major do Mundo** (15/05/2026, 8 commits — 6 base + 2 calibrações pós-teste). Inclui: bloco `repeat_until_frutas_3` (envelope com slot interno, loop com condição embutida); reuso de `player.inventory.fruits` como sistema de variável (YAGNI sobre genérico); bloco `pick_fruit` reaproveitado de código morto com cor mudada pra rosa-fruta `#D8848C`; componente `ActivityBasket` novo (overlay com 4 estados visuais); HUD contador "🍎 Frutas: X/3" com pulse verde ao atingir 3; cenário 1×5 linear com `fruit_tree` célula nova (inesgotável); transformação visual major do Mundo (background v2 → v3, cadeia da planta principal + 3 mini-árvores migram pro background via flag `hasBgV3`); 9 assets novos (background v3, 4 cestas atividade, 2 borboletas diferentes, serpente, cesta-recompensa-com-serpente); **entrada narrativa-chave da serpente registrada em DECISIONS.md em 15/05/2026** (DENTRO da cesta, envolvida nas frutas, calma e atraente — antecipa atuação no Nível 9); recalibração visual completa de 16 elementos persistentes pós-transformação do background.
-- ✅ Briefing MVP atualizado pra v2.15. Correção de erro factual sobre envelope vs sólido único na entrada do Nível 8.
+- ✅ Briefing MVP atualizado pra v2.17. Correção de erro factual sobre envelope vs sólido único na entrada do Nível 8 (v2.15). Sessão estratégica da serpente iniciada com 4 decisões-âncora (v2.16). Mini-projeto Mascote-Gabarito entregue (v2.17).
 - ✅ **Entrega Nível 7 — condicional if/else** (Maio/2026, 11 commits — 4 base + 7 ajustes pós-teste no celular). Inclui: bloco `if_canteiro_com_semente_then_regar_else_if_canteiro_vazio_then_plantar` (sólido único, roxo); migração `conditionResult: boolean → string`; feedback visual com 3 cores (verde/azul-rio/cinza); recompensas no Mundo (árvore frutífera substitui árvore jovem, tronco com flor+esquilo substitui tronco com flor, +1 esquilo no chão, +4 flores brancas com matinho); cadeia tripla do tronco caído; padrão "elemento que muda posição entre níveis" via `bird_lvl7_a`; label longo do bloco if/else em 2 linhas com barra entre emojis; altura uniforme dos blocos da paleta.
 - ✅ Briefing MVP atualizado pra v2.13.
 - ✅ **Entrega Nível 6 — condicional simples (`if_canteiro_vazio_then_plantar`)** (14/05/2026, 19 commits — 3 base + 16 polish visual). Inclui: bloco condicional sólido único com feedback verde/cinza durante execução; bloco `repeat_5`; campo `conditionResult?: boolean` em `ExecutionStep`; legenda do mapa adaptativa; função `getContrastTextColor()` YIQ; saga das bordas dos blocos no Android (8 commits de troubleshooting); recompensas no Mundo (2 pássaros com mirror, 3 mini-árvores substituem plantinhas estágio 3, 3 flores amarelas).

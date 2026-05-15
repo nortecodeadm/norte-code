@@ -5,7 +5,17 @@
 **Para:** Dev Temporário ativo (atualmente Claude Code, em substituição ao Manus)
 **Via:** Gui
 **Data:** Maio/2026
-**Versão:** 2.16 — Sessão estratégica da serpente iniciada e pausada. Decisão narrativa-arquitetural do mascote-gabarito tomada.
+**Versão:** 2.17 — Mini-projeto Mascote-Gabarito entregue e validado.
+
+**Changelog v2.17:**
+- Mini-projeto "Mascote como Gabarito Visual" marcado como ✅ IMPLEMENTADO. 4 commits no `origin/main`.
+- Fundação narrativa pra Nível 9 pronta: mascote estabelecido como segundo agente moral do jogo, executando solução ótima após a criança nos Níveis 7 e 8. Expectativa de "mascote sempre acerta" construída em 2 níveis — quebra dessa expectativa no Nível 9 vai ter peso emocional alto.
+- Tipo `OptimalSolutionBlock` criado em `lib/levels` (sem `id`, evita dependência inversa de `lib/` em `components/`). Conversão pra `ProgramBlock[]` via `optimalToProgramBlocks` com ids estáveis (`opt_0`, `opt_3_0`...) — mesmos ids alimentam `blocksToAST` e ProgramArea, highlight bate.
+- 3 guardas defensivas adicionadas (sem deixar estado órfão): bloqueio de reentrada em success, reset de `executor`/`showTransition`, fallback pro fluxo antigo se player não carregar.
+- ProgramArea agora suporta modo "exibição" (não-editável) durante a 2ª execução. `executor === "mascote"` troca os blocos, zera `editingContainerId` e trava interação.
+- 3 timings calibrados: 500ms respiração antes da mensagem, 1.8s mensagem visível, 1.2s pós-execução antes do summary.
+- Pluralização do `successText` nos Níveis 7 e 8 (verbos e pronomes flexionados sem reescrever a estrutura).
+- Próximo passo: **retomar sessão estratégica da serpente (Níveis 9 e 10)** — agora com fundação completa.
 
 **Changelog v2.16:**
 - Sessão estratégica do arco final (Níveis 9-10) iniciada em Maio/2026, com 4 decisões-âncora tomadas:
@@ -942,6 +952,7 @@ A cada commit que mude lógica/arquitetura, atualizar a doc correspondente.
 - Nível 6 (Condicional simples) — grade 1×6 linear com `[Avatar][SC][CV][CP][CV][CV]`. Introduz bloco `if_canteiro_vazio_then_plantar` (bloco sólido único, comportamento condicional embutido) e `repeat_5`. Estados de célula visíveis antes da execução. Feedback visual durante execução: bloco condicional pulsa verde quando condição é verdadeira, cinza quando falsa (via campo `conditionResult` em `ExecutionStep`). Princípio "ferramentas antecipadas" reforçado no texto de conclusão
 - Nível 7 (If/else — condicional com dois ramos) — grade 1×6 linear `[Avatar][CP][CV][CP][CV][CP]`. Introduz bloco if/else (sólido único, mesmo padrão visual do Nível 6). Migração técnica: campo `conditionResult` em `ExecutionStep` migrou de `boolean` pra `string` (`"plant" | "water" | "none"`). Feedback visual durante execução com 3 cores distintas: verde (plantou), azul-rio (regou), cinza (nenhum ramo). Decisão simplificadora: sem estado "planta seca" novo — reusa `CellContent: "seed"` existente
 - Nível 8 (Variável — contador simples) — grade 1×5 linear `[Avatar][chão][chão][chão][Árvore frutífera]`. Introduz **sistema de variável** (reusa `player.inventory.fruits` existente, sem criar campo genérico — YAGNI). Bloco novo `repeat_until_frutas_3` (envelope com slot interno, loop com condição embutida). Bloco `pick_fruit` reaproveitado de código morto pré-existente, cor mudada de laranja `#F5A623` pra rosa-fruta `#D8848C`. UI nova: contador HUD `🍎 Frutas: 0/3` (verde + pulse quando atinge 3) + cesta da atividade com 4 estados visuais (vazia/1/2/3). Componente `ActivityBasket` novo como overlay (não na grade)
+- **Mascote como Gabarito Visual (Níveis 7 e 8)** — a partir do Nível 7, após a execução bem-sucedida do programa da criança, o mascote refaz a tarefa aplicando a solução ótima (`optimalSolution` na config do nível). Componente `TransitionMessage` (overlay branco-cream, borda verde-folha, fade-in/out, ~1.8s). Sprite do mascote substitui avatar verde durante a 2ª execução (`executor: "avatar" | "mascote"` em `LevelScene`). ProgramArea troca pros blocos do gabarito com highlight acompanhando, em modo não-editável. Humor "atento" do mascote durante a execução. `successText` pluralizado ("Agora vocês sabem...", "Vocês usaram..."). Princípio de não-retroatividade preservado — Níveis 1-6 não afetados
 - Sistema de recompensas com substituição em cadeia (`seed_lvl1` → `sprout_lvl2` → `grown_sprout_lvl3` → `mini_tree_lvl4` → `young_tree_lvl5` → `fruit_tree_lvl7`, **migra inteira pro background no Nível 8**)
 - Cadeia tripla do tronco caído: tronco original → flor no tronco (Nível 5) → tronco com flor + esquilo (Nível 7). "Mais evoluído tem prioridade"
 - Continuidade visual das 3 plantas secundárias: 3 sementes do Nível 4 → 3 plantinhas estágio 3 do Nível 5 → 3 mini-árvores do Nível 6 (**migram pro background no Nível 8**)
@@ -969,8 +980,7 @@ A cada commit que mude lógica/arquitetura, atualizar a doc correspondente.
 
 ### ⏳ Pendente
 
-- **Mini-projeto "Mascote como Gabarito Visual"** (precede o Nível 9) — implementação retroativa-aditiva nos Níveis 7 e 8: após a execução bem-sucedida do programa da criança, o mascote refaz a tarefa aplicando a solução ótima (gabarito). Sprite do mascote substitui o avatar verde durante a 2ª execução. Mensagem entre execuções. Fundação narrativa pra quebra de expectativa no Nível 9. Decisão registrada em `NORTECODE_DECISIONS_PendingEntries_MascoteGabarito.md` (Maio/2026). Mini-sessão estratégica dedicada pendente antes do briefing técnico.
-- Nível 9 (Função — encapsular sequência) — serpente "atua" pela primeira vez. Tese-âncora do arco (Níveis 9-10): "Restauração parcial + aprendizado integrado + motivação pra continuar". Decisões parciais já tomadas: tom visual do árido inicial (α — cinza-bege contemplativo); o que sobra no cenário do Nível 10 (ζ — híbrido, hipótese: tronco com flor + pedra + árvore frutífera seca + 1 borboleta); agente da queda = serpente seduz o mascote (α). Mecânica exata da serpente + mecânica do Nível 10 ainda pendentes de sessão estratégica dedicada (a retomar APÓS implementação do mascote-gabarito).
+- Nível 9 (Função — encapsular sequência) — serpente "atua" pela primeira vez. Tese-âncora do arco (Níveis 9-10): "Restauração parcial + aprendizado integrado + motivação pra continuar". Decisões parciais já tomadas: tom visual do árido inicial (α — cinza-bege contemplativo); o que sobra no cenário do Nível 10 (ζ — híbrido, hipótese: tronco com flor + pedra + árvore frutífera seca + 1 borboleta); agente da queda = serpente seduz o mascote (α). **Fundação narrativa pronta:** mascote-gabarito implementado nos Níveis 7-8 estabelece expectativa de "mascote sempre acerta", que será quebrada no Nível 9. Mecânica exata da serpente + mecânica do Nível 10 pendentes de retomada da sessão estratégica dedicada.
 - Nível 10 (Aplicar tudo em ambiente árido — restauração) — clímax do MVP. Sessão estratégica dedicada pendente.
 - Capítulo Narrativo (telas dedicadas de história) — pendente de sessão dedicada
 - Acessibilidade (TTS opcional)
@@ -1033,5 +1043,5 @@ Ao final:
 
 ---
 
-*Atualizado em Maio/2026 — v2.16*
-*Reflete: Nível 8 entregue. Sessão da serpente iniciada com 4 decisões-âncora + decisão emergente do mascote-gabarito. Sessão pausada. Próximo: mini-sessão estratégica do mascote-gabarito → implementação nos Níveis 7-8 → retomada da serpente. Dev Temporário ativo: Claude Code.*
+*Atualizado em Maio/2026 — v2.17*
+*Reflete: Nível 8 + Mascote-Gabarito entregues e validados. Fundação narrativa pra Nível 9 pronta. Próximo passo: retomar sessão estratégica da serpente (Níveis 9 e 10). Dev Temporário ativo: Claude Code.*
