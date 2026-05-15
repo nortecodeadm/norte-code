@@ -23,7 +23,7 @@ import Animated, {
   Easing,
 } from "react-native-reanimated";
 
-import { getLevel } from "../../lib/levels";
+import { getLevel, type OptimalSolutionBlock } from "../../lib/levels";
 import {
   executeProgram,
   type ProgramNode,
@@ -38,10 +38,13 @@ import {
   ExecuteButton,
   LevelScene,
   ActivityBasket,
+  TransitionMessage,
   isContainerBlock,
   type ProgramBlock,
   type ExecuteState,
 } from "../../components/level";
+import { getCurrentUserId } from "../../lib/auth";
+import { getPlayer, type PlayerData } from "../../lib/player";
 
 // ─── Helpers pra programa com filhos (estruturas aninhadas, Nível 5+) ────────
 // Estes utilitários assumem que cada bloco tem ID único na árvore inteira.
@@ -123,6 +126,29 @@ function insertInContainer(
   });
 }
 
+// Converte a optimalSolution da config (OptimalSolutionBlock[], sem id)
+// em ProgramBlock[] (com id) — feature Mascote-Gabarito. Os ids são
+// ESTÁVEIS e derivados do caminho na árvore (ex: "opt_3", "opt_3_0").
+// Estabilidade importa: os mesmos ids alimentam o blocksToAST (pros
+// step.blockId da execução) E a renderização na ProgramArea — o
+// highlight do bloco ativo durante a execução do mascote depende
+// dos dois lados usarem o mesmo id.
+function optimalToProgramBlocks(
+  blocks: OptimalSolutionBlock[],
+  prefix = "opt"
+): ProgramBlock[] {
+  return blocks.map((b, i): ProgramBlock => {
+    const id = `${prefix}_${i}`;
+    return {
+      id,
+      type: b.type,
+      ...(b.children
+        ? { children: optimalToProgramBlocks(b.children, id) }
+        : {}),
+    };
+  });
+}
+
 // Encontra um bloco por id em qualquer profundidade.
 function findBlockById(
   blocks: ProgramBlock[],
@@ -165,12 +191,47 @@ export default function LevelScreen() {
     string | undefined
   >(undefined);
 
+  // ─── Feature Mascote-Gabarito (Níveis 7+) ────────────────────────────────
+  // player: carregado no mount pra ter pet_type (sprite) e pet_name (texto
+  //   da mensagem de transição).
+  // executor: quem ocupa a célula do mapa — "avatar" na 1ª execução (criança),
+  //   "mascote" na 2ª (gabarito). Também decide qual programa a ProgramArea
+  //   exibe.
+  // showTransition: controla o fade da TransitionMessage entre as execuções.
+  const [player, setPlayer] = useState<PlayerData | null>(null);
+  const [executor, setExecutor] = useState<"avatar" | "mascote">("avatar");
+  const [showTransition, setShowTransition] = useState(false);
+
   const blockIdCounter = useRef(0);
   const hintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // ScrollView que envolve todo o conteúdo central. Antes de executar o
   // programa, rolamos pro topo pra garantir que a criança veja o mapa
   // animando, mesmo que estivesse rolada pra baixo editando.
   const scrollRef = useRef<ScrollView>(null);
+
+  // Carrega o player no mount — pet_type alimenta o sprite do mascote
+  // no mapa; pet_name alimenta a mensagem de transição. Feature
+  // Mascote-Gabarito. Falha silenciosa: se não carregar, o nível roda
+  // sem a cena do mascote (fallback no handleExecute).
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const userId = await getCurrentUserId();
+      if (!userId) return;
+      const data = await getPlayer(userId);
+      if (!cancelled) setPlayer(data);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Gabarito do nível convertido pra ProgramBlock[] (com ids estáveis).
+  // Usado na 2ª execução: alimenta tanto a renderização da ProgramArea
+  // quanto o blocksToAST. undefined nos Níveis 1-6 (sem optimalSolution).
+  const mascoteProgramBlocks: ProgramBlock[] | undefined = level?.optimalSolution
+    ? optimalToProgramBlocks(level.optimalSolution)
+    : undefined;
 
   // Hint timer: show hint after 5s of inactivity (no blocks added)
   useEffect(() => {
@@ -332,7 +393,9 @@ export default function LevelScreen() {
 
   const handleExecute = async () => {
     if (programBlocks.length === 0) return;
-    if (executeState === "running") return;
+    // Trava reentrada durante a execução E durante a cena do mascote
+    // (que mantém executeState === "success" por vários segundos).
+    if (executeState === "running" || executeState === "success") return;
 
     // Autoscroll pro topo antes de executar — garante que a criança veja o
     // mapa animando mesmo se estava rolada pra baixo editando o programa.
@@ -373,10 +436,17 @@ export default function LevelScreen() {
 
     if (result.success) {
       setExecuteState("success");
-      // Navigate to summary after a short delay
-      setTimeout(() => {
-        router.push(`/level-summary/${levelId}`);
-      }, 1200);
+      // Feature Mascote-Gabarito: se o nível tem optimalSolution e o
+      // player carregou, dispara a cena do mascote ANTES do level
+      // summary. Caso contrário (Níveis 1-6, ou player não carregou),
+      // segue o fluxo padrão direto pro summary.
+      if (level.optimalSolution && mascoteProgramBlocks && player) {
+        await runMascoteGabarito(mascoteProgramBlocks);
+      } else {
+        setTimeout(() => {
+          router.push(`/level-summary/${levelId}`);
+        }, 1200);
+      }
     } else {
       setExecuteState("error");
       // Caso especial — interpretador setou error (atingiu MAX_EXECUTION_STEPS).
@@ -398,6 +468,59 @@ export default function LevelScreen() {
         setErrorMessage(errMsg);
       }
     }
+  };
+
+  // ─── Cena do Mascote-Gabarito (feature, Níveis 7+) ───────────────────────
+  // Roda APÓS a criança vencer. Não conta como tentativa — é cena posterior.
+  // Sequência: respiração → mensagem de transição → reset + troca de sprite
+  // (atrás da mensagem) → 2ª execução com o gabarito → level summary.
+  const runMascoteGabarito = async (gabarito: ProgramBlock[]) => {
+    const sleep = (ms: number) =>
+      new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+    // 1. Respiração — deixa a criança sentir a vitória antes da cena.
+    await sleep(500);
+
+    // 2. Mensagem de transição entra (fade-in 200ms interno) e fica
+    //    visível pra leitura.
+    setShowTransition(true);
+    await sleep(1800);
+
+    // 3. ATRÁS da mensagem: reseta o mapa pro estado inicial e troca o
+    //    executor pra mascote (sprite muda no LevelScene + ProgramArea
+    //    passa a exibir o gabarito).
+    const freshWorld: WorldState = JSON.parse(
+      JSON.stringify(level.initialWorld)
+    );
+    freshWorld.goalCondition = level.initialWorld.goalCondition;
+    setWorldState(freshWorld);
+    setExecutor("mascote");
+    setActiveBlockId(undefined);
+    setActiveConditionResult(undefined);
+
+    // 4. Mensagem sai (fade-out 300ms interno).
+    setShowTransition(false);
+    await sleep(300);
+
+    // 5. 2ª execução — mascote roda o gabarito. Mesma mecânica de step
+    //    animation da execução da criança; o highlight acompanha os
+    //    blocos do gabarito na ProgramArea (ids batem — ver
+    //    optimalToProgramBlocks).
+    const gabAST: ProgramNode = {
+      type: "program",
+      body: blocksToAST(gabarito),
+    };
+    const gabResult = executeProgram(gabAST, freshWorld);
+    if (gabResult.steps.length > 0) {
+      await animateSteps(gabResult.steps, freshWorld);
+    }
+    setWorldState(gabResult.finalState);
+    setActiveBlockId(undefined);
+    setActiveConditionResult(undefined);
+
+    // 6. Level summary (recompensas + texto de conclusão pluralizado).
+    await sleep(1200);
+    router.push(`/level-summary/${levelId}`);
   };
 
   const getContextualError = (
@@ -616,6 +739,10 @@ export default function LevelScreen() {
     setExecuteState("idle");
     setErrorMessage(null);
     setEditingContainerId(undefined);
+    // Feature Mascote-Gabarito: garante que um reset não deixe a tela
+    // presa no modo mascote (sprite/ProgramArea do gabarito).
+    setExecutor("avatar");
+    setShowTransition(false);
     resetWorld();
   };
 
@@ -737,8 +864,25 @@ export default function LevelScreen() {
           </View>
         )}
 
-        {/* Scene — mantém tamanho original (não tenta encolher pra caber). */}
-        <LevelScene world={worldState} />
+        {/* Scene — mantém tamanho original (não tenta encolher pra caber).
+            Wrapper relativo pra a TransitionMessage (feature Mascote-
+            Gabarito) poder se posicionar como overlay sobre o mapa. */}
+        <View style={{ position: "relative" }}>
+          <LevelScene
+            world={worldState}
+            executor={executor}
+            petType={player?.pet_type}
+          />
+          {/* Mensagem entre a execução da criança e a do mascote.
+              Fica montada o tempo todo (opacity controla visibilidade)
+              — só aparece de fato durante a transição. */}
+          {player && (
+            <TransitionMessage
+              visible={showTransition}
+              petName={player.pet_name}
+            />
+          )}
+        </View>
 
         {/* Cesta da atividade (Nível 8) — par concreto da variável (HUD é
             o par abstrato). Posição placeholder centralizada abaixo do
@@ -788,19 +932,36 @@ export default function LevelScreen() {
 
         {/* ProgramArea — cresce conforme blocos. Sem altura máxima, sem
             scroll interno (evita scroll-dentro-de-scroll). minHeight pra
-            garantir presença visual mesmo com programa vazio. */}
+            garantir presença visual mesmo com programa vazio.
+            Na 2ª execução (executor === "mascote") exibe os blocos do
+            gabarito — a criança vê a solução elegante destacando step a
+            step. Toda interação fica travada nessa fase (disabled). */}
         <View style={{ minHeight: 200 }}>
           <ProgramArea
-            blocks={programBlocks}
+            blocks={
+              executor === "mascote" && mascoteProgramBlocks
+                ? mascoteProgramBlocks
+                : programBlocks
+            }
             onBlockRemove={handleRemoveBlock}
-            editingContainerId={editingContainerId}
+            editingContainerId={
+              executor === "mascote" ? undefined : editingContainerId
+            }
             onContainerToggle={handleContainerToggle}
             onContainerDone={handleContainerDone}
             activeBlockId={activeBlockId}
             activeConditionResult={activeConditionResult}
             maxBlocks={level.maxBlocks}
-            totalCount={countBlocks(programBlocks)}
-            disabled={executeState === "running"}
+            totalCount={countBlocks(
+              executor === "mascote" && mascoteProgramBlocks
+                ? mascoteProgramBlocks
+                : programBlocks
+            )}
+            disabled={
+              executeState === "running" ||
+              executeState === "success" ||
+              executor === "mascote"
+            }
           />
         </View>
       </ScrollView>
