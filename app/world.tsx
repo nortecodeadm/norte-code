@@ -147,12 +147,12 @@ const WORLD_LAYOUT = {
   // (cesta + 3 frutas + serpente envolvida). Posição placeholder perto
   // do avatar; Gui calibra. NÃO confundir com a cesta da atividade
   // (essa é permanente no Mundo, aquela é só do mapa de jogo).
-  cestaSerpente: { bottom: pctH(8), left: pctW(40), width: pctW(28) },
+  cestaSerpente: { bottom: pctH(5), left: pctW(32), width: pctW(35) },
   // 2 borboletas DIFERENTES (não é mirror). butterfly_perched_lvl8
   // pousada numa flor; butterfly_flying_lvl8 voando em direção a outra.
   // Posições placeholder — Gui calibra.
-  borboletaPousada: { top: pctH(60), left: pctW(20), width: pctW(12) },
-  borboletaVoando: { top: pctH(40), right: pctW(20), width: pctW(12) },
+  borboletaPousada: { top: pctH(68.5), left: pctW(75), width: pctW(5) },
+  borboletaVoando: { top: pctH(76), right: pctW(40), width: pctW(8) },
 
   // ─── Recalibração Nível 8 — versões _lvl8 com posições próprias ────────
   // Padrão "elemento que muda de posição entre níveis" (Nv 7 → Nv 8).
@@ -162,36 +162,36 @@ const WORLD_LAYOUT = {
 
   // Pedra Nv 8 — versão calibrável (a `pedra` original sempre renderizou
   // sem flag; agora `pedra_lvl8` é o slot independente).
-  pedraLvl8: { top: pctH(3), right: pctW(8), width: pctW(20) },
+  pedraLvl8: { top: pctH(10), right: pctW(4), width: pctW(20) },
 
   // Tronco com flor e esquilo Nv 8 — herda do troncoEsquilo (Nv 7).
-  troncoEsquiloLvl8: { bottom: pctH(-21.5), right: pctW(68), width: pctW(28) },
+  troncoEsquiloLvl8: { bottom: pctH(35), right: pctW(72), width: pctW(28) },
 
   // 2 pássaros Nv 8 — bird_lvl8_a herda do passaroLvl7A;
   // bird_lvl8_b herda do passaroLvl6B (que era espelhado scaleX -1).
-  passaroLvl8A: { top: pctH(23.3), right: pctW(30), width: pctW(10) },
-  passaroLvl8B: { top: pctH(50), right: pctW(15), width: pctW(10) },
+  passaroLvl8A: { top: pctH(40.5), right: pctW(30), width: pctW(10) },
+  passaroLvl8B: { top: pctH(56.5), right: pctW(10), width: pctW(10) },
 
   // Esquilo no chão Nv 8 — herda do esquiloChao (Nv 7).
   esquiloChaoLvl8: { bottom: pctH(38), left: pctW(41), width: pctW(12) },
 
   // 4 flores rosa Nv 8 — A herda do flor (Nv 3), B do florLvl4,
   // C/D dos florLvl5A/B.
-  florLvl8A: { top: pctH(49), right: pctW(1), width: pctW(7) },
-  florLvl8B: { top: pctH(70), left: pctW(40), width: pctW(7) },
-  florLvl8C: { top: pctH(55), left: pctW(32), width: pctW(7) },
-  florLvl8D: { top: pctH(39), right: pctW(29), width: pctW(7) },
+  florLvl8A: { top: pctH(70), right: pctW(5), width: pctW(8) },
+  florLvl8B: { top: pctH(65), left: pctW(42), width: pctW(8) },
+  florLvl8C: { top: pctH(49), left: pctW(28), width: pctW(4) },
+  florLvl8D: { top: pctH(54.5), right: pctW(35), width: pctW(6) },
 
   // 3 flores amarelas Nv 8 — herdam dos florAmarelaLvl6A/B/C.
-  florAmarelaLvl8A: { top: pctH(82), left: pctW(54), width: pctW(10) },
-  florAmarelaLvl8B: { top: pctH(80), right: pctW(45), width: pctW(10) },
-  florAmarelaLvl8C: { bottom: pctH(10), left: pctW(35), width: pctW(10) },
+  florAmarelaLvl8A: { top: pctH(55.1), left: pctW(63), width: pctW(8) },
+  florAmarelaLvl8B: { top: pctH(63), right: pctW(45), width: pctW(11) },
+  florAmarelaLvl8C: { bottom: pctH(27), left: pctW(35), width: pctW(11) },
 
   // 4 flores brancas Nv 8 — herdam dos florBrancaLvl7A/B/C/D.
-  florBrancaLvl8A: { top: pctH(46), left: pctW(25), width: pctW(8) },
-  florBrancaLvl8B: { top: pctH(65), right: pctW(30), width: pctW(8) },
-  florBrancaLvl8C: { bottom: pctH(46), left: pctW(18), width: pctW(8) },
-  florBrancaLvl8D: { bottom: pctH(26), right: pctW(22), width: pctW(8) },
+  florBrancaLvl8A: { top: pctH(50), left: pctW(31), width: pctW(5) },
+  florBrancaLvl8B: { top: pctH(69), right: pctW(16), width: pctW(9) },
+  florBrancaLvl8C: { bottom: pctH(45), left: pctW(24), width: pctW(5) },
+  florBrancaLvl8D: { bottom: pctH(23), right: pctW(10), width: pctW(9) },
 
   // UI
   botaoPlay: { bottom: pctH(90), right: pctW(6) },
@@ -1547,6 +1547,7 @@ export default function WorldScreen() {
                 left: WORLD_LAYOUT.florLvl8B.left,
                 width: WORLD_LAYOUT.florLvl8B.width,
                 aspectRatio: 272 / 732,
+                zIndex: 11,
               },
             ]}
           >
@@ -1749,6 +1750,7 @@ export default function WorldScreen() {
                 left: WORLD_LAYOUT.borboletaPousada.left,
                 width: WORLD_LAYOUT.borboletaPousada.width,
                 aspectRatio: 906 / 683,
+                transform: [{ rotate: '-40deg' }],
               },
             ]}
           >
