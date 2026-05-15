@@ -142,6 +142,18 @@ const WORLD_LAYOUT = {
   // Gui calibra pra mover o pássaro.
   passaroLvl7A: { top: pctH(23.3), right: pctW(30), width: pctW(10) },
 
+  // ─── Recompensas Nível 8 ────────────────────────────────────────────────
+  // Cesta da recompensa com serpente dentro — asset único combinado
+  // (cesta + 3 frutas + serpente envolvida). Posição placeholder perto
+  // do avatar; Gui calibra. NÃO confundir com a cesta da atividade
+  // (essa é permanente no Mundo, aquela é só do mapa de jogo).
+  cestaSerpente: { bottom: pctH(8), left: pctW(40), width: pctW(28) },
+  // 2 borboletas DIFERENTES (não é mirror). butterfly_perched_lvl8
+  // pousada numa flor; butterfly_flying_lvl8 voando em direção a outra.
+  // Posições placeholder — Gui calibra.
+  borboletaPousada: { top: pctH(60), left: pctW(20), width: pctW(12) },
+  borboletaVoando: { top: pctH(40), right: pctW(20), width: pctW(12) },
+
   // UI
   botaoPlay: { bottom: pctH(90), right: pctW(6) },
 };
@@ -172,6 +184,15 @@ const MUNDO_ARVORE_FRUTIFERA = require("../assets/mundo/mundo_arvore_frutifera.p
 const MUNDO_ESQUILO = require("../assets/mundo/mundo_esquilo.png");
 const MUNDO_FLOR_BRANCA = require("../assets/mundo/mundo_flor_branca.png");
 const MUNDO_TRONCO_FLOR_ESQUILO = require("../assets/mundo/mundo_tronco_com_flor_e_esquilo.png");
+// Assets Nível 8 — transformação visual major. background_mundo_v3
+// (720×1260, vertical) substitui o v2 quando ativo. Cesta com
+// serpente (2048², asset combinado), 2 borboletas DIFERENTES
+// (não é mirror — assets distintos). Ver DECISIONS.md sobre a
+// entrada da serpente.
+const MUNDO_BG_V3 = require("../assets/mundo/background_mundo_v3.png");
+const MUNDO_CESTA_SERPENTE = require("../assets/mundo/mundo_cesta_recompensa_com_serpente.png");
+const MUNDO_BORBOLETA_POUSADA = require("../assets/mundo/mundo_borboleta_pousada.png");
+const MUNDO_BORBOLETA_VOANDO = require("../assets/mundo/mundo_borboleta_voando.png");
 
 /**
  * World Screen — The player's permanent home.
@@ -226,6 +247,17 @@ export default function WorldScreen() {
   const [showFlorBrancaLvl7C, setShowFlorBrancaLvl7C] = useState(false);
   const [showFlorBrancaLvl7D, setShowFlorBrancaLvl7D] = useState(false);
   const [showPassaroLvl7A, setShowPassaroLvl7A] = useState(false);
+  // Recompensas do Nível 8 — TRANSFORMAÇÃO VISUAL MAJOR.
+  // showBgV3 ativa background v3 (substitui v2) E suprime do primeiro
+  // plano a árvore frutífera (fruit_tree_lvl7) + 3 mini-árvores
+  // (mini_tree_lvl6_a/b/c) — eles passam a fazer parte do background.
+  // Tronco caído + esquilo + fauna + flores MANTÊM no primeiro plano.
+  // Cesta da recompensa (com serpente dentro) + 2 borboletas DIFERENTES
+  // entram como elementos novos.
+  const [showBgV3, setShowBgV3] = useState(false);
+  const [showCestaSerpente, setShowCestaSerpente] = useState(false);
+  const [showBorboletaPousada, setShowBorboletaPousada] = useState(false);
+  const [showBorboletaVoando, setShowBorboletaVoando] = useState(false);
 
   // Animations
   const fadeIn = useSharedValue(0);
@@ -276,6 +308,12 @@ export default function WorldScreen() {
       storage.keys.WORLD_ELEMENTS
     );
     console.log('[world] worldElements loaded:', worldElements);
+    // Nível 8 — flag de transformação visual major. Quando ativo:
+    //   - Background v3 substitui v2 (lógica do source do ImageBackground).
+    //   - Árvore principal (cadeia inteira) E 3 mini-árvores DEIXAM de
+    //     renderizar no primeiro plano (passam a fazer parte do bg v3).
+    // Tronco com flor+esquilo, fauna e flores CONTINUAM normalmente.
+    const hasBgV3 = worldElements?.includes("background_mundo_v3") ?? false;
     const hasArvoreFrutifera = worldElements?.includes("fruit_tree_lvl7") ?? false;
     const hasArvoreJovem = worldElements?.includes("young_tree_lvl5") ?? false;
     const hasMiniArvore = worldElements?.includes("mini_tree_lvl4") ?? false;
@@ -284,23 +322,35 @@ export default function WorldScreen() {
     const hasSeed = worldElements?.includes("seed_lvl1") ?? false;
     const hasFlower = worldElements?.includes("flower_lvl3") ?? false;
 
-    // Substitution chain da planta principal (estendida no Nível 7):
-    //   fruit_tree (lvl7) > young_tree (lvl5) > mini_arvore (lvl4)
-    //   > grown_sprout (lvl3) > sprout (lvl2) > seed (lvl1).
-    // Cada estágio renderiza em posição própria. Quando um estágio mais
-    // evoluído aparece, os anteriores somem (só o mais evoluído brilha).
-    setShowArvoreFrutifera(hasArvoreFrutifera);
-    setShowArvoreJovem(hasArvoreJovem && !hasArvoreFrutifera);
-    setShowMiniArvore(hasMiniArvore && !hasArvoreJovem && !hasArvoreFrutifera);
+    setShowBgV3(hasBgV3);
+
+    // Substitution chain da planta principal (estendida no Nível 7,
+    // suprimida no Nível 8): fruit_tree (lvl7) > young_tree (lvl5) >
+    // mini_arvore (lvl4) > grown_sprout (lvl3) > sprout (lvl2) >
+    // seed (lvl1). Cada estágio renderiza em posição própria; quando
+    // um mais evoluído aparece, os anteriores somem.
+    //
+    // No Nível 8 (hasBgV3), a cadeia INTEIRA some do primeiro plano —
+    // a planta principal "virou paisagem" no background v3.
+    setShowArvoreFrutifera(hasArvoreFrutifera && !hasBgV3);
+    setShowArvoreJovem(hasArvoreJovem && !hasArvoreFrutifera && !hasBgV3);
+    setShowMiniArvore(
+      hasMiniArvore && !hasArvoreJovem && !hasArvoreFrutifera && !hasBgV3
+    );
     setShowGrownSprout(
-      hasGrownSprout && !hasMiniArvore && !hasArvoreJovem && !hasArvoreFrutifera
+      hasGrownSprout &&
+        !hasMiniArvore &&
+        !hasArvoreJovem &&
+        !hasArvoreFrutifera &&
+        !hasBgV3
     );
     setShowSprout(
       hasSprout &&
         !hasGrownSprout &&
         !hasMiniArvore &&
         !hasArvoreJovem &&
-        !hasArvoreFrutifera
+        !hasArvoreFrutifera &&
+        !hasBgV3
     );
     setShowSeed(
       hasSeed &&
@@ -308,9 +358,21 @@ export default function WorldScreen() {
         !hasGrownSprout &&
         !hasMiniArvore &&
         !hasArvoreJovem &&
-        !hasArvoreFrutifera
+        !hasArvoreFrutifera &&
+        !hasBgV3
     );
     setShowFlower(hasFlower);
+
+    // Recompensas do Nível 8 — elementos NOVOS no primeiro plano.
+    setShowCestaSerpente(
+      worldElements?.includes("basket_with_serpent_lvl8") ?? false
+    );
+    setShowBorboletaPousada(
+      worldElements?.includes("butterfly_perched_lvl8") ?? false
+    );
+    setShowBorboletaVoando(
+      worldElements?.includes("butterfly_flying_lvl8") ?? false
+    );
 
     // Recompensas do Nível 4: 3 sementes plantadas + 1 flor decorativa nova.
     // Cada semente lvl4 é SUBSTITUÍDA visualmente pela plantinha estágio 3
@@ -380,9 +442,12 @@ export default function WorldScreen() {
     //   2. 2 pássaros (primeira fauna) — bird_lvl6_b é espelhado horizontalmente
     //      no render (transform scaleX: -1)
     //   3. 3 flores amarelas decorativas
-    setShowMiniArvoreLvl6A(hasMiniArvore6A);
-    setShowMiniArvoreLvl6B(hasMiniArvore6B);
-    setShowMiniArvoreLvl6C(hasMiniArvore6C);
+    // Mini-árvores Nível 6 — quando hasBgV3 ativo (Nível 8 completo),
+    // as 3 SOMEM do primeiro plano (passam a ser parte das árvores
+    // médias do background v3). Mesmo padrão da árvore principal.
+    setShowMiniArvoreLvl6A(hasMiniArvore6A && !hasBgV3);
+    setShowMiniArvoreLvl6B(hasMiniArvore6B && !hasBgV3);
+    setShowMiniArvoreLvl6C(hasMiniArvore6C && !hasBgV3);
     // Cadeia do pássaro A: bird_lvl6_a → bird_lvl7_a (mesmo asset, posição
     // independente entre os níveis). O lvl6 só aparece se o lvl7 não está
     // ativo — caso contrário visualmente teríamos 2 pássaros idênticos.
@@ -442,7 +507,7 @@ export default function WorldScreen() {
   return (
     <View className="flex-1">
       <ImageBackground
-        source={showBgV2 ? MUNDO_BG_V2 : MUNDO_BG_V1}
+        source={showBgV3 ? MUNDO_BG_V3 : showBgV2 ? MUNDO_BG_V2 : MUNDO_BG_V1}
         resizeMode="cover"
         style={{ flex: 1 }}
       >
@@ -1203,6 +1268,82 @@ export default function WorldScreen() {
           >
             <Image
               source={MUNDO_FLOR_BRANCA}
+              resizeMode="contain"
+              style={{ width: "100%", height: "100%" }}
+            />
+          </Animated.View>
+        )}
+
+        {/* Z-layer 4.9: Cesta da recompensa COM SERPENTE dentro
+             (recompensa Nível 8). Asset único combinado (2048×2048,
+             square) — cesta + 3 frutas + serpente envolvida. Decisão
+             narrativa-chave registrada em DECISIONS.md (a serpente
+             entra como elemento atrativo, calmo, "boa" — antecipa a
+             tentação ativa do Nível 9). Posição placeholder perto do
+             avatar — Gui calibra. NÃO confundir com a cesta da
+             ATIVIDADE (essa só aparece no mapa de jogo). */}
+        {showCestaSerpente && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                bottom: WORLD_LAYOUT.cestaSerpente.bottom,
+                left: WORLD_LAYOUT.cestaSerpente.left,
+                width: WORLD_LAYOUT.cestaSerpente.width,
+                aspectRatio: 1,
+                zIndex: 10,
+              },
+            ]}
+          >
+            <Image
+              source={MUNDO_CESTA_SERPENTE}
+              resizeMode="contain"
+              style={{ width: "100%", height: "100%" }}
+            />
+          </Animated.View>
+        )}
+
+        {/* Z-layer 4.95: Borboletas do Nível 8. ASSETS DIFERENTES (não é
+             mirror do mesmo asset como nos pássaros) — pousada (906×683)
+             e voando (820×782) são imagens distintas. Posições placeholder
+             — Gui calibra (pousada perto duma flor existente; voando em
+             trajetória pra outra flor). */}
+        {showBorboletaPousada && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                top: WORLD_LAYOUT.borboletaPousada.top,
+                left: WORLD_LAYOUT.borboletaPousada.left,
+                width: WORLD_LAYOUT.borboletaPousada.width,
+                aspectRatio: 906 / 683,
+              },
+            ]}
+          >
+            <Image
+              source={MUNDO_BORBOLETA_POUSADA}
+              resizeMode="contain"
+              style={{ width: "100%", height: "100%" }}
+            />
+          </Animated.View>
+        )}
+        {showBorboletaVoando && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                top: WORLD_LAYOUT.borboletaVoando.top,
+                right: WORLD_LAYOUT.borboletaVoando.right,
+                width: WORLD_LAYOUT.borboletaVoando.width,
+                aspectRatio: 820 / 782,
+              },
+            ]}
+          >
+            <Image
+              source={MUNDO_BORBOLETA_VOANDO}
               resizeMode="contain"
               style={{ width: "100%", height: "100%" }}
             />

@@ -41,6 +41,11 @@ function basketAsset(count: number) {
   return CESTA_3;
 }
 
+// Assets das 4 cestas têm proporção ≈ 1920×2180 (vertical, levemente
+// mais alta que larga). Width define a largura visual; aspectRatio
+// preserva proporção evitando distorção.
+const BASKET_ASPECT = 1920 / 2180;
+
 export function ActivityBasket({
   fruitCount,
   style,
@@ -51,7 +56,7 @@ export function ActivityBasket({
       <Image
         source={basketAsset(fruitCount)}
         resizeMode="contain"
-        style={{ width: size, height: size }}
+        style={{ width: size, aspectRatio: BASKET_ASPECT }}
       />
     </View>
   );
