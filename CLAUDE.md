@@ -123,13 +123,15 @@ Cada feature implementada atualiza pelo menos um destes arquivos em `docs/`:
 - **DECISIONS.md** — decisões técnicas com motivação
 - **SETUP.md** — como rodar o projeto
 
+**Atenção especial ao `DECISIONS.md`:** registra decisões já tomadas (narrativas, técnicas, arquiteturais). **Consultar antes de implementar.** Decisões registradas não devem ser re-debatidas. Se um briefing parecer conflitar com algo registrado lá, sinalizar antes de prosseguir.
+
 Documentação descreve **em prosa**: o que a feature faz da perspectiva do usuário, qual decisão de produto sustenta, como debugar/modificar. O Gui não lê código — esses arquivos são como ele mantém controle.
 
 ### Contexto estratégico — `docs/internal/`
 
 A pasta `docs/internal/` guarda a **documentação estratégica e de protocolo** do projeto: briefing do MVP, pitch narrativo, roadmap, style guide visual, protocolos de colaboração entre IAs. Diferente de `docs/` raiz (que descreve **código**), `docs/internal/` descreve **o projeto** — intenção de produto, tom, identidade visual, jornada narrativa de longo prazo.
 
-**Quando consultar:** sempre que o briefing técnico de uma tarefa não der contexto suficiente sobre **por que** algo é do jeito que é. Exemplos: dúvida sobre tom de mensagens pra criança → `NORTECODE_Briefing_MVP_v2_5.md` e `NORTECODE_Pitch.md`. Dúvida sobre paleta, proporção ou estilo de asset → `NORTECODE_Style_Guide_Visual.md`. Dúvida sobre arco narrativo de níveis futuros → `NORTECODE_Roadmap_Narrativo.md`. Ver `docs/internal/README.md` pra o índice completo.
+**Quando consultar:** sempre que o briefing técnico de uma tarefa não der contexto suficiente sobre **por que** algo é do jeito que é. Exemplos: dúvida sobre tom de mensagens pra criança → `NORTECODE_Briefing_MVP.md` e `NORTECODE_Pitch.md`. Dúvida sobre paleta, proporção ou estilo de asset → `NORTECODE_Style_Guide_Visual.md`. Dúvida sobre arco narrativo de níveis futuros → `NORTECODE_Roadmap_Narrativo.md`. Ver `docs/internal/README.md` pra o índice completo.
 
 `docs/internal/` é leitura, não escrita — não atualize esses arquivos sem alinhamento explícito com o Gui e o Claude Estrategista.
 
@@ -207,16 +209,17 @@ npx expo start
 
 ---
 
-## 10. Estado do projeto (Maio/2026)
+## 10. Onde olhar o estado atual do projeto
 
-- Onboarding (welcome → player-name → avatar → pet-choice → pet-name → transition) funcionando
-- Avatar e mascote (cachorro/coelho, com humores) funcionando
-- Mundo permanente (jardim inicial) renderizando
-- Capítulos e níveis com routing dinâmico
-- **Interpretador funcional** em `lib/interpreter/` (blocks, world-state, interpreter)
-- **Níveis 1, 2 e 3 implementados.** Nível 3 com grid 2D, blocos direcionais, obstáculo (pedra) e multi-reward
-- Schema Supabase mínimo: `players`, `level_progress`, `world_elements`, `narrative_chapters_viewed` (com RLS)
-- Build via `build-release.bat` (debug e release locais)
+Este `CLAUDE.md` é deliberadamente **estável** — não lista estado de implementação porque desatualiza rápido. Pra saber em que ponto o projeto está agora:
+
+- **`docs/internal/NORTECODE_Briefing_MVP.md`** → Seção 10 "Estado Atual de Implementação". Fonte da verdade. Atualizada a cada ciclo de nível.
+- **`docs/LEVELS.md`** → detalhe técnico de cada nível implementado.
+- **`docs/DECISIONS.md`** → decisões já tomadas com motivação. Consultar antes de implementar.
+- **`docs/internal/NORTECODE_BACKLOG.md`** → pendências + entregas dos últimos 30 dias.
+- **`git log --oneline -30`** → últimos commits dão pista do que mudou recentemente.
+
+**Em toda sessão nova, depois de ler este `CLAUDE.md`, leia a Seção 10 do Briefing MVP pra se localizar.**
 
 ---
 
@@ -229,4 +232,4 @@ npx expo start
 
 ---
 
-*Documento adaptado do Protocolo de Colaboração entre IAs (v1.0 Norte Code) + Briefing MVP v2.5 + Protocolo de Dev Temporário. Atualizar conforme decisões evoluem.*
+*Documento adaptado do Protocolo de Colaboração entre IAs (v1.0 Norte Code) + Briefing MVP + Protocolo de Dev Temporário. Atualizar apenas quando identidade, processo ou princípios mudarem — estado do projeto vive em outros arquivos (ver Seção 10).*
