@@ -717,9 +717,10 @@ function createLevel7(): LevelDefinition {
 // Quinto conceito de programação do MVP. Primeira variável real. Grade 1×5
 // linear:
 //   [Avatar][chão][chão][chão][Árvore frutífera]
-// Solução-alvo (5 blocos): [Direita, Direita, Direita,
-//   Repetir até pegar 3 frutas [Pegar fruta]]
-// Solução longa aceita (6 blocos): 3 Direita + 3 Pegar fruta direto
+// Solução-alvo (6 blocos): [Direita, Direita, Direita, Direita,
+//   Repetir até pegar 3 frutas [Pegar fruta]] — 4 movimentos porque
+//   o avatar começa na coluna 0 e a árvore está na coluna 4.
+// Solução longa aceita (7 blocos): 4 Direita + 3 Pegar fruta direto
 //   (princípio "necessidade antes da ferramenta").
 //
 // Notas de modelagem:
@@ -780,15 +781,15 @@ function createLevel8(): LevelDefinition {
     description:
       "Pegue exatamente 3 frutas. Use 'Repetir até pegar 3 frutas' pra parar na hora certa.",
     hint:
-      "Tenta [Direita, Direita, Direita, Repetir até pegar 3 frutas [Pegar fruta]]. O loop para sozinho quando você pega a 3ª fruta.",
+      "Tenta [Direita, Direita, Direita, Direita, Repetir até pegar 3 frutas [Pegar fruta]]. O loop para sozinho quando você pega a 3ª fruta.",
     objective: "🍎 Pegue exatamente 3 frutas",
     gridWidth,
     gridHeight,
     initialWorld,
     availableBlocks: ["move_right", "pick_fruit", "repeat_until_frutas_3"],
     // maxBlocks: 12
-    // Solução elegante: 5 blocos (3 Direita + Repetir até + 1 Pegar fruta).
-    // Solução longa: 6 blocos (3 Direita + 3 Pegar fruta).
+    // Solução elegante: 6 blocos (4 Direita + Repetir até + 1 Pegar fruta).
+    // Solução longa: 7 blocos (4 Direita + 3 Pegar fruta).
     // Margem confortável até 12 — espaço pra exploração e tentativas.
     maxBlocks: 12,
     errorMessages: {
@@ -806,10 +807,12 @@ function createLevel8(): LevelDefinition {
       no_fruits:
         "Ainda faltam frutas pra pegar. Verifica seu programa.",
     },
-    // Gabarito do mascote (feature Mascote-Gabarito). Solução elegante
-    // de 5 blocos: 3 move_right + repeat_until_frutas_3 com pick_fruit
-    // dentro.
+    // Gabarito do mascote (feature Mascote-Gabarito). Solução elegante:
+    // 4 move_right (avatar col 0 → árvore col 4) + repeat_until_frutas_3
+    // com pick_fruit dentro. São 4 movimentos porque a árvore está na
+    // coluna 4 e o avatar começa na coluna 0 — distância de 4 células.
     optimalSolution: [
+      { type: "move_right" },
       { type: "move_right" },
       { type: "move_right" },
       { type: "move_right" },

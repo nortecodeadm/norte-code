@@ -116,7 +116,8 @@ export default function LevelSummaryScreen() {
           className="text-garden-green-600 text-center mt-2"
           style={{ fontFamily: "Nunito-Regular", fontSize: 15, lineHeight: 22 }}
         >
-          Você completou "{level.title}"
+          {level.optimalSolution ? "Vocês completaram" : "Você completou"}{" "}
+          "{level.title}"
         </Text>
       </Animated.View>
 

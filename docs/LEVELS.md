@@ -529,11 +529,13 @@ criança + mascote (ver detalhes na seção do mascote-gabarito).
   3 frutas]. `pick_fruit` solto entra (princípio "necessidade antes
   da ferramenta": criança pode resolver sem o repeat_until antes de
   descobri-lo).
-- **Solução-alvo (5 blocos):**
+- **Solução-alvo (6 blocos):**
   ```
-  [Direita, Direita, Direita, Repetir até pegar 3 frutas [Pegar fruta]]
+  [Direita, Direita, Direita, Direita, Repetir até pegar 3 frutas [Pegar fruta]]
   ```
-- **Solução longa aceita (6 blocos):** 3 movimentos + 3 pick_fruit
+  São 4 movimentos: o avatar começa na coluna 0 e a árvore frutífera
+  está na coluna 4.
+- **Solução longa aceita (7 blocos):** 4 movimentos + 3 pick_fruit
   diretos, sem usar o loop. Cabe em `maxBlocks: 12`.
 - **Texto de conclusão (literal — não alterar):** "Você usou um
   **lugar pra guardar** uma informação (quantas frutas). Isso se
@@ -594,9 +596,9 @@ condição embutida):**
   pra evitar loop tight em teste.
 
 **Edge cases (briefing do Nível 8):**
-- **E1 — Solução longa sem `repeat_until_frutas_3`:** 6 blocos com
-  3 `pick_fruit` em sequência. ✅ Aceita. Princípio "necessidade
-  antes da ferramenta".
+- **E1 — Solução longa sem `repeat_until_frutas_3`:** 7 blocos
+  (4 `move_right` + 3 `pick_fruit` em sequência). ✅ Aceita.
+  Princípio "necessidade antes da ferramenta".
 - **E2 — Mais `pick_fruit` que o necessário:** 4º silenciosamente
   ignorado pela idempotência do interpretador. Programa termina
   com sucesso (3 === 3).
@@ -677,8 +679,8 @@ da tentação, não foi importada.
 
 **Mascote-Gabarito (feature aditiva — ver seção própria abaixo):**
 Gabarito do Nível 8 (`optimalSolution`):
-`[Direita, Direita, Direita, Repetir até pegar 3 frutas [Pegar fruta]]`
-— 5 blocos. Texto de conclusão pluralizado.
+`[Direita, Direita, Direita, Direita, Repetir até pegar 3 frutas [Pegar fruta]]`
+— 6 blocos. Texto de conclusão pluralizado.
 
 ---
 
