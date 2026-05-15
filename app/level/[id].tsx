@@ -460,9 +460,12 @@ export default function LevelScreen() {
       (hasConditionalAction || hasFruitAction) &&
       !hasPlantBlock
     ) {
+      // Fallback string preserva texto antigo dos Níveis 6/7 ("canteiros").
+      // Pra níveis com pick_fruit (Nível 8+), o nível define `didnt_move`
+      // com mensagem específica ("perto da árvore"), que tem prioridade.
       return (
         level.errorMessages.didnt_move ||
-        "O avatar precisa andar pra encontrar o objetivo. Use o bloco Direita."
+        "O avatar precisa andar pra encontrar canteiros. Use o bloco Direita."
       );
     }
     if (!hasMoveBlock) {
