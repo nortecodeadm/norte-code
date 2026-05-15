@@ -5,7 +5,17 @@
 **Para:** Dev Temporário ativo (atualmente Claude Code, em substituição ao Manus)
 **Via:** Gui
 **Data:** Maio/2026
-**Versão:** 2.13 — Nível 7 entregue e validado.
+**Versão:** 2.14 — Alinhamento final do Nível 8 (planejamento sem briefing técnico inicial — briefing técnico em paralelo).
+
+**Changelog v2.14:**
+- Nível 8 detalhado em sessão dedicada com 4 blocos de decisão (conceito pedagógico, mecânica de jogo, transformação visual major, UI da variável):
+  - Bloco condicional novo: `repeat_until_frutas_3` (loop com condição embutida).
+  - Mapa de atividade: grade 1×5 linear `[Avatar][chão][chão][chão][Árvore frutífera]` + cesta da atividade (vai enchendo) + contador HUD "🍎 Frutas: 0/3".
+  - Background v3 com gramado predominante + 3-4 árvores médias + frutífera central + silhueta de mata ao fundo (3 camadas de profundidade).
+  - Migração de elementos pro background: árvore principal + 3 mini-árvores DESAPARECEM do primeiro plano. Tronco caído MANTÉM (carrega 3 layers narrativos).
+  - Recompensas novas no primeiro plano: cesta da recompensa + 2 borboletas diferentes (1 pousada + 1 voando).
+- **Decisão narrativa-chave: entrada da serpente no Mundo permanente como recompensa do Nível 8.** Serpente DENTRO da cesta, envolvida nas frutas, postura calma e atraente, passando confiança ("boa"). Antecipa a tentação ativa do Nível 9. Decisão completa em DECISIONS.md.
+- Princípio "embutida sem catequese explícita" reafirmado — a serpente é simbologia visual reconhecível, não catequese (princípio de catequese restringe textos do jogo, não composição visual).
 
 **Changelog v2.13:**
 - Nível 7 marcado como ✅ IMPLEMENTADO. 11 commits no `origin/main` (4 base + 7 ajustes pós-teste no celular).
@@ -611,27 +621,46 @@ Quando a criança aperta "Executar":
 
 ---
 
-#### Nível 8 — Variável (contador simples) — PENDENTE
+#### Nível 8 — Variável (contador simples) — PENDENTE (próximo a implementar)
 
 - **Conceito de programação:** variável. "Guardar um número e usá-lo depois."
-- **Função pedagógica:** consciência de **quantidade**. Cuidar não é "fazer pra sempre" — é "fazer até atingir o que é necessário". Mordomia tem medida.
-- **Função narrativa:** primeira ideia de **provisão guardada** (cesta com 3 frutas). Mais importante: o jardim atinge maturidade plena visualmente — o que era cuidado individual passa a ser **paisagem**.
-- **Cenário do nível (esboço):** árvore frutífera no canto da grade. Ao lado, uma cesta vazia. Indicador na tela: "Frutas: 0 / 3". Criança precisa pegar EXATAMENTE 3 frutas e parar.
-- **Blocos disponíveis:** `move_right`, `move_left`, `move_up`, `move_down`, `[Pegar fruta (frutas + 1)]`, `[Se frutas = 3 → Parar]`, `[Repetir N×]`.
-- **Solução-alvo:** `[Repetir até frutas = 3 [Andar até árvore, Pegar fruta]]`.
+- **Função pedagógica:** consciência de **quantidade**. Cuidar não é "fazer pra sempre" — é "fazer até atingir o que é necessário". Mordomia tem medida. Quinto conceito de programação do MVP.
+- **Função narrativa:** primeira ideia de **provisão guardada** (cesta com frutas). Mais importante: o jardim atinge maturidade plena visualmente — o que era cuidado individual passa a ser **paisagem**. A serpente entra no cenário (Mundo permanente), preparando o Nível 9.
+- **Cenário do nível (mapa de atividade):** grade **1×5 linear**. Avatar começa na coluna 0 (chão). Layout: `[Avatar][chão][chão][chão][Árvore frutífera]`. Cesta da atividade (não confundir com cesta da recompensa) aparece próxima ao avatar como elemento visual do mapa — vai enchendo conforme criança coleta frutas.
+- **Blocos disponíveis:** `move_right`, `pegar_fruta`, `repeat_until_frutas_3`.
+- **Solução-alvo:** `[Direita, Direita, Direita, Repetir até pegar 3 frutas [Pegar fruta]]` — 5 blocos.
+- **Solução longa aceita:** `[Direita, Direita, Direita, Pegar fruta, Pegar fruta, Pegar fruta]` — 6 blocos. Sem usar variável (princípio "necessidade antes da ferramenta").
+- **`maxBlocks`:** a definir no briefing técnico (provavelmente 10-12 com margem de exploração).
+- **O bloco `repeat_until_frutas_3`:** sólido único (sem slot interno, mesma estrutura do `repeat_5`). Comportamento embutido: repete os blocos filhos até a variável `frutas` atingir 3. Texto visível: "Repetir até pegar 3 frutas".
+- **UI da variável no mapa de atividade — DUAS representações simultâneas:**
+  - **Cesta visual no mapa** — vai enchendo: 4 assets de cesta (vazia / 1 fruta / 2 frutas / 3 frutas). Cada `Pegar fruta` troca o asset.
+  - **Contador HUD no topo** — `🍎 Frutas: 0 / 3`. Incrementa em cada `Pegar fruta`. Quando atinge 3, cor passa pra verde-plant `#5D8A3C` + pulse.
+- **Mecânica de execução do `repeat_until_frutas_3`:** a cada iteração, ANTES de executar os filhos, verifica se `frutas === 3`. Se sim, interrompe loop. Se não, executa filhos e volta a checar. Limite de segurança (MAX_EXECUTION_STEPS) pra evitar loop infinito caso programa não tenha `pegar_fruta` dentro.
+- **Edge cases:**
+  - Solução longa sem `repeat_until` (6 blocos) → aceita.
+  - Mais `pegar_fruta` que o necessário → 4º falha silenciosamente, programa continua, sucesso preservado.
+  - `repeat_until` sem `pegar_fruta` dentro → loop atinge limite de segurança, mensagem contextual "Hmm, parece que faltou pegar fruta dentro do repetir."
+  - `repeat_until` antes do avatar chegar à árvore → mensagem "O avatar precisa estar perto da árvore pra pegar frutas. Use os blocos de movimento." (mesma estrutura da heurística `didnt_move`).
 - **Mudança no Mundo permanente — TRANSFORMAÇÃO VISUAL MAJOR:**
-  - **Background v2 → background v3** (substituição completa, igual à do Nível 5). Diferença marcante: **gramado predominante** em vez de terra com tufos esparsos. Várias árvores em primeiro plano (não mais silhuetas distantes), com **uma árvore frutífera central destacada** (representando narrativamente a continuidade da sementinha plantada no Nível 1). Asset único — não é camada sobre v2.
-  - **A árvore principal e as 3 mini-árvores DESAPARECEM do primeiro plano** — passam a fazer parte do background v3. Coerência narrativa: "o jardim virou paisagem".
-  - **Cesta com 3 frutas** aparece no primeiro plano, perto da posição do avatar visual (Gui calibra posição depois). Asset novo.
-  - Mascote ganha animação de "comer fruta" no level summary (não no Mundo permanente).
-  - **1-2 elementos pequenos de fauna** novos (borboleta, formiga ou similar).
-- **Assets novos necessários:**
-  - `background_mundo_v3.png` (substitui v2; gramado predominante, várias árvores próximas, árvore frutífera central destacada)
-  - `mundo_cesta_com_frutas.png`
-  - 1-2 elementos pequenos de fauna (a definir)
-- **Texto de conclusão (rascunho):** "Você usou um **lugar pra guardar** uma informação (quantas frutas). Isso se chama variável. Cuidar bem é saber a quantidade certa — não pegar tudo, não pegar de menos."
+  - **Background v2 → background v3** (substituição completa). Gramado predominante com tufos de mato espalhados (textura natural). 3-4 árvores médias dispostas ao redor de uma **árvore frutífera central destacada** (representando narrativamente a continuidade da sementinha do Nível 1). Silhueta de mata distante mantida no horizonte (3 camadas de profundidade).
+  - **Árvore principal (`fruit_tree_lvl7`) DESAPARECE do primeiro plano** — passa a fazer parte do background v3 (é a árvore central destacada).
+  - **3 mini-árvores DESAPARECEM do primeiro plano** — passam a ser 3 das 3-4 árvores médias do background v3.
+  - **Tronco caído com flor e esquilo MANTÉM no primeiro plano.** Decisão: o tronco carrega 3 layers narrativos (morte → flor → esquilo) — mover ele pro background descaracterizaria essa cadeia.
+  - **Fauna existente MANTÉM:** 2 pássaros, esquilo no chão. Flores (rosa, amarela, branca) também mantêm.
+  - **NOVO no primeiro plano (recompensas do Nível 8):**
+    - **Cesta da recompensa** (asset diferente da cesta da atividade — esta é decorativa, permanente no Mundo). Perto do avatar.
+    - **Serpente DENTRO da cesta, envolvida entre as frutas.** Postura serpenteando entre as frutas, cabeça apoiada no canto da cesta, verde-folhagem, olhos amendoados neutros, expressão **calma e atraente — passa confiança, parece "boa"**. Decisão narrativa registrada em DECISIONS.md.
+    - **2 borboletas** (assets DIFERENTES): 1 pousada em uma flor + 1 voando em direção a uma flor.
+- **Assets novos necessários (a Gui está providenciando):**
+  - `background_mundo_v3.png` (background novo — gramado predominante, 3-4 árvores médias, frutífera central, silhueta de mata ao fundo)
+  - `mundo_cesta_recompensa_com_serpente.png` (cesta cheia com a serpente dentro, envolvida nas frutas — asset único combinado)
+  - `atividade_cesta_vazia.png`, `atividade_cesta_1.png`, `atividade_cesta_2.png`, `atividade_cesta_3.png` (4 estados da cesta da atividade)
+  - `mundo_borboleta_pousada.png`
+  - `mundo_borboleta_voando.png`
+- **Texto de conclusão (rascunho):** "Você usou um **lugar pra guardar** uma informação (quantas frutas). Isso se chama variável. Cuidar bem é saber a quantidade certa — não pegar tudo, não pegar de menos. Lembra disso — vai ser muito importante mais pra frente."
 - **Conexão com Nível 10:** variável permite no árido **racionar sementes** com a água disponível. Sem variável, criança não consegue medir quanto plantar.
-- **Decisão estratégica registrada:** o "movimento dos elementos para o background" no Nível 8 é a forma de **abrir espaço visual** pros assets do Nível 9-10 sem sobrecarregar a cena. Também cria sensação de profundidade temporal: a sementinha do Nível 1 virou parte da paisagem permanente do jardim. Princípio narrativo aplicado.
+- **Decisão estratégica narrativa registrada (sessão de Maio/2026):** "elementos antigos migram pro background conforme novos níveis acontecem" — abre espaço visual e cria sensação de profundidade temporal (a sementinha do Nível 1 virou parte da paisagem permanente). Princípio narrativo aplicado.
+- **Decisão narrativa-chave (sessão de Maio/2026): entrada da serpente no Mundo permanente como recompensa do Nível 8.** A serpente aparece **dentro da cesta**, envolvida nas frutas, calma e atraente. Coerência com Gn 3:1 ("a serpente era mais astuta que todos os animais selvagens") — ela **estava** no jardim antes da tentação, não foi importada. A atratividade visual antecede a tentação ativa do Nível 9: quando ela "agir" no 9, a criança já confiou nela visualmente. Decisão completa registrada em DECISIONS.md.
 
 ---
 
@@ -979,5 +1008,5 @@ Ao final:
 
 ---
 
-*Atualizado em Maio/2026 — v2.13*
-*Reflete: Nível 7 entregue e validado no celular. 11 commits no main. Próximo nível em fila: Nível 8 (variável + transformação visual major). Dev Temporário ativo: Claude Code.*
+*Atualizado em Maio/2026 — v2.14*
+*Reflete: Nível 7 entregue. Nível 8 alinhado em sessão dedicada — briefing técnico em paralelo, assets pendentes de geração. Dev Temporário ativo: Claude Code.*
