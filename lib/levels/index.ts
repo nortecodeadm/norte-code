@@ -11,6 +11,24 @@
 
 import type { WorldState, Cell, Position, BlockType } from "../interpreter";
 
+/**
+ * Bloco da solução ótima de um nível (gabarito do mascote).
+ *
+ * Estrutura mínima: só `type` (e `children` pra containers). NÃO carrega
+ * `id` — diferente do `ProgramBlock` da UI, cujos ids são gerados em
+ * runtime. A camada de tela (`app/level/[id].tsx`) converte
+ * `OptimalSolutionBlock[]` em `ProgramBlock[]` gerando ids estáticos,
+ * pra alimentar tanto o `blocksToAST` quanto a renderização na
+ * ProgramArea durante a execução do mascote.
+ *
+ * Tipo definido aqui (não importado de components/) pra manter a
+ * direção de dependência sã — `lib/` não depende de `components/`.
+ */
+export interface OptimalSolutionBlock {
+  type: BlockType;
+  children?: OptimalSolutionBlock[];
+}
+
 export interface LevelDefinition {
   id: number;
   title: string;
@@ -23,6 +41,13 @@ export interface LevelDefinition {
   availableBlocks: BlockType[];
   maxBlocks: number; // Max blocks the child can use
   errorMessages: Record<string, string>; // Contextual error messages
+  /**
+   * Solução ótima do nível — o "gabarito visual" que o mascote executa
+   * após a criança vencer (feature Mascote-Gabarito, a partir do Nível 7).
+   * Opcional e aditivo: Níveis 1-6 não definem, e nada muda neles.
+   * Quando presente, dispara a cena posterior do mascote.
+   */
+  optimalSolution?: OptimalSolutionBlock[];
   reward: {
     elementKey?: string; // Key for world_elements storage (Levels 1-2)
     replaces?: string; // If set, this reward visually replaces the given element
@@ -641,9 +666,24 @@ function createLevel7(): LevelDefinition {
       didnt_move:
         "O avatar precisa andar pra encontrar canteiros. Use o bloco Direita.",
     },
+    // Gabarito do mascote (feature Mascote-Gabarito). Solução elegante
+    // de 3 blocos: repeat_5 envolvendo move_right + condicional if/else.
+    optimalSolution: [
+      {
+        type: "repeat_5",
+        children: [
+          { type: "move_right" },
+          {
+            type: "if_canteiro_com_semente_then_regar_else_if_canteiro_vazio_then_plantar",
+          },
+        ],
+      },
+    ],
     reward: {
+      // Texto pluralizado (criança + mascote como dupla) — feature
+      // Mascote-Gabarito. Mudança mínima: só verbos e pronomes.
       message:
-        "Agora você sabe escolher entre dois caminhos. Cuidar é responder ao que cada coisa precisa — não tratar tudo igual. Lembra disso — vai ser muito importante mais pra frente.",
+        "Agora vocês sabem escolher entre dois caminhos. Cuidar é responder ao que cada coisa precisa — não tratar tudo igual. Lembrem disso — vai ser muito importante mais pra frente.",
       elements: [
         // Operação 1 — árvore principal evolui de jovem pra frutífera.
         // Asset novo mundo_arvore_frutifera (1024×1024 RGBA). Cadeia
@@ -766,9 +806,23 @@ function createLevel8(): LevelDefinition {
       no_fruits:
         "Ainda faltam frutas pra pegar. Verifica seu programa.",
     },
+    // Gabarito do mascote (feature Mascote-Gabarito). Solução elegante
+    // de 5 blocos: 3 move_right + repeat_until_frutas_3 com pick_fruit
+    // dentro.
+    optimalSolution: [
+      { type: "move_right" },
+      { type: "move_right" },
+      { type: "move_right" },
+      {
+        type: "repeat_until_frutas_3",
+        children: [{ type: "pick_fruit" }],
+      },
+    ],
     reward: {
+      // Texto pluralizado (criança + mascote como dupla) — feature
+      // Mascote-Gabarito. Mudança mínima: só verbos e pronomes.
       message:
-        "Você usou um lugar pra guardar uma informação (quantas frutas). Isso se chama variável. Cuidar bem é saber a quantidade certa — não pegar tudo, não pegar de menos. Lembra disso — vai ser muito importante mais pra frente.",
+        "Vocês usaram um lugar pra guardar uma informação (quantas frutas). Isso se chama variável. Cuidar bem é saber a quantidade certa — não pegar tudo, não pegar de menos. Lembrem disso — vai ser muito importante mais pra frente.",
       elements: [
         // ─── Bg + supressão da planta principal e mini-árvores ────────────
         // Operação A — substituir background v2 por v3. Mesma lógica do
