@@ -500,6 +500,13 @@ A frase final "vai ser muito importante mais pra frente" planta a
 semente: condicional + discernimento vão ser vitais no recomeço do
 árido, onde "tratar tudo igual" não funciona.
 
+**Mascote-Gabarito (feature aditiva — ver seção própria abaixo):**
+A partir do Nível 7, após a criança vencer, o mascote refaz a tarefa
+aplicando a solução ótima. Gabarito do Nível 7 (`optimalSolution`):
+`[Repetir 5× [Direita, Se com semente, regar; senão se vazio, plantar]]`
+— 3 blocos. Texto de conclusão pluralizado pra refletir a dupla
+criança + mascote (ver detalhes na seção do mascote-gabarito).
+
 ---
 
 ## Nível 8 — Saber a medida certa (variável + repeat_until) ✅ IMPLEMENTADO
@@ -667,6 +674,59 @@ a criança já confiou nela visualmente — a queda ganha peso
 emocional. Coerência com Gn 3:1 ("a serpente era mais astuta
 que todos os animais selvagens"): ela ESTAVA no jardim antes
 da tentação, não foi importada.
+
+**Mascote-Gabarito (feature aditiva — ver seção própria abaixo):**
+Gabarito do Nível 8 (`optimalSolution`):
+`[Direita, Direita, Direita, Repetir até pegar 3 frutas [Pegar fruta]]`
+— 5 blocos. Texto de conclusão pluralizado.
+
+---
+
+## Mascote como Gabarito Visual (feature — Níveis 7+) ✅ IMPLEMENTADO
+
+Feature aditiva-retroativa aplicada aos Níveis 7 e 8 (já entregues).
+**Não muda a mecânica dos níveis** — adiciona uma cena posterior após
+o sucesso da criança.
+
+**O que acontece:** depois que a criança vence um nível que tem
+`optimalSolution` definida, o mascote dela refaz a tarefa no mapa
+aplicando a solução ótima. A criança vê a versão elegante da solução
+sem ser corrigida — aprendizagem por exemplo, não por correção.
+
+**Sequência da cena:**
+1. Criança vence → respiração de ~0.5s (sente a vitória).
+2. Mensagem de transição aparece sobre o mapa por ~1.8s:
+   _"O {nome do mascote} aprendeu com você. Olha o jeito dele!"_
+3. Atrás da mensagem: o mapa reseta pro estado inicial e o sprite do
+   avatar verde é trocado pelo sprite do mascote (humor "atento").
+4. A mensagem some e o mascote executa a `optimalSolution` — mesma
+   mecânica de animação da execução da criança (movimento célula a
+   célula, plantio, rega, coleta).
+5. Durante essa 2ª execução, a área de blocos (ProgramArea) exibe os
+   blocos do gabarito, com o destaque acompanhando cada passo — a
+   criança vê a solução elegante EM BLOCOS, não só o resultado.
+6. Ao terminar, vai pro level summary com o texto de conclusão
+   pluralizado.
+
+**A 2ª execução não conta como tentativa** — é cena, não jogo. O
+nível é registrado como completo uma única vez (no level summary).
+
+**Texto de conclusão pluralizado:** o `reward.message` dos Níveis 7
+e 8 foi flexionado pra 1ª/2ª pessoa do plural (criança + mascote como
+dupla). Mudança mínima — só verbos e pronomes:
+- Nível 7: "Agora **vocês sabem** escolher... **Lembrem** disso..."
+- Nível 8: "**Vocês usaram** um lugar pra guardar... **Lembrem** disso..."
+
+**Níveis 1-6 NÃO têm a feature** — sem `optimalSolution` definida,
+sem cena do mascote. O mascote segue como personagem decorativo
+afetivo no Mundo Permanente, função antiga preservada.
+
+**Por que a partir do Nível 7:** decisão narrativa-arquitetural —
+o mascote vira "segundo agente moral" do jogo, com agência própria.
+A expectativa de "mascote sempre aprende e acerta" construída nos
+Níveis 7-8 é a fundação pra quebra de expectativa no Nível 9 (quando
+o mascote for seduzido pela serpente). Decisão completa em
+`docs/DECISIONS.md`.
 
 ---
 

@@ -303,6 +303,83 @@ Demais utilitários recursivos (`countBlocks`, `removeBlockById`, `insertInConta
 
 ---
 
+## 3.1 Execução do Mascote-Gabarito (Níveis 7+)
+
+A partir do Nível 7, quando a criança vence, o interpretador roda uma
+**segunda vez** — desta vez com a solução ótima do nível, executada
+pelo mascote. É a feature "Mascote como Gabarito Visual".
+
+**Campo `optimalSolution` no `LevelDefinition`** (`lib/levels/index.ts`):
+
+```typescript
+interface LevelDefinition {
+  // ... campos existentes
+  optimalSolution?: OptimalSolutionBlock[];  // opcional, aditivo
+}
+
+interface OptimalSolutionBlock {
+  type: BlockType;
+  children?: OptimalSolutionBlock[];  // pra containers (repeat_*)
+}
+```
+
+`OptimalSolutionBlock` é deliberadamente mais simples que o
+`ProgramBlock` da UI: **não carrega `id`**. Os ids são gerados em
+runtime por `optimalToProgramBlocks` (em `app/level/[id].tsx`), que
+deriva ids estáveis do caminho na árvore (`opt_0`, `opt_3_0`, etc.).
+Ids estáveis importam porque alimentam DOIS lados que precisam casar:
+o `blocksToAST` (gera os `step.blockId`) e a renderização da
+ProgramArea (recebe o highlight). Definido em `lib/levels` e não
+importado de `components/` — mantém a direção de dependência sã.
+
+**Fluxo da 2ª execução** (orquestrado em `app/level/[id].tsx`,
+função `runMascoteGabarito`):
+
+```
+[Criança vence — result.success === true]
+       │
+       ▼
+[Respiração ~500ms]
+       │
+       ▼
+[TransitionMessage aparece sobre o mapa (~1.8s)]
+       │
+       ▼
+[ATRÁS da mensagem: WorldState reseta pro initialWorld]
+[ATRÁS da mensagem: executor "avatar" → "mascote" (troca de sprite)]
+       │
+       ▼
+[Mensagem some]
+       │
+       ▼
+[executeProgram(blocksToAST(optimalSolution), freshWorld)]
+       │
+       ▼
+[animateSteps — mesma mecânica da 1ª execução]
+       │
+       ▼
+[Level summary]
+```
+
+**Pontos-chave:**
+- A 2ª execução **sempre tem sucesso** — a `optimalSolution` é, por
+  definição, uma solução válida. Não há ramo de falha.
+- A 2ª execução **não conta como tentativa** — o nível é registrado
+  como completo uma única vez, no level summary.
+- O **reset do mapa** entre execuções é um clone JSON do
+  `level.initialWorld` (mesma técnica do reset normal), com o
+  `goalCondition` restaurado por referência (funções se perdem no
+  clone).
+- A **troca de sprite** é puramente de renderização: o `LevelScene`
+  recebe a prop `executor` (`"avatar" | "mascote"`); quando
+  `"mascote"`, desenha o sprite do mascote (humor `"atento"`) na
+  célula do player em vez do círculo verde. A mecânica de movimento
+  é idêntica — só o pixel muda.
+- Níveis sem `optimalSolution` (1-6) pulam tudo isso: `result.success`
+  vai direto pro level summary, como antes. Regressão zero.
+
+---
+
 ## 4. Modelo de Mundo (WorldState)
 
 O mundo de cada nível é representado como um grid 2D:

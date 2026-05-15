@@ -1,6 +1,6 @@
 # Log de Decisões Técnicas — Norte Code
 
-**Última atualização:** 15/05/2026 (Nível 8: variável + repeat_until + transformação visual major + entrada da serpente)
+**Última atualização:** 15/05/2026 (Mascote-Gabarito: 2ª execução com a solução ótima nos Níveis 7 e 8)
 
 ---
 
@@ -965,6 +965,124 @@ visualmente antes — preparando o terreno emocional da ação.
 **Resultado:** No `interpreter.ts`, novo `RepeatUntilNode { type, condition, body }` no `ASTNode` union. `executeRepeatUntil` faz a iteração condicional com fail-safe contra loop infinito (MAX_EXECUTION_STEPS + check de "iteração não emitiu step"). `evaluateCondition` ganhou case `fruits_equal_3` (hardcoded — quando aparecer 2º caso, generalizar). `pick_fruit` no interpretador estendido pra aceitar `fruit_tree` (incrementa `inventory.fruits` sem consumir a célula, idempotente em >= 3) além do `fruit` original. ProgramArea registra `repeat_until_frutas_3` em `CONTAINER_TYPES`. BlockPalette: cor rosa-fruta `#D8848C` no `pick_fruit`, label "Pegar fruta" + emoji 🍎 (já existiam). Todas as mudanças aditivas — nenhuma regressão nos Níveis 1-7.
 
 **Trade-off:** o nome `pick_fruit` em inglês destoa de blocos do Nível 6+ que ganharam nomes em português (`if_canteiro_vazio_then_plantar`, etc). Aceito por coerência com `plant`/`water` (blocos antigos em inglês). Quando/se houver pass de renomeação, `pick_fruit` entra junto.
+
+---
+
+### [15/05/2026] Decisão narrativa-arquitetural: A partir do Nível 7, o mascote executa a tarefa como gabarito visual após o avatar
+
+CONTEXTO:
+Durante a sessão estratégica do Nível 9 (Maio/2026), surgiu a
+questão de como fazer a criança "experimentar" a queda sem ser
+manipulada pelo design. Gui propôs que o mascote vire o agente da
+queda quando a criança escolhe certo, e em seguida refinou a ideia
+pra que o mascote já tenha um papel ativo nos níveis anteriores —
+como "gabarito visual" da solução ótima.
+
+DECISÃO:
+A partir do Nível 7, toda execução bem-sucedida do programa pela
+criança é seguida IMEDIATAMENTE de uma execução do mascote, que
+aplica a solução ótima do nível (gabarito definido na config do
+nível). O mascote tem avatar próprio no mapa durante essa segunda
+execução. Mensagem entre as execuções: "O {nome do mascote}
+aprendeu com você. Olha o jeito dele!" (refinável durante
+implementação).
+
+MOTIVAÇÃO PEDAGÓGICA:
+1. Mostra a solução ótima sem corrigir explicitamente a criança.
+   Ela pode passar o nível com solução longa e ainda assim VER a
+   versão elegante. Aprendizagem por exemplo, não por correção.
+2. Honra a autonomia da criança: não há punição por usar solução
+   longa. Ela passa, vence, e DECIDE se da próxima vez quer
+   experimentar o jeito mais elegante.
+3. Resolve um problema pedagógico antigo do MVP: a "solução
+   elegante" sempre existia como solução-alvo mas a criança podia
+   passar todos os níveis sem nunca tê-la visto.
+
+MOTIVAÇÃO NARRATIVA:
+1. Mascote vira segundo agente moral do jogo — companheiro com
+   agência própria, não decoração. Coerente com cosmovisão reformada:
+   a criação inteira (não só os humanos) participa do drama da queda
+   e da redenção (Rm 8).
+2. Estabelece expectativa visual de "mascote sempre aprende e acerta"
+   ao longo dos Níveis 7-8. Constrói confiança da criança no
+   companheiro.
+3. Pavimenta narrativamente o Nível 9: a quebra dessa expectativa
+   (quando o mascote, pela primeira vez, é seduzido pela serpente e
+   pega o atalho) tem peso emocional alto. Sem essa fundação, a
+   queda no Nível 9 seria arbitrária.
+
+PRINCÍPIO DE NÃO-RETROATIVIDADE PRESERVADO:
+Implementar o mascote-gabarito nos Níveis 7 e 8 é aditivo, não
+retroativo:
+- Não muda como os níveis funcionam mecanicamente
+- Não muda o que a criança pode fazer
+- Adiciona uma CENA POSTERIOR (execução do mascote) após o sucesso
+- Equivalente a adicionar nova animação no level summary
+
+Níveis 1-6: NÃO recebem o mascote-gabarito. Princípio de não-
+retroatividade respeitado pra esses níveis. (O mascote já existe
+nesses níveis como personagem decorativo afetivo — função antiga
+preservada.)
+
+IMPLICAÇÕES TÉCNICAS:
+1. Cada nível a partir do 7 precisa ter o GABARITO definido em sua
+   config — a sequência de blocos da solução ótima.
+2. O interpretador roda 2 vezes após sucesso: 1ª com programa da
+   criança, 2ª com gabarito.
+3. Sprite do mascote substitui o avatar verde durante a 2ª
+   execução. Mesma mecânica visual de movimento, plantio, rega,
+   coleta — só o sprite muda.
+4. Estado do mapa precisa resetar entre as 2 execuções (planta
+   cresceu na execução da criança — volta ao estado inicial pra
+   execução do mascote).
+5. Mascote pode executar TODAS as ações que o avatar executa.
+
+ARCO COMPLETO PREVISTO PARA O MASCOTE NO MVP:
+- Níveis 1-6: companheiro decorativo afetivo (estado atual)
+- Níveis 7-8: gabarito visual confiável (executa sempre certo)
+- Nível 9: gabarito quebrado — mascote é seduzido pela serpente,
+  pega o atalho, é o agente da queda. Quebra de expectativa
+  emocional alta.
+- Nível 10: mascote precisa de redenção tanto quanto a criança.
+  Algumas tarefas da restauração podem ser executadas pelo mascote
+  (não pelo avatar) — restauração comunitária, não individual.
+
+CONEXÃO COM TESE-ÂNCORA DO ARCO (Níveis 9-10):
+Esta decisão sustenta a tese registrada na sessão estratégica:
+"Restauração parcial + aprendizado integrado + motivação pra
+continuar." O mascote-gabarito ensina; a quebra dele no Nível 9
+mostra que a queda é real; a redenção dele no Nível 10 mostra que
+restauração é trabalho de mais de um.
+
+COMO FOI IMPLEMENTADO (decisões da implementação, 15/05/2026):
+As "decisões em aberto" listadas na entrada de transição foram
+resolvidas assim na implementação:
+- **Onde armazenar o gabarito:** campo opcional `optimalSolution`
+  no `LevelDefinition` (`lib/levels/index.ts`), tipo
+  `OptimalSolutionBlock[]` (estrutura mínima sem `id` — ids
+  gerados em runtime).
+- **Posição da mensagem:** componente `TransitionMessage` (novo),
+  overlay no terço superior da área do mapa. Cartão branco-cream,
+  borda verde-folha `#7FB069`, fonte Fraunces.
+- **Animação de transição:** fade-in 200ms / fade-out 300ms da
+  mensagem. Reset do mapa + troca de sprite acontecem ATRÁS da
+  mensagem visível. Sem animação de "entrada" do mascote — ele
+  simplesmente aparece na célula inicial (substituição direta,
+  decisão P1 = (a) da sessão estratégica).
+- **Reset do mapa:** clone JSON do `initialWorld` entre as
+  execuções (mesma técnica do reset normal).
+- **Caso "criança já fez o gabarito":** mostra a execução do
+  mascote mesmo assim — comportamento uniforme, sem casos especiais.
+- **Humor do mascote:** `"atento"` — já existia como `PetState`
+  pros 3 mascotes (cachorro/gato/coelho). Sem necessidade de
+  fallback nem de criar humor novo.
+- **ProgramArea durante a 2ª execução:** exibe os blocos do
+  gabarito (não os da criança), com o highlight acompanhando cada
+  passo. A criança vê a solução elegante EM BLOCOS, não só o
+  resultado no mapa — reforça o ponto pedagógico.
+- **Texto de conclusão:** `reward.message` dos Níveis 7 e 8
+  pluralizado (criança + mascote como dupla) — mudança mínima, só
+  verbos e pronomes.
 
 ---
 
