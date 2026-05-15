@@ -173,7 +173,7 @@ const WORLD_LAYOUT = {
   passaroLvl8B: { top: pctH(50), right: pctW(15), width: pctW(10) },
 
   // Esquilo no chão Nv 8 — herda do esquiloChao (Nv 7).
-  esquiloChaoLvl8: { bottom: pctH(52.5), left: pctW(44), width: pctW(12) },
+  esquiloChaoLvl8: { bottom: pctH(38), left: pctW(41), width: pctW(12) },
 
   // 4 flores rosa Nv 8 — A herda do flor (Nv 3), B do florLvl4,
   // C/D dos florLvl5A/B.
@@ -676,8 +676,10 @@ export default function WorldScreen() {
               com flor (Nível 5), substituição direta por terem proporção
               idêntica (1426×624). Quando showTroncoEsquilo está ativo
               (Nível 7), o tronco com esquilo entra como elemento próprio
-              embaixo, e este tronco aqui some pra não duplicar. */}
-          {!showTroncoEsquilo && (
+              embaixo, e este tronco aqui some pra não duplicar. Mesma
+              regra pro Nv 8 (showTroncoEsquiloLvl8) — quando ele entra,
+              este tronco aqui também some. */}
+          {!showTroncoEsquilo && !showTroncoEsquiloLvl8 && (
             <Image
               source={showFlorNoTronco ? MUNDO_FLOR_NO_TRONCO : MUNDO_TRONCO}
               resizeMode="contain"
