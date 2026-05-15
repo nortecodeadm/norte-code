@@ -59,7 +59,8 @@ const BLOCK_COLORS: Record<BlockType, string> = {
   turn_right: "#7B68EE",
   plant: "#5D8A3C",
   water: "#4ECDC4",
-  pick_fruit: "#F5A623",
+  // Rosa-fruta #D8848C (Nível 8) — ver BlockPalette pra rationale.
+  pick_fruit: "#D8848C",
   repeat: "#E8853D",
   repeat_3: "#E8853D",
   repeat_5: "#E8853D",
@@ -67,6 +68,7 @@ const BLOCK_COLORS: Record<BlockType, string> = {
   if_else: "#D4577B",
   if_canteiro_vazio_then_plantar: "#A88FD9",
   if_canteiro_com_semente_then_regar_else_if_canteiro_vazio_then_plantar: "#A88FD9",
+  repeat_until_frutas_3: "#A88FD9",
   define_function: "#8E44AD",
   call_function: "#8E44AD",
   stop: "#95A5A6",
@@ -82,7 +84,7 @@ const BLOCK_LABELS: Record<BlockType, string> = {
   turn_right: "Direita ↱",
   plant: "🌱 Plantar",
   water: "💧 Regar",
-  pick_fruit: "🍎 Pegar",
+  pick_fruit: "🍎 Pegar fruta",
   repeat: "🔄 Repetir",
   repeat_3: "🔄 Repetir 3×",
   repeat_5: "🔄 Repetir 5×",
@@ -91,6 +93,7 @@ const BLOCK_LABELS: Record<BlockType, string> = {
   if_canteiro_vazio_then_plantar: "⭕ 🌱 Se vazio, plantar",
   if_canteiro_com_semente_then_regar_else_if_canteiro_vazio_then_plantar:
     "🌱💧 / ⭕🌱 Se com semente, regar;\nsenão, se vazio, plantar",
+  repeat_until_frutas_3: "🔄 🍎 Repetir até pegar 3 frutas",
   define_function: "📦 Definir",
   call_function: "▶ Fazer",
   stop: "⏹ Parar",
@@ -99,6 +102,10 @@ const BLOCK_LABELS: Record<BlockType, string> = {
 const CONTAINER_TYPES: ReadonlySet<BlockType> = new Set<BlockType>([
   "repeat_3",
   "repeat_5",
+  // Loop condicional do Nível 8 — mesma mecânica de envelope dos repeats
+  // fixos: slot interno + modo edição via toque. Diferença é só semântica
+  // (parada por condição em vez de contagem), tratada no interpretador.
+  "repeat_until_frutas_3",
 ]);
 
 // Cores do feedback visual condicional (Nível 6+). Usadas APENAS quando o

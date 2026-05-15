@@ -593,6 +593,8 @@ export default function LevelScreen() {
               {(() => {
                 const container = findBlockById(programBlocks, editingContainerId);
                 if (container?.type === "repeat_5") return "Repetir 5×";
+                if (container?.type === "repeat_until_frutas_3")
+                  return "Repetir até pegar 3 frutas";
                 return "Repetir 3×";
               })()}
             </Text>

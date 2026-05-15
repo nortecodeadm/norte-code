@@ -42,7 +42,11 @@ const BLOCK_CONFIG: Record<
   turn_right: { label: "Direita", color: "#7B68EE", icon: "↱" },
   plant: { label: "Plantar", color: "#5D8A3C", icon: "🌱" },
   water: { label: "Regar", color: "#4ECDC4", icon: "💧" },
-  pick_fruit: { label: "Pegar", color: "#F5A623", icon: "🍎" },
+  // Cor rosa-fruta #D8848C (Nível 8) — distingue "ação de coleta" das
+  // ações de plant (verde) e water (azul). Antes era #F5A623 (laranja),
+  // mas brigava com a cor dos repeat_3/repeat_5 (#E8853D); rosa também
+  // dialoga melhor com a fruta da árvore frutífera no jardim permanente.
+  pick_fruit: { label: "Pegar fruta", color: "#D8848C", icon: "🍎" },
   repeat: { label: "Repetir", color: "#E8853D", icon: "🔄" },
   repeat_3: { label: "Repetir 3×", color: "#E8853D", icon: "🔄" },
   repeat_5: { label: "Repetir 5×", color: "#E8853D", icon: "🔄" },
@@ -65,6 +69,15 @@ const BLOCK_CONFIG: Record<
     label: "Se com semente, regar;\nsenão, se vazio, plantar",
     color: "#A88FD9",
     icon: "🌱💧  /  ⭕🌱",
+  },
+  // Loop com condição embutida (Nível 8). Roxo claro #A88FD9 — mesma
+  // família dos condicionais (apesar de ser tecnicamente "loop", semanticamente
+  // é "loop condicional"). Label literal "Repetir até pegar 3 frutas" mais
+  // ícone duplo 🔄🍎 que distingue do repeat_3/repeat_5 (laranja, sem 🍎).
+  repeat_until_frutas_3: {
+    label: "Repetir até\npegar 3 frutas",
+    color: "#A88FD9",
+    icon: "🔄 🍎",
   },
   define_function: { label: "Definir", color: "#8E44AD", icon: "📦" },
   call_function: { label: "Fazer", color: "#8E44AD", icon: "▶" },
