@@ -673,6 +673,124 @@ function createLevel7(): LevelDefinition {
   };
 }
 
+// ─── Level 8: Variável (contador) + repeat_until_frutas_3 ────────────────────
+// Quinto conceito de programação do MVP. Primeira variável real. Grade 1×5
+// linear:
+//   [Avatar][chão][chão][chão][Árvore frutífera]
+// Solução-alvo (5 blocos): [Direita, Direita, Direita,
+//   Repetir até pegar 3 frutas [Pegar fruta]]
+// Solução longa aceita (6 blocos): 3 Direita + 3 Pegar fruta direto
+//   (princípio "necessidade antes da ferramenta").
+//
+// Notas de modelagem:
+//   - Variável: reusa player.inventory.fruits (decisão registrada em
+//     DECISIONS.md — YAGNI sobre `variables: Record<string,number>`).
+//   - Árvore frutífera: CellContent novo `fruit_tree`, visualmente fixa
+//     (não consome com pick_fruit). Idempotente quando inventário já
+//     está em 3 (edge case E2 do briefing).
+//   - goalCondition `custom` com check === 3 (não usei `collect_fruits`
+//     porque ele é `>=`, e o Nível 8 exige EXATAMENTE 3).
+//   - Cesta da atividade + contador HUD são overlays em app/level/[id].tsx
+//     condicionais ao id === 8.
+//   - Recompensas disparam a "transformação visual major" do Mundo:
+//     background v3 substitui v2, e a presença do flag suprime a
+//     renderização de fruit_tree_lvl7 e mini_tree_lvl6_a/b/c no primeiro
+//     plano (lógica em app/world.tsx).
+
+function createLevel8(): LevelDefinition {
+  const gridWidth = 5;
+  const gridHeight = 1;
+
+  const grid: Cell[][] = [];
+  for (let y = 0; y < gridHeight; y++) {
+    const row: Cell[] = [];
+    for (let x = 0; x < gridWidth; x++) {
+      row.push({ position: { x, y }, content: "empty" });
+    }
+    grid.push(row);
+  }
+
+  // Árvore frutífera na coluna 4 — "alvo" da coleta. Avatar começa em (0,0).
+  grid[0][4].content = "fruit_tree";
+
+  const initialWorld: WorldState = {
+    grid,
+    gridWidth,
+    gridHeight,
+    player: {
+      position: { x: 0, y: 0 },
+      direction: "east",
+      // CRÍTICO: começa com 0 frutas. resetWorld em [id].tsx clona o
+      // initialWorld via JSON, então o reset SEMPRE volta pra 0 — não
+      // carrega frutas da rodada anterior (lembrete A do briefing).
+      inventory: { fruits: 0 },
+    },
+    goalCondition: {
+      // EXATAMENTE 3 — não `>=` (collect_fruits faz `>=`). O bloco
+      // pick_fruit é idempotente em >= 3, então mesmo "solução longa"
+      // com 4 pick_fruit termina com fruits === 3.
+      type: "custom",
+      check: (state: WorldState) => state.player.inventory.fruits === 3,
+    },
+  };
+
+  return {
+    id: 8,
+    title: "Saber a medida certa",
+    description:
+      "Pegue exatamente 3 frutas. Use 'Repetir até pegar 3 frutas' pra parar na hora certa.",
+    hint:
+      "Tenta [Direita, Direita, Direita, Repetir até pegar 3 frutas [Pegar fruta]]. O loop para sozinho quando você pega a 3ª fruta.",
+    objective: "🍎 Pegue exatamente 3 frutas",
+    gridWidth,
+    gridHeight,
+    initialWorld,
+    availableBlocks: ["move_right", "pick_fruit", "repeat_until_frutas_3"],
+    // maxBlocks: 12
+    // Solução elegante: 5 blocos (3 Direita + Repetir até + 1 Pegar fruta).
+    // Solução longa: 6 blocos (3 Direita + 3 Pegar fruta).
+    // Margem confortável até 12 — espaço pra exploração e tentativas.
+    maxBlocks: 12,
+    errorMessages: {
+      out_of_grid: "Esse lado não dá. O caminho continua em outra direção.",
+      // pick_fruit fora da árvore — heurística getContextualError em [id].tsx
+      // pega "tem pick_fruit mas player.inventory.fruits === 0" e mostra:
+      not_at_planting_spot:
+        "O avatar precisa estar perto da árvore pra pegar frutas. Use os blocos de movimento.",
+      didnt_move:
+        "O avatar precisa estar perto da árvore pra pegar frutas. Use os blocos de movimento.",
+      // repeat_until_frutas_3 sem pick_fruit dentro — interpretador atinge
+      // MAX_EXECUTION_STEPS, heurística traduz pra:
+      wrong_path:
+        "Hmm, parece que faltou pegar fruta dentro do repetir.",
+      no_fruits:
+        "Ainda faltam frutas pra pegar. Verifica seu programa.",
+    },
+    reward: {
+      message:
+        "Você usou um lugar pra guardar uma informação (quantas frutas). Isso se chama variável. Cuidar bem é saber a quantidade certa — não pegar tudo, não pegar de menos. Lembra disso — vai ser muito importante mais pra frente.",
+      elements: [
+        // Operação A — substituir background v2 por v3. Mesma lógica do
+        // Nível 5 (que substituiu v1 por v2). Quando worldElements
+        // contém "background_mundo_v3", o app/world.tsx renderiza v3
+        // E suprime a árvore principal + mini-árvores do primeiro plano.
+        { add: "background_mundo_v3", replaces: "background_mundo_v2" },
+        // Operação F — cesta da recompensa com a serpente dentro
+        // (decisão narrativa registrada em DECISIONS.md). Asset único
+        // combinado (cesta + frutas + serpente envolvida). Posição
+        // placeholder em app/world.tsx — Gui calibra.
+        { add: "basket_with_serpent_lvl8" },
+        // Operação G — 2 borboletas DIFERENTES (não é o padrão "1 asset
+        // mirrorado" dos pássaros). butterfly_perched_lvl8 pousa numa
+        // flor; butterfly_flying_lvl8 voa em direção a outra. Posições
+        // placeholder — Gui calibra.
+        { add: "butterfly_perched_lvl8" },
+        { add: "butterfly_flying_lvl8" },
+      ],
+    },
+  };
+}
+
 // ─── Level Registry ──────────────────────────────────────────────────────────────────────────
 
 const LEVELS: LevelDefinition[] = [
@@ -683,6 +801,7 @@ const LEVELS: LevelDefinition[] = [
   createLevel5(),
   createLevel6(),
   createLevel7(),
+  createLevel8(),
 ];
 
 export function getLevel(id: number): LevelDefinition | undefined {

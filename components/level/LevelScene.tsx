@@ -31,6 +31,10 @@ const CELL_COLORS: Record<CellContent, string> = {
   watering_spot: "#E3F2FD", // Light blue to indicate watering target
   watered: "#B3E5FC", // Blue when watered
   basket: "#D7CCC8",
+  // Árvore frutífera "inesgotável" do Nível 8 — tom rosa-fruta similar
+  // ao do bloco pick_fruit (#D8848C suavizado). Visualmente convida pra
+  // coleta, distinto de `fruit` (fruta solta consumível) que é mais pálido.
+  fruit_tree: "#F5D0D4",
 };
 
 const CELL_ICONS: Record<CellContent, string> = {
@@ -45,6 +49,7 @@ const CELL_ICONS: Record<CellContent, string> = {
   watering_spot: "💧", // Water drop indicator
   watered: "💦", // Splashing water (completed)
   basket: "🧲",
+  fruit_tree: "🌳", // Árvore com frutas — Nível 8
 };
 
 const DIRECTION_ARROWS: Record<Direction, string> = {
@@ -75,6 +80,10 @@ export function LevelScene({ world }: LevelSceneProps) {
   );
   const hasRock = world.grid.some((row) =>
     row.some((cell) => cell.content === "rock")
+  );
+  // Árvore frutífera do Nível 8 — entra na legenda quando aparece no mapa.
+  const hasFruitTree = world.grid.some((row) =>
+    row.some((cell) => cell.content === "fruit_tree")
   );
   // Quando os DOIS aparecem (Nível 6), a legenda precisa distinguir:
   // "Canteiro vazio" vs "Canteiro plantado". Quando só flowerbed (Níveis
@@ -166,8 +175,28 @@ export function LevelScene({ world }: LevelSceneProps) {
                     </View>
                   )}
 
-                  {/* Cell content icon (non-target, non-empty) */}
+                  {/* Árvore frutífera (Nível 8) — composição visual com
+                      árvore grande + 3 frutinhas pequenas indicando que
+                      há colheita disponível. Não consome a célula
+                      (visualmente fixa, briefing). */}
+                  {cell.content === "fruit_tree" && !isPlayer && (
+                    <View style={{ alignItems: "center" }}>
+                      <Text style={{ fontSize: cellSize * 0.45 }}>🌳</Text>
+                      <Text
+                        style={{
+                          fontSize: cellSize * 0.18,
+                          marginTop: -2,
+                          letterSpacing: 1,
+                        }}
+                      >
+                        🍎🍎🍎
+                      </Text>
+                    </View>
+                  )}
+
+                  {/* Cell content icon (non-target, non-empty, não fruit_tree) */}
                   {cell.content !== "empty" &&
+                    cell.content !== "fruit_tree" &&
                     !isFlowerbed &&
                     !isWateringSpot &&
                     !isPlayer && (
@@ -332,6 +361,31 @@ export function LevelScene({ world }: LevelSceneProps) {
               }}
             >
               Pedra
+            </Text>
+          </View>
+        )}
+        {hasFruitTree && (
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+            <View
+              style={{
+                width: 14,
+                height: 14,
+                borderRadius: 4,
+                backgroundColor: "#F5D0D4",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Text style={{ fontSize: 9 }}>🌳</Text>
+            </View>
+            <Text
+              style={{
+                fontSize: 11,
+                color: "#5D7A5D",
+                fontFamily: "Nunito-Regular",
+              }}
+            >
+              Árvore frutífera
             </Text>
           </View>
         )}

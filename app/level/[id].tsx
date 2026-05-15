@@ -37,6 +37,7 @@ import {
   ProgramArea,
   ExecuteButton,
   LevelScene,
+  ActivityBasket,
   isContainerBlock,
   type ProgramBlock,
   type ExecuteState,
@@ -203,6 +204,30 @@ export default function LevelScreen() {
   const hintStyle = useAnimatedStyle(() => ({ opacity: hintOpacity.value }));
   const errorStyle = useAnimatedStyle(() => ({ opacity: errorOpacity.value }));
 
+  // ─── HUD do contador de frutas (Nível 8) ─────────────────────────────────
+  // Detectado por presence do bloco repeat_until_frutas_3 na paleta —
+  // amarra o HUD ao bloco específico, não ao id. Se outro nível usar o
+  // mesmo bloco no futuro, o HUD funciona automaticamente.
+  const usesFruitsCounter =
+    level?.availableBlocks.includes("repeat_until_frutas_3") ?? false;
+  const fruitCount = worldState?.player.inventory.fruits ?? 0;
+  const fruitsAtTarget = fruitCount === 3;
+  // Pulse do HUD quando atinge a meta — animação curta de "sucesso".
+  const counterPulse = useSharedValue(1);
+  useEffect(() => {
+    if (fruitsAtTarget) {
+      counterPulse.value = withSequence(
+        withTiming(1.18, { duration: 220, easing: Easing.out(Easing.cubic) }),
+        withTiming(1, { duration: 220, easing: Easing.in(Easing.cubic) })
+      );
+    } else {
+      counterPulse.value = 1;
+    }
+  }, [fruitsAtTarget]);
+  const counterStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: counterPulse.value }],
+  }));
+
   if (!level || !worldState) {
     return (
       <SafeAreaView className="flex-1 bg-warm-white items-center justify-center">
@@ -354,13 +379,24 @@ export default function LevelScreen() {
       }, 1200);
     } else {
       setExecuteState("error");
-      // Generate contextual error message
-      const errMsg = getContextualError(
-        result.finalState,
-        programBlocks,
-        result.steps
-      );
-      setErrorMessage(errMsg);
+      // Caso especial — interpretador setou error (atingiu MAX_EXECUTION_STEPS).
+      // No Nível 8 é tipicamente o `repeat_until_frutas_3` sem `pick_fruit`
+      // dentro (edge case E3 do briefing) — loop não termina sozinho.
+      // wrong_path do level 8 traduz o ctx.error técnico em mensagem
+      // adequada à criança.
+      if (
+        result.error &&
+        level.availableBlocks.includes("repeat_until_frutas_3")
+      ) {
+        setErrorMessage(level.errorMessages.wrong_path || result.error);
+      } else {
+        const errMsg = getContextualError(
+          result.finalState,
+          programBlocks,
+          result.steps
+        );
+        setErrorMessage(errMsg);
+      }
     }
   };
 
@@ -400,17 +436,33 @@ export default function LevelScreen() {
         t === "move_left"
     );
     const hasWaterBlock = anyBlock(blocks, (t) => t === "water");
+    // Ação de coleta (Nível 8). Conta como "ação" pra heurística de
+    // "Monte seu programa" — programa com só pick_fruit sem mover deve
+    // cair em "ande até a árvore", não em "monte seu programa".
+    const hasFruitAction = anyBlock(blocks, (t) => t === "pick_fruit");
+    const usesFruitsCounter = level.availableBlocks.includes(
+      "repeat_until_frutas_3"
+    );
 
     // "Programa só com bloco condicional sem mover" cai numa msg específica
     // — a heurística antiga falava "Monte seu programa!" mesmo com blocos
-    // presentes, o que confundiria a criança nos Níveis 6 e 7.
-    if (!hasMoveBlock && !hasPlantBlock && !hasConditionalAction) {
+    // presentes, o que confundiria a criança nos Níveis 6, 7 e 8.
+    if (
+      !hasMoveBlock &&
+      !hasPlantBlock &&
+      !hasConditionalAction &&
+      !hasFruitAction
+    ) {
       return "Monte seu programa! Toque nos blocos acima.";
     }
-    if (!hasMoveBlock && hasConditionalAction && !hasPlantBlock) {
+    if (
+      !hasMoveBlock &&
+      (hasConditionalAction || hasFruitAction) &&
+      !hasPlantBlock
+    ) {
       return (
         level.errorMessages.didnt_move ||
-        "O avatar precisa andar pra encontrar canteiros. Use o bloco Direita."
+        "O avatar precisa andar pra encontrar o objetivo. Use o bloco Direita."
       );
     }
     if (!hasMoveBlock) {
@@ -421,6 +473,30 @@ export default function LevelScreen() {
     }
     if (!hasWaterBlock && level.availableBlocks.includes("water")) {
       return level.errorMessages.no_water || "Faltou regar! Use o bloco \"Regar\".";
+    }
+    // Nível 8: programa tem move + algum mecanismo de coleta (pick_fruit
+    // direto ou dentro do repeat_until), mas terminou sem 3 frutas.
+    if (usesFruitsCounter && hasFruitAction) {
+      const finalFruits = finalState.player.inventory.fruits;
+      if (finalFruits === 0) {
+        // Avatar não chegou na árvore (E4/E5 do briefing): andou demais
+        // pra um lado, ou andou de menos. Mensagem específica do nível.
+        return (
+          level.errorMessages.not_at_planting_spot ||
+          "O avatar precisa estar perto da árvore pra pegar frutas. Use os blocos de movimento."
+        );
+      }
+      if (finalFruits < 3) {
+        // Avatar pegou alguma(s), mas terminou antes de 3 — tipicamente
+        // programa muito curto (só 1-2 pick_fruit, sem repeat_until).
+        return (
+          level.errorMessages.no_fruits ||
+          "Ainda faltam frutas pra pegar. Verifica seu programa."
+        );
+      }
+      // > 3 não é alcançável — pick_fruit é idempotente em >= 3 e o
+      // goalCondition === 3 trata succedido. Cai pra heurística genérica
+      // se algum dia chegar aqui.
     }
 
     // Se houve fail_move, escolher mensagem específica baseada no motivo do primeiro
@@ -627,8 +703,49 @@ export default function LevelScreen() {
           </Text>
         </View>
 
+        {/* HUD do contador de frutas — só aparece nos níveis que usam o
+            bloco repeat_until_frutas_3 (Nível 8 atualmente). Cor neutra
+            quando X<3, verde-plant + pulse curto quando X===3 (sucesso). */}
+        {usesFruitsCounter && (
+          <View style={{ alignItems: "center", marginTop: 4 }}>
+            <Animated.View
+              style={[
+                counterStyle,
+                {
+                  backgroundColor: fruitsAtTarget ? "#5D8A3C" : "#FFF8E7",
+                  borderWidth: 1.5,
+                  borderColor: fruitsAtTarget ? "#3F6628" : "#D8848C",
+                  borderRadius: 999,
+                  paddingHorizontal: 14,
+                  paddingVertical: 4,
+                },
+              ]}
+            >
+              <Text
+                style={{
+                  fontFamily: "Nunito-Bold",
+                  fontSize: 14,
+                  color: fruitsAtTarget ? "#FFFFFF" : "#7A4248",
+                }}
+              >
+                🍎 Frutas: {fruitCount} / 3
+              </Text>
+            </Animated.View>
+          </View>
+        )}
+
         {/* Scene — mantém tamanho original (não tenta encolher pra caber). */}
         <LevelScene world={worldState} />
+
+        {/* Cesta da atividade (Nível 8) — par concreto da variável (HUD é
+            o par abstrato). Posição placeholder centralizada abaixo do
+            grid; Gui calibra na fase de polish. Recebe fruitCount direto
+            do worldState pra trocar de asset (vazia → 1 → 2 → 3). */}
+        {usesFruitsCounter && (
+          <View style={{ alignItems: "center", marginTop: 8 }}>
+            <ActivityBasket fruitCount={fruitCount} size={88} />
+          </View>
+        )}
 
         {/* Hint */}
         {showHint && (
