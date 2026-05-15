@@ -41,22 +41,29 @@ function basketAsset(count: number) {
   return CESTA_3;
 }
 
-// Assets das 4 cestas têm proporção ≈ 1920×2180 (vertical, levemente
-// mais alta que larga). Width define a largura visual; aspectRatio
-// preserva proporção evitando distorção.
-const BASKET_ASPECT = 1920 / 2180;
+// Assets das 4 cestas têm proporção 1920×2180 (vertical, levemente
+// mais alta que larga). `size` controla a LARGURA visual; height
+// derivada via proporção pra preservar formato sem distorcer.
+//
+// Importante: setamos width E height explícitos no <Image> em vez de
+// usar `aspectRatio`. Em RN, `aspectRatio` em Image com require local
+// pode ser ignorado em alguns casos (o componente cai pra dimensão
+// nativa do PNG e fica gigante). Dimensões explícitas são robustas.
+const BASKET_ASPECT_W_OVER_H = 1920 / 2180;
 
 export function ActivityBasket({
   fruitCount,
   style,
   size = 80,
 }: ActivityBasketProps) {
+  const width = size;
+  const height = size / BASKET_ASPECT_W_OVER_H;
   return (
-    <View style={[{ width: size }, style]}>
+    <View style={[{ width, height }, style]}>
       <Image
         source={basketAsset(fruitCount)}
         resizeMode="contain"
-        style={{ width: size, aspectRatio: BASKET_ASPECT }}
+        style={{ width, height }}
       />
     </View>
   );
