@@ -663,6 +663,11 @@ function createLevel7(): LevelDefinition {
         { add: "white_flower_lvl7_b" },
         { add: "white_flower_lvl7_c" },
         { add: "white_flower_lvl7_d" },
+        // Operação 5 — pássaro lvl7_a SUBSTITUI o bird_lvl6_a (mesmo asset
+        // mundo_passaro_pousado). Permite que o pássaro mude de posição
+        // entre os Níveis 6 e 7 — agora ele pousa em outro lugar do
+        // jardim, mas continua sendo "o mesmo pássaro" visualmente.
+        { add: "bird_lvl7_a", replaces: "bird_lvl6_a" },
       ],
     },
   };

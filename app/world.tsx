@@ -69,7 +69,7 @@ const WORLD_LAYOUT = {
   sementeLvl4C: { bottom: pctH(4), left: pctW(56), width: pctW(10) },
 
   // Recompensa Nível 4 — flor decorativa adicional (reusa asset da flor do Nível 3)
-  florLvl4: { top: pctH(38), left: pctW(40), width: pctW(7) },
+  florLvl4: { top: pctH(70), left: pctW(40), width: pctW(7) },
 
   // Recompensa Nível 5 — 3 plantinhas estágio 3 SUBSTITUEM as 3 sementes
   // plantadas no Nível 4 (mesmas posições). Pulam estágio 2 (broto) —
@@ -100,7 +100,7 @@ const WORLD_LAYOUT = {
   // flor; bird_lvl6_b pousa na pedra (espelhado horizontalmente via
   // scaleX -1 no render, pra parecer um "casal" virado em direções opostas).
   // Posições placeholder — Gui calibra.
-  passaroLvl6A: { top: pctH(54), right: pctW(82), width: pctW(10) },
+  passaroLvl6A: { top: pctH(23.3), right: pctW(30), width: pctW(10) },
   passaroLvl6B: { top: pctH(50), right: pctW(15), width: pctW(10) },
 
   // Recompensa Nível 6 — 3 flores amarelas decorativas espalhadas pelo
@@ -113,19 +113,19 @@ const WORLD_LAYOUT = {
   // cadeia da planta principal. Asset mundo_arvore_frutifera (1024×1024).
   // Posição placeholder herda da arvoreJovem como ponto de partida —
   // Gui calibra (a frutífera é mais cheia, pode pedir top diferente).
-  arvoreFrutifera: { top: pctH(11), left: pctW(25), width: pctW(55) },
+  arvoreFrutifera: { top: pctH(8.5), left: pctW(8), width: pctW(90) },
 
   // Recompensa Nível 7 — 1 esquilo decorativo no chão. Asset
   // mundo_esquilo (887×878). Posição placeholder — Gui calibra
   // (provavelmente perto da base da árvore frutífera).
-  esquiloChao: { bottom: pctH(8), left: pctW(45), width: pctW(12) },
+  esquiloChao: { bottom: pctH(52.5), left: pctW(44), width: pctW(12) },
 
   // Recompensa Nível 7 — 4 flores brancas decorativas espalhadas pelo
   // jardim. Asset mundo_flor_branca (373×854). Posições placeholder.
-  florBrancaLvl7A: { top: pctH(70), left: pctW(20), width: pctW(8) },
-  florBrancaLvl7B: { top: pctH(72), right: pctW(20), width: pctW(8) },
-  florBrancaLvl7C: { bottom: pctH(20), left: pctW(8), width: pctW(8) },
-  florBrancaLvl7D: { bottom: pctH(15), right: pctW(8), width: pctW(8) },
+  florBrancaLvl7A: { top: pctH(46), left: pctW(25), width: pctW(8) },
+  florBrancaLvl7B: { top: pctH(65), right: pctW(30), width: pctW(8) },
+  florBrancaLvl7C: { bottom: pctH(46), left: pctW(18), width: pctW(8) },
+  florBrancaLvl7D: { bottom: pctH(26), right: pctW(22), width: pctW(8) },
 
   // Recompensa Nível 7 "tronco com flor e esquilo": SUBSTITUI o tronco
   // do Nível 5, mas com posição/tamanho próprios porque o conteúdo
@@ -134,7 +134,13 @@ const WORLD_LAYOUT = {
   // empurra o esquilo pra fora da área visível. Quando showTroncoEsquilo
   // está ativo, o `<Image>` do tronco original deixa de renderizar e
   // este aqui entra no lugar. Posição placeholder — Gui calibra.
-  troncoEsquilo: { top: pctH(21.5), right: pctW(68), width: pctW(28) },
+  troncoEsquilo: { bottom: pctH(-21.5), right: pctW(68), width: pctW(28) },
+
+  // Recompensa Nível 7 — pássaro A SUBSTITUI o bird_lvl6_a (mesmo asset).
+  // Render próprio com posição independente pra permitir reposicionar o
+  // pássaro entre Níveis 6 e 7. Valor inicial idêntico ao do Nível 6 —
+  // Gui calibra pra mover o pássaro.
+  passaroLvl7A: { top: pctH(23.3), right: pctW(30), width: pctW(10) },
 
   // UI
   botaoPlay: { bottom: pctH(90), right: pctW(6) },
@@ -219,6 +225,7 @@ export default function WorldScreen() {
   const [showFlorBrancaLvl7B, setShowFlorBrancaLvl7B] = useState(false);
   const [showFlorBrancaLvl7C, setShowFlorBrancaLvl7C] = useState(false);
   const [showFlorBrancaLvl7D, setShowFlorBrancaLvl7D] = useState(false);
+  const [showPassaroLvl7A, setShowPassaroLvl7A] = useState(false);
 
   // Animations
   const fadeIn = useSharedValue(0);
@@ -376,7 +383,14 @@ export default function WorldScreen() {
     setShowMiniArvoreLvl6A(hasMiniArvore6A);
     setShowMiniArvoreLvl6B(hasMiniArvore6B);
     setShowMiniArvoreLvl6C(hasMiniArvore6C);
-    setShowPassaroLvl6A(worldElements?.includes("bird_lvl6_a") ?? false);
+    // Cadeia do pássaro A: bird_lvl6_a → bird_lvl7_a (mesmo asset, posição
+    // independente entre os níveis). O lvl6 só aparece se o lvl7 não está
+    // ativo — caso contrário visualmente teríamos 2 pássaros idênticos.
+    const hasBirdLvl7A = worldElements?.includes("bird_lvl7_a") ?? false;
+    setShowPassaroLvl6A(
+      (worldElements?.includes("bird_lvl6_a") ?? false) && !hasBirdLvl7A
+    );
+    setShowPassaroLvl7A(hasBirdLvl7A);
     setShowPassaroLvl6B(worldElements?.includes("bird_lvl6_b") ?? false);
     setShowFlorAmarelaLvl6A(worldElements?.includes("yellow_flower_lvl6_a") ?? false);
     setShowFlorAmarelaLvl6B(worldElements?.includes("yellow_flower_lvl6_b") ?? false);
@@ -479,7 +493,7 @@ export default function WorldScreen() {
               resizeMode="contain"
               style={{
                 position: "absolute",
-                top: WORLD_LAYOUT.troncoEsquilo.top,
+                top: WORLD_LAYOUT.troncoEsquilo.bottom,
                 right: WORLD_LAYOUT.troncoEsquilo.right,
                 width: WORLD_LAYOUT.troncoEsquilo.width,
                 transform: [{ rotate: '-4deg' }],
@@ -964,6 +978,7 @@ export default function WorldScreen() {
                 right: WORLD_LAYOUT.passaroLvl6A.right,
                 width: WORLD_LAYOUT.passaroLvl6A.width,
                 aspectRatio: 850 / 736,
+                zIndex: 10,
               },
             ]}
           >
@@ -985,6 +1000,31 @@ export default function WorldScreen() {
                 width: WORLD_LAYOUT.passaroLvl6B.width,
                 aspectRatio: 850 / 736,
                 transform: [{ scaleX: -1 }],
+              },
+            ]}
+          >
+            <Image
+              source={MUNDO_PASSARO}
+              resizeMode="contain"
+              style={{ width: "100%", height: "100%" }}
+            />
+          </Animated.View>
+        )}
+
+        {/* Pássaro lvl7_a (recompensa Nível 7) — substitui bird_lvl6_a.
+             Mesmo asset, render próprio com posição independente do Nível 6.
+             Permite que o pássaro mude de lugar no jardim conforme a história
+             avança. */}
+        {showPassaroLvl7A && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                top: WORLD_LAYOUT.passaroLvl7A.top,
+                right: WORLD_LAYOUT.passaroLvl7A.right,
+                width: WORLD_LAYOUT.passaroLvl7A.width,
+                aspectRatio: 850 / 736,
               },
             ]}
           >
@@ -1072,6 +1112,7 @@ export default function WorldScreen() {
                 left: WORLD_LAYOUT.esquiloChao.left,
                 width: WORLD_LAYOUT.esquiloChao.width,
                 aspectRatio: 887 / 878,
+                zIndex: 10,
               },
             ]}
           >
