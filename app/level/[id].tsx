@@ -57,6 +57,8 @@ function countBlocks(blocks: ProgramBlock[]): number {
 
 // Converte árvore de ProgramBlock pra AST executável (recursivo).
 // repeat_3/repeat_5 viram LoopNode com body recursivo (N hardcoded).
+// repeat_until_frutas_3 vira RepeatUntilNode com condição "fruits_equal_3"
+// (hardcoded no MVP — Nível 8).
 // Demais blocos viram ActionNode — inclusive condicional embutido
 // (if_canteiro_vazio_then_plantar), cuja lógica condicional mora no
 // interpreter (executeAction), não no AST.
@@ -66,6 +68,14 @@ function blocksToAST(blocks: ProgramBlock[]): ASTNode[] {
       return {
         type: "loop",
         times: b.type === "repeat_3" ? 3 : 5,
+        body: blocksToAST(b.children ?? []),
+        id: b.id,
+      };
+    }
+    if (b.type === "repeat_until_frutas_3") {
+      return {
+        type: "repeat_until",
+        condition: "fruits_equal_3",
         body: blocksToAST(b.children ?? []),
         id: b.id,
       };

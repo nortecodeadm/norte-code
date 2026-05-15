@@ -46,12 +46,25 @@ export interface IfNode {
   id?: string;
 }
 
+// Loop com condição de parada embutida (Nível 8). Diferente do `LoopNode`
+// (repeat fixo), aqui a iteração continua ATÉ a condição ser verdadeira —
+// ou até bater no MAX_EXECUTION_STEPS. Antes de cada iteração, avalia a
+// condição: se já satisfeita, sai sem executar os filhos.
+//   "fruits_equal_3" → world.player.inventory.fruits === 3
+// Hardcoded "= 3" no MVP (Nível 8). Estender quando aparecer 2º caso.
+export interface RepeatUntilNode {
+  type: "repeat_until";
+  condition: string;
+  body: ASTNode[];
+  id?: string;
+}
+
 export interface ProgramNode {
   type: "program";
   body: ASTNode[];
 }
 
-export type ASTNode = ActionNode | LoopNode | IfNode;
+export type ASTNode = ActionNode | LoopNode | IfNode | RepeatUntilNode;
 
 // ─── Config ────────────────────────────────────────────────────────────────
 
@@ -152,6 +165,9 @@ function executeBlock(nodes: ASTNode[], ctx: ExecutionContext): void {
         break;
       case "if":
         executeIf(node, ctx);
+        break;
+      case "repeat_until":
+        executeRepeatUntil(node, ctx);
         break;
     }
   }
@@ -380,6 +396,7 @@ function executeAction(node: ActionNode, ctx: ExecutionContext): void {
     case "pick_fruit": {
       const cell = world.grid[player.position.y][player.position.x];
       if (cell.content === "fruit") {
+        // Fruta solta consumível (comportamento original — pré-Nível 8).
         worldChanges = [
           {
             position: { ...player.position },
@@ -390,7 +407,19 @@ function executeAction(node: ActionNode, ctx: ExecutionContext): void {
         cell.content = "empty";
         player.inventory.fruits += 1;
         action = "pick";
+      } else if (cell.content === "fruit_tree") {
+        // Árvore frutífera "inesgotável" do Nível 8: célula NÃO muda
+        // de conteúdo (visualmente fixa). Idempotente quando o inventário
+        // já está em 3 — não decrementa, não erra, só não acontece nada
+        // (briefing do Nível 8, edge case E2).
+        if (player.inventory.fruits < 3) {
+          player.inventory.fruits += 1;
+        }
+        action = "pick";
       } else {
+        // Avatar não está em célula coletável: falha silenciosa
+        // (briefing do Nível 8, edge cases E4/E5 — UI gera mensagem
+        // contextual via heurística getContextualError).
         action = "pick";
       }
       break;
@@ -425,6 +454,45 @@ function executeLoop(node: LoopNode, ctx: ExecutionContext): void {
       return;
     }
     executeBlock(node.body, ctx);
+  }
+}
+
+// Loop condicional do Nível 8 (`repeat_until_frutas_3`). A cada iteração,
+// ANTES dos filhos, avalia a condição. Se já satisfeita, encerra o loop
+// sem executar os filhos. Se não, executa o corpo.
+//
+// O fail-safe contra loop infinito é o mesmo do `executeLoop`/`executeBlock`:
+// MAX_EXECUTION_STEPS. Edge case E3 do briefing (`repeat_until` sem
+// `pick_fruit` dentro) cai aqui — itera até o limite e sai com `ctx.error`,
+// que a heurística da UI traduz pra mensagem contextual.
+function executeRepeatUntil(
+  node: RepeatUntilNode,
+  ctx: ExecutionContext
+): void {
+  // Loop com guarda dupla: condição satisfeita OU teto de steps.
+  // O `for (;;)` parece imprudente mas o `executeBlock` recursivo dentro
+  // dele já conta passos contra `ctx.maxSteps` e seta `ctx.error` antes
+  // de devolver — cobre o caso de filho que não muda a condição (E3).
+  for (;;) {
+    if (ctx.error) return;
+    if (ctx.steps.length >= ctx.maxSteps) {
+      ctx.error = "Seu programa ficou rodando demais! Tente simplificar.";
+      return;
+    }
+    if (evaluateCondition(node.condition, ctx.world)) {
+      // Condição atingida — sai limpo, próximo bloco do programa segue.
+      return;
+    }
+    const stepsBefore = ctx.steps.length;
+    executeBlock(node.body, ctx);
+    // Se o corpo não emitiu nenhum step (ex.: programa só com containers
+    // vazios) E a condição não mudou, sairíamos no próximo MAX_EXECUTION_STEPS
+    // só por contagem de iterações. Forçar saída aqui evita loop tight
+    // infinito em teste — preserva o sinal pra heurística da UI.
+    if (ctx.steps.length === stepsBefore) {
+      ctx.error = "Seu programa ficou rodando demais! Tente simplificar.";
+      return;
+    }
   }
 }
 
@@ -466,6 +534,12 @@ function evaluateCondition(condition: string, world: WorldState): boolean {
       return cell.content === "fruit";
     case "has_flowerbed":
       return cell.content === "flowerbed";
+    // Condição de parada do `repeat_until_frutas_3` (Nível 8). Hardcoded
+    // em "= 3" no MVP — a meta é sempre exatamente 3 frutas. Lê do
+    // inventário do jogador (decisão registrada em DECISIONS.md: reusar
+    // `player.inventory.fruits` em vez de criar um campo `variables`).
+    case "fruits_equal_3":
+      return world.player.inventory.fruits === 3;
     default:
       return false;
   }

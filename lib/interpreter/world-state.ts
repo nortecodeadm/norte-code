@@ -19,7 +19,12 @@ export type CellContent =
   | "flowerbed"
   | "watering_spot"
   | "watered"
-  | "basket";
+  | "basket"
+  // Árvore frutífera "inesgotável" do Nível 8 — diferente do `fruit`
+  // (que é fruta solta consumível). A célula `fruit_tree` permanece
+  // visualmente fixa: cada `pick_fruit` incrementa inventory.fruits sem
+  // alterar o conteúdo da célula. Idempotente quando inventory.fruits >= 3.
+  | "fruit_tree";
 
 export interface Position {
   x: number;

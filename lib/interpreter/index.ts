@@ -11,6 +11,7 @@ export type {
   ActionNode,
   LoopNode,
   IfNode,
+  RepeatUntilNode,
 } from "./interpreter";
 
 // Block definitions (for UI palette)
