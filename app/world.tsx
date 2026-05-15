@@ -100,7 +100,7 @@ const WORLD_LAYOUT = {
   // flor; bird_lvl6_b pousa na pedra (espelhado horizontalmente via
   // scaleX -1 no render, pra parecer um "casal" virado em direções opostas).
   // Posições placeholder — Gui calibra.
-  passaroLvl6A: { top: pctH(23.3), right: pctW(30), width: pctW(10) },
+  passaroLvl6A: { top: pctH(54), right: pctW(82), width: pctW(10) },
   passaroLvl6B: { top: pctH(50), right: pctW(15), width: pctW(10) },
 
   // Recompensa Nível 6 — 3 flores amarelas decorativas espalhadas pelo
@@ -1025,6 +1025,7 @@ export default function WorldScreen() {
                 right: WORLD_LAYOUT.passaroLvl7A.right,
                 width: WORLD_LAYOUT.passaroLvl7A.width,
                 aspectRatio: 850 / 736,
+                zIndex: 10,
               },
             ]}
           >
