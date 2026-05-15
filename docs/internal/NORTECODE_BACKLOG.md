@@ -163,6 +163,41 @@ if img.mode == "P":
 
 ---
 
+#### 19. Padrão "calibração visual após transformação major do background"
+**Origem:** Nível 8 (Maio/2026). Quando o Mundo passa por mudança de background v_N → v_(N+1) + migração de elementos pro background, TODOS os elementos persistentes precisam de re-calibração visual, mesmo que tecnicamente eles "não mudaram". Razão: o **fundo visual** mudou — a "linha do chão", a "linha do horizonte", a densidade do meio-campo são diferentes do background anterior. O que estava em `bottom 30%` em cima da terra do v2 está em `bottom 30%` em cima do gramado do v3, mas o ponto de referência visual mudou.
+**Caso mais dramático no Nível 8:** `troncoEsquiloLvl8` precisou de `bottom -21.5% → bottom 35%` (mudança de 56 pontos percentuais) — sem essa calibração, o tronco com flor + esquilo desapareceria visualmente fora da tela.
+**Aplicação futura:** quando rolar a transição pra background do Nível 10 (árido), o mesmo trabalho de recalibração vai precisar acontecer com TODOS os elementos persistentes.
+**Status:** padrão estabelecido. Lembrar de incluir tempo de "recalibração visual completa" no planejamento do Nível 10.
+**Prioridade:** documentação. Aplicar caso a caso.
+
+---
+
+#### 20. Rotação como ferramenta visual sutil
+**Origem:** Nível 8 (Maio/2026). `borboletaPousada` ganhou `transform: rotate('-40deg')` pra parecer pousada naturalmente em uma flor inclinada. Pequena rotação faz elemento parecer "vivo" / "naturalmente posicionado" em vez de colado em superfície reta.
+**Padrão disponível pra outros casos:** pássaro pousado em galho inclinado, esquilo subindo no tronco, flor balançando ao vento, etc.
+**Status:** ferramenta visual registrada.
+**Prioridade:** documentação. Aplicar quando rolar.
+
+---
+
+#### 21. `zIndex` ajustado caso a caso conforme densidade visual aumenta
+**Origem:** Nível 8 (Maio/2026). `florLvl8B` ganhou `zIndex: 11` pra não ficar atrás de outro elemento. Conforme a densidade visual do Mundo permanente aumenta, mais elementos disputam profundidade visual.
+**Aplicação futura:** especialmente Nível 10 onde o cenário árido pode conviver com "restos do jardim antigo" criando densidade visual ainda maior.
+**Padrão:** quando elemento parecer "sumindo atrás" de outro no teste visual, ajustar `zIndex` pontualmente.
+**Status:** ferramenta visual registrada.
+**Prioridade:** documentação. Aplicar caso a caso.
+
+---
+
+#### 22. Reuso de código morto pré-existente quando possível
+**Origem:** Nível 8 (Maio/2026). Durante a inspeção pré-implementação, Claude Code identificou que `BlockType.pick_fruit` + `player.inventory.fruits` + `goalCondition.collect_fruits` já existiam como código morto (provavelmente esboço inicial do Manus). Em vez de criar paralelos novos (`pegar_fruta`, `variables: Record<string, number>`, etc.), reaproveitamos a infraestrutura existente. Mudanças mínimas: cor do `pick_fruit` trocada (laranja → rosa-fruta), `goalCondition` custom em vez de `collect_fruits` (preserva semântica "exatamente N" vs "pelo menos N").
+**Vantagem:** menos código, menos surface de bugs, sem duplicação.
+**Princípio:** sempre inspecionar o que já existe antes de criar paralelo novo. Código morto pode ter sido desenhado pensando em uso futuro.
+**Status:** princípio reforçado.
+**Prioridade:** processo. Aplicar sempre.
+
+---
+
 #### 10. Mover protocolos pra `docs/internal/`
 **Origem:** convenção registrada no Protocolo de Dev Temporário v1.1.
 **Descrição:** confirmar que os 3 documentos centrais (`NORTECODE_Protocolo_Dev_Temporario.md`, `NORTECODE_Protocolo_Colaboracao_IAs.md`, e `NORTECODE_Briefing_MVP.md`) estão todos em `docs/internal/`. Se algum estiver em outro lugar (raiz do repo, `docs/` direto), mover.
@@ -174,17 +209,20 @@ if img.mode == "P":
 
 ### Maio/2026
 
+- ✅ **Entrega Nível 8 — variável (contador) + repeat_until + transformação visual major do Mundo** (15/05/2026, 8 commits — 6 base + 2 calibrações pós-teste). Inclui: bloco `repeat_until_frutas_3` (envelope com slot interno, loop com condição embutida); reuso de `player.inventory.fruits` como sistema de variável (YAGNI sobre genérico); bloco `pick_fruit` reaproveitado de código morto com cor mudada pra rosa-fruta `#D8848C`; componente `ActivityBasket` novo (overlay com 4 estados visuais); HUD contador "🍎 Frutas: X/3" com pulse verde ao atingir 3; cenário 1×5 linear com `fruit_tree` célula nova (inesgotável); transformação visual major do Mundo (background v2 → v3, cadeia da planta principal + 3 mini-árvores migram pro background via flag `hasBgV3`); 9 assets novos (background v3, 4 cestas atividade, 2 borboletas diferentes, serpente, cesta-recompensa-com-serpente); **entrada narrativa-chave da serpente registrada em DECISIONS.md em 15/05/2026** (DENTRO da cesta, envolvida nas frutas, calma e atraente — antecipa atuação no Nível 9); recalibração visual completa de 16 elementos persistentes pós-transformação do background.
+- ✅ Briefing MVP atualizado pra v2.15. Correção de erro factual sobre envelope vs sólido único na entrada do Nível 8.
 - ✅ **Entrega Nível 7 — condicional if/else** (Maio/2026, 11 commits — 4 base + 7 ajustes pós-teste no celular). Inclui: bloco `if_canteiro_com_semente_then_regar_else_if_canteiro_vazio_then_plantar` (sólido único, roxo); migração `conditionResult: boolean → string`; feedback visual com 3 cores (verde/azul-rio/cinza); recompensas no Mundo (árvore frutífera substitui árvore jovem, tronco com flor+esquilo substitui tronco com flor, +1 esquilo no chão, +4 flores brancas com matinho); cadeia tripla do tronco caído; padrão "elemento que muda posição entre níveis" via `bird_lvl7_a`; label longo do bloco if/else em 2 linhas com barra entre emojis; altura uniforme dos blocos da paleta.
 - ✅ Briefing MVP atualizado pra v2.13.
 - ✅ **Entrega Nível 6 — condicional simples (`if_canteiro_vazio_then_plantar`)** (14/05/2026, 19 commits — 3 base + 16 polish visual). Inclui: bloco condicional sólido único com feedback verde/cinza durante execução; bloco `repeat_5`; campo `conditionResult?: boolean` em `ExecutionStep`; legenda do mapa adaptativa; função `getContrastTextColor()` YIQ; saga das bordas dos blocos no Android (8 commits de troubleshooting); recompensas no Mundo (2 pássaros com mirror, 3 mini-árvores substituem plantinhas estágio 3, 3 flores amarelas).
 - ✅ **Entrega Nível 5 — bloco de loop fixo `[Repetir 3×]` + mudança estrutural pra blocos com filhos** (Maio/2026, 16 commits, commit final `5c57312`).
-- ✅ Atualização Briefing MVP v2.5 → v2.6 → v2.7 → v2.8 → v2.9 → v2.10 → v2.11 → v2.12 → v2.13.
+- ✅ Atualização Briefing MVP v2.5 → v2.6 → v2.7 → v2.8 → v2.9 → v2.10 → v2.11 → v2.12 → v2.13 → v2.14 → v2.15.
 - ✅ Style Guide v1.1 → v1.2 → v1.3.
 - ✅ Entrega Nível 4 — sequência longa + `move_left` (13/05/2026).
 - ✅ Migração de Manus pra Claude Code como Dev Temporário ativo (Maio/2026).
 - ✅ Atualização Protocolo Dev Temporário v1.0 → v1.1.
 - ✅ Migração de APK release pra dev build com Fast Refresh.
-- ✅ Geração dos assets: `mundo_mini_arvore.png`, `mundo_arvore_jovem.png`, `background_mundo_v2.png`, `plantinha_estagio3.png`, `flor_no_tronco.png`, `mundo_passaro_pousado.jpg`, `mundo_flor_amarela.jpg`, `mundo_esquilo.png`, `mundo_tronco_com_flor_e_esquilo.png`, `mundo_flor_branca.png`, `mundo_arvore_frutifera.png`.
+- ✅ **Criação do CLAUDE.md raiz como âncora de contexto pra novas sessões do Claude Code** (Maio/2026). Seção 10 aponta pras fontes da verdade (Briefing MVP, LEVELS.md, DECISIONS.md, BACKLOG) em vez de listar estado próprio — estável daqui pra frente.
+- ✅ Geração dos assets: `mundo_mini_arvore.png`, `mundo_arvore_jovem.png`, `background_mundo_v2.png`, `plantinha_estagio3.png`, `flor_no_tronco.png`, `mundo_passaro_pousado.jpg`, `mundo_flor_amarela.jpg`, `mundo_esquilo.png`, `mundo_tronco_com_flor_e_esquilo.png`, `mundo_flor_branca.png`, `mundo_arvore_frutifera.png`, `background_mundo_v3.png`, 4 cestas de atividade, `mundo_borboleta_pousada.png`, `mundo_borboleta_voando.png`, `mundo_serpente.png`, `mundo_cesta_recompensa_com_serpente.png`.
 
 ---
 

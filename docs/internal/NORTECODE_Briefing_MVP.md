@@ -5,7 +5,19 @@
 **Para:** Dev Temporário ativo (atualmente Claude Code, em substituição ao Manus)
 **Via:** Gui
 **Data:** Maio/2026
-**Versão:** 2.14 — Alinhamento final do Nível 8 (planejamento sem briefing técnico inicial — briefing técnico em paralelo).
+**Versão:** 2.15 — Nível 8 entregue e validado.
+
+**Changelog v2.15:**
+- Nível 8 marcado como ✅ IMPLEMENTADO. 8 commits no `origin/main` (6 base + 2 calibrações pós-teste no celular).
+- Seção 10 atualizada — Nível 8 vai pra "Funcionando", Nível 9 vira próximo na fila.
+- **Correção de erro factual** na entrada do Nível 8: o bloco `repeat_until_frutas_3` é **envelope com slot interno** (mesma mecânica do `repeat_5`), NÃO sólido único como estava escrito na v2.14. O briefing técnico do Nível 8 estava correto desde o início — o MVP é que tinha erro factual. Corrigido.
+- 5 decisões arquiteturais consolidadas (sistema de variáveis reusa `inventory.fruits`, envelope confirmado, cesta da atividade como overlay, animação de fruta voando omitida pra primeira entrega, `pick_fruit` mantido em inglês com cor rosa-fruta).
+- Decisão narrativa-chave da serpente entrando no Mundo Permanente registrada em `DECISIONS.md` em 15/05/2026 (cesta da recompensa com serpente envolvida nas frutas, calma e atraente).
+- 4 aprendizados técnicos novos registrados (no BACKLOG):
+  - Padrão "calibração visual após transformação major do background" — quando o Mundo passa por mudança de background + migração de elementos, todos os elementos persistentes precisam recalibração (não só os adicionados no nível atual).
+  - Rotação como ferramenta visual sutil — `transform: rotate(-40deg)` em borboleta pousada simula ângulo natural.
+  - `zIndex` ajustado caso a caso conforme densidade visual aumenta.
+  - Reuso de código morto pré-existente quando possível — `pick_fruit` + `inventory.fruits` aproveitados em vez de criar paralelos.
 
 **Changelog v2.14:**
 - Nível 8 detalhado em sessão dedicada com 4 blocos de decisão (conceito pedagógico, mecânica de jogo, transformação visual major, UI da variável):
@@ -621,7 +633,7 @@ Quando a criança aperta "Executar":
 
 ---
 
-#### Nível 8 — Variável (contador simples) — PENDENTE (próximo a implementar)
+#### Nível 8 — Variável (contador simples) ✅ IMPLEMENTADO
 
 - **Conceito de programação:** variável. "Guardar um número e usá-lo depois."
 - **Função pedagógica:** consciência de **quantidade**. Cuidar não é "fazer pra sempre" — é "fazer até atingir o que é necessário". Mordomia tem medida. Quinto conceito de programação do MVP.
@@ -631,7 +643,7 @@ Quando a criança aperta "Executar":
 - **Solução-alvo:** `[Direita, Direita, Direita, Repetir até pegar 3 frutas [Pegar fruta]]` — 5 blocos.
 - **Solução longa aceita:** `[Direita, Direita, Direita, Pegar fruta, Pegar fruta, Pegar fruta]` — 6 blocos. Sem usar variável (princípio "necessidade antes da ferramenta").
 - **`maxBlocks`:** a definir no briefing técnico (provavelmente 10-12 com margem de exploração).
-- **O bloco `repeat_until_frutas_3`:** sólido único (sem slot interno, mesma estrutura do `repeat_5`). Comportamento embutido: repete os blocos filhos até a variável `frutas` atingir 3. Texto visível: "Repetir até pegar 3 frutas".
+- **O bloco `repeat_until_frutas_3`:** envelope com slot interno (mesma mecânica do `repeat_5` — modo edição via toque). Comportamento embutido: repete os blocos filhos até a variável `frutas` atingir 3. Texto visível: "Repetir até pegar 3 frutas".
 - **UI da variável no mapa de atividade — DUAS representações simultâneas:**
   - **Cesta visual no mapa** — vai enchendo: 4 assets de cesta (vazia / 1 fruta / 2 frutas / 3 frutas). Cada `Pegar fruta` troca o asset.
   - **Contador HUD no topo** — `🍎 Frutas: 0 / 3`. Incrementa em cada `Pegar fruta`. Quando atinge 3, cor passa pra verde-plant `#5D8A3C` + pulse.
@@ -919,15 +931,18 @@ A cada commit que mude lógica/arquitetura, atualizar a doc correspondente.
 - Nível 5 (Loop fixo com bloco `[Repetir 3×]`) — mesma grade do Nível 4 com 3 sementes pra regar. Introduz bloco `repeat_3` e mudança estrutural na representação de programa (passa a suportar blocos com filhos). UX "modo edição via toque" pra adicionar blocos aninhados. Solução-alvo 9 blocos vs 12 do Nível 4 (alívio pedagógico). Tela do nível vira rolável + autoscroll ao executar
 - Nível 6 (Condicional simples) — grade 1×6 linear com `[Avatar][SC][CV][CP][CV][CV]`. Introduz bloco `if_canteiro_vazio_then_plantar` (bloco sólido único, comportamento condicional embutido) e `repeat_5`. Estados de célula visíveis antes da execução. Feedback visual durante execução: bloco condicional pulsa verde quando condição é verdadeira, cinza quando falsa (via campo `conditionResult` em `ExecutionStep`). Princípio "ferramentas antecipadas" reforçado no texto de conclusão
 - Nível 7 (If/else — condicional com dois ramos) — grade 1×6 linear `[Avatar][CP][CV][CP][CV][CP]`. Introduz bloco if/else (sólido único, mesmo padrão visual do Nível 6). Migração técnica: campo `conditionResult` em `ExecutionStep` migrou de `boolean` pra `string` (`"plant" | "water" | "none"`). Feedback visual durante execução com 3 cores distintas: verde (plantou), azul-rio (regou), cinza (nenhum ramo). Decisão simplificadora: sem estado "planta seca" novo — reusa `CellContent: "seed"` existente
-- Sistema de recompensas com substituição em cadeia (`seed_lvl1` → `sprout_lvl2` → `grown_sprout_lvl3` → `mini_tree_lvl4` → `young_tree_lvl5` → `fruit_tree_lvl7`)
+- Nível 8 (Variável — contador simples) — grade 1×5 linear `[Avatar][chão][chão][chão][Árvore frutífera]`. Introduz **sistema de variável** (reusa `player.inventory.fruits` existente, sem criar campo genérico — YAGNI). Bloco novo `repeat_until_frutas_3` (envelope com slot interno, loop com condição embutida). Bloco `pick_fruit` reaproveitado de código morto pré-existente, cor mudada de laranja `#F5A623` pra rosa-fruta `#D8848C`. UI nova: contador HUD `🍎 Frutas: 0/3` (verde + pulse quando atinge 3) + cesta da atividade com 4 estados visuais (vazia/1/2/3). Componente `ActivityBasket` novo como overlay (não na grade)
+- Sistema de recompensas com substituição em cadeia (`seed_lvl1` → `sprout_lvl2` → `grown_sprout_lvl3` → `mini_tree_lvl4` → `young_tree_lvl5` → `fruit_tree_lvl7`, **migra inteira pro background no Nível 8**)
 - Cadeia tripla do tronco caído: tronco original → flor no tronco (Nível 5) → tronco com flor + esquilo (Nível 7). "Mais evoluído tem prioridade"
-- Continuidade visual das 3 plantas secundárias: 3 sementes do Nível 4 → 3 plantinhas estágio 3 do Nível 5 → 3 mini-árvores do Nível 6 (mantêm no Nível 7)
-- Background do Mundo substituível por estágio (`background_v1` → `background_v2` ao concluir Nível 5; espaço pra background v3 no Nível 8; árido no Nível 10)
-- Fauna no Mundo permanente: 2 pássaros (Nível 6, mesmo asset com mirror em uma instância) + 2 esquilos (Nível 7, um brotando da cavidade do tronco caído + um no chão). Pássaro do Nível 6 pode ter posição independente no Nível 7 via padrão "elemento que muda posição entre níveis" (`bird_lvl7_a` substitui `bird_lvl6_a`)
-- Árvore frutífera estática (não tem versão parcialmente colhida) — preparação visual pro Nível 8
+- Continuidade visual das 3 plantas secundárias: 3 sementes do Nível 4 → 3 plantinhas estágio 3 do Nível 5 → 3 mini-árvores do Nível 6 (**migram pro background no Nível 8**)
+- Background do Mundo substituível por estágio (`background_v1` → `background_v2` no Nível 5 → `background_v3` no Nível 8; árido reservado pro Nível 10)
+- **Padrão "migra pro background" estabelecido no Nível 8** — elementos do primeiro plano (árvore frutífera + 3 mini-árvores) deixam de renderizar via flag `hasBgV3` no `app/world.tsx`. Padrão pra futuras migrações
+- Fauna no Mundo permanente: 2 pássaros (Nível 6, mesmo asset com mirror em uma instância) + 2 esquilos (Nível 7) + 2 borboletas (Nível 8 — assets DIFERENTES, 1 pousada + 1 voando). Pássaro do Nível 6 pode ter posição independente no Nível 7 via padrão "elemento que muda posição entre níveis" (`bird_lvl7_a` substitui `bird_lvl6_a`)
+- **Entrada da serpente no Mundo permanente como recompensa do Nível 8** — DENTRO da cesta da recompensa, envolvida entre as frutas, postura calma e atraente ("boa"). Coerência com Gn 3:1. Antecipa atuação no Nível 9. Decisão narrativa-chave registrada em `DECISIONS.md` em 15/05/2026
+- Árvore frutífera estática (não tem versão parcialmente colhida) — preparação visual pro Nível 8 (foi migrada pro background v3)
 - Diversidade cromática de flores no Mundo: rosa (Nível 3) + amarelas (Nível 6) + brancas com matinho (Nível 7)
 - Mensagens de erro contextuais por nível (via campo opcional `failReason` no `ExecutionStep`)
-- Legenda do mapa adaptativa em `LevelScene.tsx` — distingue automaticamente entre "só canteiro vazio", "só canteiro plantado", e "ambos" com base no conteúdo do grid
+- Legenda do mapa adaptativa em `LevelScene.tsx` — distingue automaticamente entre "só canteiro vazio", "só canteiro plantado", "ambos", e agora "fruit_tree" (Nível 8) com base no conteúdo do grid
 - Função `getContrastTextColor(bgColor)` baseada em luminância YIQ — calcula texto preto ou branco automaticamente conforme cor de fundo do bloco
 - Padrão de altura uniforme dos blocos da paleta (`height: 72` fixo, conteúdo centralizado) — descoberto no Nível 7 com label longo do if/else
 - Princípio narrativo registrado: Mundo permanente é narrativa visual, não decoração (ver `DECISIONS.md`)
@@ -940,14 +955,13 @@ A cada commit que mude lógica/arquitetura, atualizar a doc correspondente.
 
 ### 🚧 Em implementação
 
-- (Nenhum nível em implementação no momento — próximo é o Nível 8)
+- (Nenhum nível em implementação no momento — próximo é o Nível 9)
 
 ### ⏳ Pendente
 
-- Nível 8 (Variável / contador simples) — transformação visual major: background v3 substitui v2 (gramado predominante, várias árvores próximas, árvore frutífera central destacada). Planta principal e 3 mini-árvores migram do primeiro plano pro background. Cesta com 3 frutas em primeiro plano + 1-2 elementos pequenos de fauna (borboleta/formiga)
-- Níveis 9-10
+- Nível 9 (Função — encapsular sequência) — serpente "atua" pela primeira vez. Sessão estratégica dedicada à mecânica da tentação ainda pendente
+- Nível 10 (Aplicar tudo em ambiente árido — restauração) — sessão estratégica dedicada à execução do árido pendente
 - Capítulo Narrativo (telas dedicadas de história) — pendente de sessão dedicada
-- Sessão estratégica dedicada à mecânica da serpente (Níveis 9 e 10) — pendente
 - Acessibilidade (TTS opcional)
 
 ### Pendências técnicas conhecidas
@@ -1008,5 +1022,5 @@ Ao final:
 
 ---
 
-*Atualizado em Maio/2026 — v2.14*
-*Reflete: Nível 7 entregue. Nível 8 alinhado em sessão dedicada — briefing técnico em paralelo, assets pendentes de geração. Dev Temporário ativo: Claude Code.*
+*Atualizado em Maio/2026 — v2.15*
+*Reflete: Nível 8 entregue e validado no celular. 8 commits no main. Próximo nível em fila: Nível 9 (função — serpente atua pela primeira vez). Sessão estratégica dedicada à mecânica da serpente pendente. Dev Temporário ativo: Claude Code.*
