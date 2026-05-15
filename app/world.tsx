@@ -154,6 +154,45 @@ const WORLD_LAYOUT = {
   borboletaPousada: { top: pctH(60), left: pctW(20), width: pctW(12) },
   borboletaVoando: { top: pctH(40), right: pctW(20), width: pctW(12) },
 
+  // ─── Recalibração Nível 8 — versões _lvl8 com posições próprias ────────
+  // Padrão "elemento que muda de posição entre níveis" (Nv 7 → Nv 8).
+  // Posições iniciais HERDADAS das versões anteriores como ponto de
+  // partida — Gui ajusta na fase de polish via Fast Refresh, sem afetar
+  // os layouts dos Níveis 1-7 (que continuam usando as chaves originais).
+
+  // Pedra Nv 8 — versão calibrável (a `pedra` original sempre renderizou
+  // sem flag; agora `pedra_lvl8` é o slot independente).
+  pedraLvl8: { top: pctH(3), right: pctW(8), width: pctW(20) },
+
+  // Tronco com flor e esquilo Nv 8 — herda do troncoEsquilo (Nv 7).
+  troncoEsquiloLvl8: { bottom: pctH(-21.5), right: pctW(68), width: pctW(28) },
+
+  // 2 pássaros Nv 8 — bird_lvl8_a herda do passaroLvl7A;
+  // bird_lvl8_b herda do passaroLvl6B (que era espelhado scaleX -1).
+  passaroLvl8A: { top: pctH(23.3), right: pctW(30), width: pctW(10) },
+  passaroLvl8B: { top: pctH(50), right: pctW(15), width: pctW(10) },
+
+  // Esquilo no chão Nv 8 — herda do esquiloChao (Nv 7).
+  esquiloChaoLvl8: { bottom: pctH(52.5), left: pctW(44), width: pctW(12) },
+
+  // 4 flores rosa Nv 8 — A herda do flor (Nv 3), B do florLvl4,
+  // C/D dos florLvl5A/B.
+  florLvl8A: { top: pctH(49), right: pctW(1), width: pctW(7) },
+  florLvl8B: { top: pctH(70), left: pctW(40), width: pctW(7) },
+  florLvl8C: { top: pctH(55), left: pctW(32), width: pctW(7) },
+  florLvl8D: { top: pctH(39), right: pctW(29), width: pctW(7) },
+
+  // 3 flores amarelas Nv 8 — herdam dos florAmarelaLvl6A/B/C.
+  florAmarelaLvl8A: { top: pctH(82), left: pctW(54), width: pctW(10) },
+  florAmarelaLvl8B: { top: pctH(80), right: pctW(45), width: pctW(10) },
+  florAmarelaLvl8C: { bottom: pctH(10), left: pctW(35), width: pctW(10) },
+
+  // 4 flores brancas Nv 8 — herdam dos florBrancaLvl7A/B/C/D.
+  florBrancaLvl8A: { top: pctH(46), left: pctW(25), width: pctW(8) },
+  florBrancaLvl8B: { top: pctH(65), right: pctW(30), width: pctW(8) },
+  florBrancaLvl8C: { bottom: pctH(46), left: pctW(18), width: pctW(8) },
+  florBrancaLvl8D: { bottom: pctH(26), right: pctW(22), width: pctW(8) },
+
   // UI
   botaoPlay: { bottom: pctH(90), right: pctW(6) },
 };
@@ -258,6 +297,25 @@ export default function WorldScreen() {
   const [showCestaSerpente, setShowCestaSerpente] = useState(false);
   const [showBorboletaPousada, setShowBorboletaPousada] = useState(false);
   const [showBorboletaVoando, setShowBorboletaVoando] = useState(false);
+  // Recalibração Nv 8 — versões _lvl8 com posições próprias (mesmos
+  // assets dos elementos originais, IDs independentes pra calibração
+  // sem afetar layout dos Níveis 1-7).
+  const [showPedraLvl8, setShowPedraLvl8] = useState(false);
+  const [showTroncoEsquiloLvl8, setShowTroncoEsquiloLvl8] = useState(false);
+  const [showPassaroLvl8A, setShowPassaroLvl8A] = useState(false);
+  const [showPassaroLvl8B, setShowPassaroLvl8B] = useState(false);
+  const [showEsquiloChaoLvl8, setShowEsquiloChaoLvl8] = useState(false);
+  const [showFlorLvl8A, setShowFlorLvl8A] = useState(false);
+  const [showFlorLvl8B, setShowFlorLvl8B] = useState(false);
+  const [showFlorLvl8C, setShowFlorLvl8C] = useState(false);
+  const [showFlorLvl8D, setShowFlorLvl8D] = useState(false);
+  const [showFlorAmarelaLvl8A, setShowFlorAmarelaLvl8A] = useState(false);
+  const [showFlorAmarelaLvl8B, setShowFlorAmarelaLvl8B] = useState(false);
+  const [showFlorAmarelaLvl8C, setShowFlorAmarelaLvl8C] = useState(false);
+  const [showFlorBrancaLvl8A, setShowFlorBrancaLvl8A] = useState(false);
+  const [showFlorBrancaLvl8B, setShowFlorBrancaLvl8B] = useState(false);
+  const [showFlorBrancaLvl8C, setShowFlorBrancaLvl8C] = useState(false);
+  const [showFlorBrancaLvl8D, setShowFlorBrancaLvl8D] = useState(false);
 
   // Animations
   const fadeIn = useSharedValue(0);
@@ -314,6 +372,35 @@ export default function WorldScreen() {
     //     renderizar no primeiro plano (passam a fazer parte do bg v3).
     // Tronco com flor+esquilo, fauna e flores CONTINUAM normalmente.
     const hasBgV3 = worldElements?.includes("background_mundo_v3") ?? false;
+    // Recalibração Nv 8 — flags lidas no topo pra poder suprimir os
+    // elementos antigos correspondentes (cada `_lvl8` "esconde" sua
+    // versão anterior mantendo posicionamento independente).
+    const hasPedraLvl8 = worldElements?.includes("stone_lvl8") ?? false;
+    const hasTroncoEsquiloLvl8 =
+      worldElements?.includes("fallen_log_with_flower_and_squirrel_lvl8") ??
+      false;
+    const hasBirdLvl8A = worldElements?.includes("bird_lvl8_a") ?? false;
+    const hasBirdLvl8B = worldElements?.includes("bird_lvl8_b") ?? false;
+    const hasEsquiloChaoLvl8 =
+      worldElements?.includes("squirrel_lvl8_ground") ?? false;
+    const hasFlorLvl8A = worldElements?.includes("flower_lvl8_a") ?? false;
+    const hasFlorLvl8B = worldElements?.includes("flower_lvl8_b") ?? false;
+    const hasFlorLvl8C = worldElements?.includes("flower_lvl8_c") ?? false;
+    const hasFlorLvl8D = worldElements?.includes("flower_lvl8_d") ?? false;
+    const hasFlorAmarelaLvl8A =
+      worldElements?.includes("yellow_flower_lvl8_a") ?? false;
+    const hasFlorAmarelaLvl8B =
+      worldElements?.includes("yellow_flower_lvl8_b") ?? false;
+    const hasFlorAmarelaLvl8C =
+      worldElements?.includes("yellow_flower_lvl8_c") ?? false;
+    const hasFlorBrancaLvl8A =
+      worldElements?.includes("white_flower_lvl8_a") ?? false;
+    const hasFlorBrancaLvl8B =
+      worldElements?.includes("white_flower_lvl8_b") ?? false;
+    const hasFlorBrancaLvl8C =
+      worldElements?.includes("white_flower_lvl8_c") ?? false;
+    const hasFlorBrancaLvl8D =
+      worldElements?.includes("white_flower_lvl8_d") ?? false;
     const hasArvoreFrutifera = worldElements?.includes("fruit_tree_lvl7") ?? false;
     const hasArvoreJovem = worldElements?.includes("young_tree_lvl5") ?? false;
     const hasMiniArvore = worldElements?.includes("mini_tree_lvl4") ?? false;
@@ -361,7 +448,7 @@ export default function WorldScreen() {
         !hasArvoreFrutifera &&
         !hasBgV3
     );
-    setShowFlower(hasFlower);
+    setShowFlower(hasFlower && !hasFlorLvl8A);
 
     // Recompensas do Nível 8 — elementos NOVOS no primeiro plano.
     setShowCestaSerpente(
@@ -373,6 +460,23 @@ export default function WorldScreen() {
     setShowBorboletaVoando(
       worldElements?.includes("butterfly_flying_lvl8") ?? false
     );
+
+    setShowPedraLvl8(hasPedraLvl8);
+    setShowTroncoEsquiloLvl8(hasTroncoEsquiloLvl8);
+    setShowPassaroLvl8A(hasBirdLvl8A);
+    setShowPassaroLvl8B(hasBirdLvl8B);
+    setShowEsquiloChaoLvl8(hasEsquiloChaoLvl8);
+    setShowFlorLvl8A(hasFlorLvl8A);
+    setShowFlorLvl8B(hasFlorLvl8B);
+    setShowFlorLvl8C(hasFlorLvl8C);
+    setShowFlorLvl8D(hasFlorLvl8D);
+    setShowFlorAmarelaLvl8A(hasFlorAmarelaLvl8A);
+    setShowFlorAmarelaLvl8B(hasFlorAmarelaLvl8B);
+    setShowFlorAmarelaLvl8C(hasFlorAmarelaLvl8C);
+    setShowFlorBrancaLvl8A(hasFlorBrancaLvl8A);
+    setShowFlorBrancaLvl8B(hasFlorBrancaLvl8B);
+    setShowFlorBrancaLvl8C(hasFlorBrancaLvl8C);
+    setShowFlorBrancaLvl8D(hasFlorBrancaLvl8D);
 
     // Recompensas do Nível 4: 3 sementes plantadas + 1 flor decorativa nova.
     // Cada semente lvl4 é SUBSTITUÍDA visualmente pela plantinha estágio 3
@@ -389,7 +493,9 @@ export default function WorldScreen() {
     setShowSeedLvl4C(
       (worldElements?.includes("seed_lvl4_c") ?? false) && !hasPlantinhaC
     );
-    setShowFlowerLvl4(worldElements?.includes("flower_lvl4") ?? false);
+    setShowFlowerLvl4(
+      (worldElements?.includes("flower_lvl4") ?? false) && !hasFlorLvl8B
+    );
 
     // Recompensas do Nível 5:
     //   1. background v2 substitui v1 (ImageBackground source decide qual usar)
@@ -406,8 +512,12 @@ export default function WorldScreen() {
     setShowPlantinhaLvl5A(hasPlantinhaA && !hasMiniArvore6A);
     setShowPlantinhaLvl5B(hasPlantinhaB && !hasMiniArvore6B);
     setShowPlantinhaLvl5C(hasPlantinhaC && !hasMiniArvore6C);
-    setShowFlowerLvl5A(worldElements?.includes("flower_lvl5_a") ?? false);
-    setShowFlowerLvl5B(worldElements?.includes("flower_lvl5_b") ?? false);
+    setShowFlowerLvl5A(
+      (worldElements?.includes("flower_lvl5_a") ?? false) && !hasFlorLvl8C
+    );
+    setShowFlowerLvl5B(
+      (worldElements?.includes("flower_lvl5_b") ?? false) && !hasFlorLvl8D
+    );
     setShowFlorNoTronco(worldElements?.includes("flower_no_tronco") ?? false);
 
     // Recompensas do Nível 7:
@@ -417,23 +527,28 @@ export default function WorldScreen() {
     //   3. +1 esquilo no chão
     //   4. +4 flores brancas
     setShowTroncoEsquilo(
-      worldElements?.includes("fallen_log_with_flower_and_squirrel_lvl7") ??
-        false
+      (worldElements?.includes("fallen_log_with_flower_and_squirrel_lvl7") ??
+        false) && !hasTroncoEsquiloLvl8
     );
     setShowEsquiloChao(
-      worldElements?.includes("squirrel_lvl7_ground") ?? false
+      (worldElements?.includes("squirrel_lvl7_ground") ?? false) &&
+        !hasEsquiloChaoLvl8
     );
     setShowFlorBrancaLvl7A(
-      worldElements?.includes("white_flower_lvl7_a") ?? false
+      (worldElements?.includes("white_flower_lvl7_a") ?? false) &&
+        !hasFlorBrancaLvl8A
     );
     setShowFlorBrancaLvl7B(
-      worldElements?.includes("white_flower_lvl7_b") ?? false
+      (worldElements?.includes("white_flower_lvl7_b") ?? false) &&
+        !hasFlorBrancaLvl8B
     );
     setShowFlorBrancaLvl7C(
-      worldElements?.includes("white_flower_lvl7_c") ?? false
+      (worldElements?.includes("white_flower_lvl7_c") ?? false) &&
+        !hasFlorBrancaLvl8C
     );
     setShowFlorBrancaLvl7D(
-      worldElements?.includes("white_flower_lvl7_d") ?? false
+      (worldElements?.includes("white_flower_lvl7_d") ?? false) &&
+        !hasFlorBrancaLvl8D
     );
 
     // Recompensas do Nível 6:
@@ -455,11 +570,22 @@ export default function WorldScreen() {
     setShowPassaroLvl6A(
       (worldElements?.includes("bird_lvl6_a") ?? false) && !hasBirdLvl7A
     );
-    setShowPassaroLvl7A(hasBirdLvl7A);
-    setShowPassaroLvl6B(worldElements?.includes("bird_lvl6_b") ?? false);
-    setShowFlorAmarelaLvl6A(worldElements?.includes("yellow_flower_lvl6_a") ?? false);
-    setShowFlorAmarelaLvl6B(worldElements?.includes("yellow_flower_lvl6_b") ?? false);
-    setShowFlorAmarelaLvl6C(worldElements?.includes("yellow_flower_lvl6_c") ?? false);
+    setShowPassaroLvl7A(hasBirdLvl7A && !hasBirdLvl8A);
+    setShowPassaroLvl6B(
+      (worldElements?.includes("bird_lvl6_b") ?? false) && !hasBirdLvl8B
+    );
+    setShowFlorAmarelaLvl6A(
+      (worldElements?.includes("yellow_flower_lvl6_a") ?? false) &&
+        !hasFlorAmarelaLvl8A
+    );
+    setShowFlorAmarelaLvl6B(
+      (worldElements?.includes("yellow_flower_lvl6_b") ?? false) &&
+        !hasFlorAmarelaLvl8B
+    );
+    setShowFlorAmarelaLvl6C(
+      (worldElements?.includes("yellow_flower_lvl6_c") ?? false) &&
+        !hasFlorAmarelaLvl8C
+    );
   }, []);
 
   useFocusEffect(
@@ -513,18 +639,38 @@ export default function WorldScreen() {
       >
         {/* Z-layer 1: Scenery (pedra, tronco) — quadrante superior direito */}
         <Animated.View style={[fadeStyle, { position: "absolute", width: SCREEN_WIDTH, height: SCREEN_HEIGHT }]}>
-          {/* Pedra — upper right area */}
-          <Image
-            source={MUNDO_PEDRA}
-            resizeMode="contain"
-            style={{
-              position: "absolute",
-              top: WORLD_LAYOUT.pedra.top,
-              right: WORLD_LAYOUT.pedra.right,
-              width: WORLD_LAYOUT.pedra.width,
-              aspectRatio: 1062 / 880,
-            }}
-          />
+          {/* Pedra (Nv 1-7) — upper right area. Suprimida quando
+              stone_lvl8 está ativo (Nível 8 completo) — a pedraLvl8
+              entra como elemento próprio com posição independente. */}
+          {!showPedraLvl8 && (
+            <Image
+              source={MUNDO_PEDRA}
+              resizeMode="contain"
+              style={{
+                position: "absolute",
+                top: WORLD_LAYOUT.pedra.top,
+                right: WORLD_LAYOUT.pedra.right,
+                width: WORLD_LAYOUT.pedra.width,
+                aspectRatio: 1062 / 880,
+              }}
+            />
+          )}
+
+          {/* Pedra Nv 8 — versão calibrável independente. Mesmo asset
+              MUNDO_PEDRA, posição própria via WORLD_LAYOUT.pedraLvl8. */}
+          {showPedraLvl8 && (
+            <Image
+              source={MUNDO_PEDRA}
+              resizeMode="contain"
+              style={{
+                position: "absolute",
+                top: WORLD_LAYOUT.pedraLvl8.top,
+                right: WORLD_LAYOUT.pedraLvl8.right,
+                width: WORLD_LAYOUT.pedraLvl8.width,
+                aspectRatio: 1062 / 880,
+              }}
+            />
+          )}
 
           {/* Tronco — upper right area. Cadeia tronco original → tronco
               com flor (Nível 5), substituição direta por terem proporção
@@ -1271,6 +1417,288 @@ export default function WorldScreen() {
               resizeMode="contain"
               style={{ width: "100%", height: "100%" }}
             />
+          </Animated.View>
+        )}
+
+        {/* ─── Recalibração Nv 8: 15 elementos com posições próprias ─────
+             Mesmos assets dos elementos originais (MUNDO_TRONCO_FLOR_ESQUILO,
+             MUNDO_PASSARO, MUNDO_ESQUILO, MUNDO_FLOR, MUNDO_FLOR_AMARELA,
+             MUNDO_FLOR_BRANCA), mas com WORLD_LAYOUT.*Lvl8 independentes
+             pra Gui calibrar sem afetar layout dos Níveis 1-7. ─────────── */}
+
+        {/* Tronco com flor e esquilo Nv 8 */}
+        {showTroncoEsquiloLvl8 && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                bottom: WORLD_LAYOUT.troncoEsquiloLvl8.bottom,
+                right: WORLD_LAYOUT.troncoEsquiloLvl8.right,
+                width: WORLD_LAYOUT.troncoEsquiloLvl8.width,
+                transform: [{ rotate: '-4deg' }],
+                aspectRatio: 3072 / 1344,
+              },
+            ]}
+          >
+            <Image
+              source={MUNDO_TRONCO_FLOR_ESQUILO}
+              resizeMode="contain"
+              style={{ width: "100%", height: "100%" }}
+            />
+          </Animated.View>
+        )}
+
+        {/* 2 pássaros Nv 8 — bird_lvl8_b mantém o mirror horizontal
+             (transform scaleX -1) que vinha do bird_lvl6_b */}
+        {showPassaroLvl8A && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                top: WORLD_LAYOUT.passaroLvl8A.top,
+                right: WORLD_LAYOUT.passaroLvl8A.right,
+                width: WORLD_LAYOUT.passaroLvl8A.width,
+                aspectRatio: 850 / 736,
+                zIndex: 10,
+              },
+            ]}
+          >
+            <Image
+              source={MUNDO_PASSARO}
+              resizeMode="contain"
+              style={{ width: "100%", height: "100%" }}
+            />
+          </Animated.View>
+        )}
+        {showPassaroLvl8B && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                top: WORLD_LAYOUT.passaroLvl8B.top,
+                right: WORLD_LAYOUT.passaroLvl8B.right,
+                width: WORLD_LAYOUT.passaroLvl8B.width,
+                aspectRatio: 850 / 736,
+                transform: [{ scaleX: -1 }],
+              },
+            ]}
+          >
+            <Image
+              source={MUNDO_PASSARO}
+              resizeMode="contain"
+              style={{ width: "100%", height: "100%" }}
+            />
+          </Animated.View>
+        )}
+
+        {/* Esquilo no chão Nv 8 */}
+        {showEsquiloChaoLvl8 && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                bottom: WORLD_LAYOUT.esquiloChaoLvl8.bottom,
+                left: WORLD_LAYOUT.esquiloChaoLvl8.left,
+                width: WORLD_LAYOUT.esquiloChaoLvl8.width,
+                aspectRatio: 887 / 878,
+                zIndex: 10,
+              },
+            ]}
+          >
+            <Image
+              source={MUNDO_ESQUILO}
+              resizeMode="contain"
+              style={{ width: "100%", height: "100%" }}
+            />
+          </Animated.View>
+        )}
+
+        {/* 4 flores rosa Nv 8 — A herda da flor Nv 3 (top/right), B/C/D
+             herdam de flowerLvl4/5A/5B respectivamente (top/left).      */}
+        {showFlorLvl8A && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                top: WORLD_LAYOUT.florLvl8A.top,
+                right: WORLD_LAYOUT.florLvl8A.right,
+                width: WORLD_LAYOUT.florLvl8A.width,
+                aspectRatio: 272 / 732,
+              },
+            ]}
+          >
+            <Image source={MUNDO_FLOR} resizeMode="contain" style={{ width: "100%", height: "100%" }} />
+          </Animated.View>
+        )}
+        {showFlorLvl8B && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                top: WORLD_LAYOUT.florLvl8B.top,
+                left: WORLD_LAYOUT.florLvl8B.left,
+                width: WORLD_LAYOUT.florLvl8B.width,
+                aspectRatio: 272 / 732,
+              },
+            ]}
+          >
+            <Image source={MUNDO_FLOR} resizeMode="contain" style={{ width: "100%", height: "100%" }} />
+          </Animated.View>
+        )}
+        {showFlorLvl8C && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                top: WORLD_LAYOUT.florLvl8C.top,
+                left: WORLD_LAYOUT.florLvl8C.left,
+                width: WORLD_LAYOUT.florLvl8C.width,
+                aspectRatio: 272 / 732,
+              },
+            ]}
+          >
+            <Image source={MUNDO_FLOR} resizeMode="contain" style={{ width: "100%", height: "100%" }} />
+          </Animated.View>
+        )}
+        {showFlorLvl8D && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                top: WORLD_LAYOUT.florLvl8D.top,
+                right: WORLD_LAYOUT.florLvl8D.right,
+                width: WORLD_LAYOUT.florLvl8D.width,
+                aspectRatio: 272 / 732,
+              },
+            ]}
+          >
+            <Image source={MUNDO_FLOR} resizeMode="contain" style={{ width: "100%", height: "100%" }} />
+          </Animated.View>
+        )}
+
+        {/* 3 flores amarelas Nv 8 — A/B herdam de florAmarelaLvl6A/B
+             (top/left e top/right), C herda de C (bottom/left).         */}
+        {showFlorAmarelaLvl8A && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                top: WORLD_LAYOUT.florAmarelaLvl8A.top,
+                left: WORLD_LAYOUT.florAmarelaLvl8A.left,
+                width: WORLD_LAYOUT.florAmarelaLvl8A.width,
+                aspectRatio: 458 / 855,
+              },
+            ]}
+          >
+            <Image source={MUNDO_FLOR_AMARELA} resizeMode="contain" style={{ width: "100%", height: "100%" }} />
+          </Animated.View>
+        )}
+        {showFlorAmarelaLvl8B && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                top: WORLD_LAYOUT.florAmarelaLvl8B.top,
+                right: WORLD_LAYOUT.florAmarelaLvl8B.right,
+                width: WORLD_LAYOUT.florAmarelaLvl8B.width,
+                aspectRatio: 458 / 855,
+              },
+            ]}
+          >
+            <Image source={MUNDO_FLOR_AMARELA} resizeMode="contain" style={{ width: "100%", height: "100%" }} />
+          </Animated.View>
+        )}
+        {showFlorAmarelaLvl8C && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                bottom: WORLD_LAYOUT.florAmarelaLvl8C.bottom,
+                left: WORLD_LAYOUT.florAmarelaLvl8C.left,
+                width: WORLD_LAYOUT.florAmarelaLvl8C.width,
+                aspectRatio: 458 / 855,
+              },
+            ]}
+          >
+            <Image source={MUNDO_FLOR_AMARELA} resizeMode="contain" style={{ width: "100%", height: "100%" }} />
+          </Animated.View>
+        )}
+
+        {/* 4 flores brancas Nv 8 — A/B herdam de florBrancaLvl7A/B
+             (top/left e top/right), C/D herdam de C/D (bottom/left/right). */}
+        {showFlorBrancaLvl8A && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                top: WORLD_LAYOUT.florBrancaLvl8A.top,
+                left: WORLD_LAYOUT.florBrancaLvl8A.left,
+                width: WORLD_LAYOUT.florBrancaLvl8A.width,
+                aspectRatio: 373 / 854,
+              },
+            ]}
+          >
+            <Image source={MUNDO_FLOR_BRANCA} resizeMode="contain" style={{ width: "100%", height: "100%" }} />
+          </Animated.View>
+        )}
+        {showFlorBrancaLvl8B && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                top: WORLD_LAYOUT.florBrancaLvl8B.top,
+                right: WORLD_LAYOUT.florBrancaLvl8B.right,
+                width: WORLD_LAYOUT.florBrancaLvl8B.width,
+                aspectRatio: 373 / 854,
+              },
+            ]}
+          >
+            <Image source={MUNDO_FLOR_BRANCA} resizeMode="contain" style={{ width: "100%", height: "100%" }} />
+          </Animated.View>
+        )}
+        {showFlorBrancaLvl8C && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                bottom: WORLD_LAYOUT.florBrancaLvl8C.bottom,
+                left: WORLD_LAYOUT.florBrancaLvl8C.left,
+                width: WORLD_LAYOUT.florBrancaLvl8C.width,
+                aspectRatio: 373 / 854,
+              },
+            ]}
+          >
+            <Image source={MUNDO_FLOR_BRANCA} resizeMode="contain" style={{ width: "100%", height: "100%" }} />
+          </Animated.View>
+        )}
+        {showFlorBrancaLvl8D && (
+          <Animated.View
+            style={[
+              fadeStyle,
+              {
+                position: "absolute",
+                bottom: WORLD_LAYOUT.florBrancaLvl8D.bottom,
+                right: WORLD_LAYOUT.florBrancaLvl8D.right,
+                width: WORLD_LAYOUT.florBrancaLvl8D.width,
+                aspectRatio: 373 / 854,
+              },
+            ]}
+          >
+            <Image source={MUNDO_FLOR_BRANCA} resizeMode="contain" style={{ width: "100%", height: "100%" }} />
           </Animated.View>
         )}
 

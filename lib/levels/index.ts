@@ -770,22 +770,66 @@ function createLevel8(): LevelDefinition {
       message:
         "Você usou um lugar pra guardar uma informação (quantas frutas). Isso se chama variável. Cuidar bem é saber a quantidade certa — não pegar tudo, não pegar de menos. Lembra disso — vai ser muito importante mais pra frente.",
       elements: [
+        // ─── Bg + supressão da planta principal e mini-árvores ────────────
         // Operação A — substituir background v2 por v3. Mesma lógica do
         // Nível 5 (que substituiu v1 por v2). Quando worldElements
         // contém "background_mundo_v3", o app/world.tsx renderiza v3
-        // E suprime a árvore principal + mini-árvores do primeiro plano.
+        // E suprime a árvore principal + 3 mini-árvores do primeiro plano
+        // (passam a fazer parte da composição do bg).
         { add: "background_mundo_v3", replaces: "background_mundo_v2" },
-        // Operação F — cesta da recompensa com a serpente dentro
-        // (decisão narrativa registrada em DECISIONS.md). Asset único
-        // combinado (cesta + frutas + serpente envolvida). Posição
-        // placeholder em app/world.tsx — Gui calibra.
+
+        // ─── Elementos NOVOS no primeiro plano ────────────────────────────
+        // Cesta da recompensa com a serpente dentro (decisão narrativa
+        // registrada em DECISIONS.md).
         { add: "basket_with_serpent_lvl8" },
-        // Operação G — 2 borboletas DIFERENTES (não é o padrão "1 asset
-        // mirrorado" dos pássaros). butterfly_perched_lvl8 pousa numa
-        // flor; butterfly_flying_lvl8 voa em direção a outra. Posições
-        // placeholder — Gui calibra.
+        // 2 borboletas DIFERENTES (não é mirror — assets distintos).
         { add: "butterfly_perched_lvl8" },
         { add: "butterfly_flying_lvl8" },
+
+        // ─── Recalibração de TODOS os elementos do primeiro plano ─────────
+        // Padrão "elemento que muda de posição entre níveis" estabelecido
+        // no Nível 7 (bird_lvl7_a substituiu bird_lvl6_a com mesmo asset).
+        // No Nível 8 a transformação visual major do bg exige reposicionar
+        // todos os elementos pra integrar com a nova composição. Cada
+        // elemento ganha versão _lvl8 com mesmo asset e posição própria
+        // em WORLD_LAYOUT (Gui calibra). Substituições preservam não-
+        // retroatividade — Níveis 1-7 mantêm posicionamento original.
+
+        // Pedra (até o Nv 7 sempre renderizou sem flag — agora a versão
+        // _lvl8 entra como elemento explícito do level 8 e o render da
+        // pedra original é suprimido quando stone_lvl8 está ativo).
+        { add: "stone_lvl8" },
+
+        // Tronco caído com flor + esquilo (mesma asset 3072×1344).
+        {
+          add: "fallen_log_with_flower_and_squirrel_lvl8",
+          replaces: "fallen_log_with_flower_and_squirrel_lvl7",
+        },
+
+        // 2 pássaros (mesmo asset mundo_passaro_pousado, lvl8_b mirrorado).
+        { add: "bird_lvl8_a", replaces: "bird_lvl7_a" },
+        { add: "bird_lvl8_b", replaces: "bird_lvl6_b" },
+
+        // Esquilo no chão (mesmo asset mundo_esquilo).
+        { add: "squirrel_lvl8_ground", replaces: "squirrel_lvl7_ground" },
+
+        // 4 flores rosa (mesmo asset mundo_flor) — substituem as 4
+        // instâncias rosa acumuladas dos Níveis 3, 4 e 5.
+        { add: "flower_lvl8_a", replaces: "flower_lvl3" },
+        { add: "flower_lvl8_b", replaces: "flower_lvl4" },
+        { add: "flower_lvl8_c", replaces: "flower_lvl5_a" },
+        { add: "flower_lvl8_d", replaces: "flower_lvl5_b" },
+
+        // 3 flores amarelas (mesmo asset mundo_flor_amarela).
+        { add: "yellow_flower_lvl8_a", replaces: "yellow_flower_lvl6_a" },
+        { add: "yellow_flower_lvl8_b", replaces: "yellow_flower_lvl6_b" },
+        { add: "yellow_flower_lvl8_c", replaces: "yellow_flower_lvl6_c" },
+
+        // 4 flores brancas (mesmo asset mundo_flor_branca).
+        { add: "white_flower_lvl8_a", replaces: "white_flower_lvl7_a" },
+        { add: "white_flower_lvl8_b", replaces: "white_flower_lvl7_b" },
+        { add: "white_flower_lvl8_c", replaces: "white_flower_lvl7_c" },
+        { add: "white_flower_lvl8_d", replaces: "white_flower_lvl7_d" },
       ],
     },
   };
