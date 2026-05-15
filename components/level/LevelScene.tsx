@@ -9,14 +9,33 @@
  */
 
 import React from "react";
-import { View, Text, Dimensions } from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  Dimensions,
+  type ImageSourcePropType,
+} from "react-native";
 import type { WorldState, CellContent, Direction } from "../../lib/interpreter";
+import { getMascoteAsset } from "../../lib/assets/mascotes";
+import type { PetType } from "../../lib/player";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const SCENE_PADDING = 24;
 
 interface LevelSceneProps {
   world: WorldState;
+  /**
+   * Quem ocupa a célula do "player" no mapa (feature Mascote-Gabarito).
+   *   "avatar"  → círculo verde com seta direcional (padrão, Níveis 1-6
+   *               e 1ª execução de qualquer nível)
+   *   "mascote" → sprite do mascote escolhido pela criança (2ª execução
+   *               dos Níveis 7+, quando o mascote refaz a tarefa)
+   * Default "avatar" — omitir preserva 100% o comportamento anterior.
+   */
+  executor?: "avatar" | "mascote";
+  /** Tipo do mascote — usado só quando executor === "mascote". */
+  petType?: PetType;
 }
 
 const CELL_COLORS: Record<CellContent, string> = {
@@ -59,7 +78,11 @@ const DIRECTION_ARROWS: Record<Direction, string> = {
   west: "←",
 };
 
-export function LevelScene({ world }: LevelSceneProps) {
+export function LevelScene({
+  world,
+  executor = "avatar",
+  petType,
+}: LevelSceneProps) {
   const maxCellSize = (SCREEN_WIDTH - SCENE_PADDING * 2) / world.gridWidth;
   const cellSize = Math.min(maxCellSize, 100);
   const gridWidth = cellSize * world.gridWidth;
@@ -205,8 +228,10 @@ export function LevelScene({ world }: LevelSceneProps) {
                       </Text>
                     )}
 
-                  {/* Player indicator */}
-                  {isPlayer && (
+                  {/* Player indicator — avatar verde (padrão) ou sprite
+                       do mascote (2ª execução da feature Mascote-Gabarito).
+                       Ambos ocupam a mesma célula; só o visual muda. */}
+                  {isPlayer && executor === "avatar" && (
                     <View
                       style={{
                         width: cellSize * 0.65,
@@ -232,6 +257,21 @@ export function LevelScene({ world }: LevelSceneProps) {
                         {DIRECTION_ARROWS[world.player.direction]}
                       </Text>
                     </View>
+                  )}
+                  {isPlayer && executor === "mascote" && petType && (
+                    <Image
+                      source={
+                        getMascoteAsset(
+                          petType,
+                          "atento"
+                        ) as ImageSourcePropType
+                      }
+                      resizeMode="contain"
+                      style={{
+                        width: cellSize * 0.82,
+                        height: cellSize * 0.82,
+                      }}
+                    />
                   )}
                 </View>
               );
