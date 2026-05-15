@@ -131,6 +131,38 @@
 
 ---
 
+#### 16. PNG paletted (modo P) NÃO renderiza em React Native — converter via Pillow pra RGBA
+**Origem:** Nível 7 (Maio/2026). Asset `mundo_tronco_com_flor_e_esquilo.png` veio do Gemini em modo P (256 cores indexadas com tRNS chunk pra transparência) em vez de RGBA. React Native/Metro não renderiza esse formato — asset ficava invisível em runtime.
+**Solução aplicada (Nível 7):** conversão via Pillow (`Image.convert("RGBA")`), preservando os ~25% de pixels totalmente transparentes do tRNS chunk original.
+**Padrão estabelecido:** sempre conferir o modo do PNG antes de adicionar ao projeto. Se for `P` (paletted), converter pra `RGBA` antes de commitar. Comando rápido:
+```python
+from PIL import Image
+img = Image.open("asset.png")
+if img.mode == "P":
+    img.convert("RGBA").save("asset.png")
+```
+**Status:** padrão estabelecido. Registrar verificação automática no checklist de assets futuros.
+**Prioridade:** documentação. Aplicar quando aparecer asset com modo P.
+
+---
+
+#### 17. Dimensões do asset devem ser checadas antes de reusar `aspectRatio` de outro
+**Origem:** Nível 7 (Maio/2026). O asset `mundo_tronco_com_flor_e_esquilo.png` saiu em 3072×1344, mas a substituição pretendida do tronco original (1426×624) reusava o mesmo `aspectRatio: 1426/624` do `WORLD_LAYOUT.tronco`. Resultado: esquilo era empurrado pra fora da área visível, asset ficava "cortado".
+**Solução aplicada (Nível 7):** criar entrada própria `WORLD_LAYOUT.troncoEsquilo` com `aspectRatio: 3072/1344` + lógica condicional pra renderizar só um dos dois assets por vez (cadeia tripla: tronco original → flor no tronco → tronco com flor+esquilo).
+**Padrão estabelecido:** se a dimensão do asset novo divergir da do asset que ele substitui, criar entrada própria no `WORLD_LAYOUT` em vez de forçar `aspectRatio` compartilhado.
+**Prioridade:** documentação. Aplicar caso a caso.
+
+---
+
+#### 18. Padrão "elemento que muda posição entre níveis"
+**Origem:** Nível 7 (Maio/2026). O pássaro adicionado no Nível 6 (`bird_lvl6_a`, pousado no tronco caído) precisou reposicionar no Nível 7 porque o tronco passou a ter esquilo brotando da cavidade — visualmente ficava sobreposição.
+**Solução aplicada (Nível 7):** criou-se `bird_lvl7_a` com mesma asset (`mundo_passaro_pousado`) mas posição diferente, com `replaces: "bird_lvl6_a"`. Mesma cadeia de substituição usada pra plantas.
+**Padrão estabelecido:** quando um elemento já existente precisa reposicionar conforme o jardim evolui em níveis posteriores, criar entrada nova com `replaces` ao anterior, reusando o asset. Sem geração de asset novo necessária.
+**Aplicação futura:** vale considerar pros 3 mini-árvores quando elas migrarem pro background no Nível 8 (provavelmente desaparecem do `WORLD_LAYOUT` em vez de mudar posição, mas o padrão fica disponível).
+**Prioridade:** documentação. Padrão registrado pra reuso.
+
+---
+
 #### 10. Mover protocolos pra `docs/internal/`
 **Origem:** convenção registrada no Protocolo de Dev Temporário v1.1.
 **Descrição:** confirmar que os 3 documentos centrais (`NORTECODE_Protocolo_Dev_Temporario.md`, `NORTECODE_Protocolo_Colaboracao_IAs.md`, e `NORTECODE_Briefing_MVP.md`) estão todos em `docs/internal/`. Se algum estiver em outro lugar (raiz do repo, `docs/` direto), mover.
@@ -142,16 +174,17 @@
 
 ### Maio/2026
 
+- ✅ **Entrega Nível 7 — condicional if/else** (Maio/2026, 11 commits — 4 base + 7 ajustes pós-teste no celular). Inclui: bloco `if_canteiro_com_semente_then_regar_else_if_canteiro_vazio_then_plantar` (sólido único, roxo); migração `conditionResult: boolean → string`; feedback visual com 3 cores (verde/azul-rio/cinza); recompensas no Mundo (árvore frutífera substitui árvore jovem, tronco com flor+esquilo substitui tronco com flor, +1 esquilo no chão, +4 flores brancas com matinho); cadeia tripla do tronco caído; padrão "elemento que muda posição entre níveis" via `bird_lvl7_a`; label longo do bloco if/else em 2 linhas com barra entre emojis; altura uniforme dos blocos da paleta.
+- ✅ Briefing MVP atualizado pra v2.13.
 - ✅ **Entrega Nível 6 — condicional simples (`if_canteiro_vazio_then_plantar`)** (14/05/2026, 19 commits — 3 base + 16 polish visual). Inclui: bloco condicional sólido único com feedback verde/cinza durante execução; bloco `repeat_5`; campo `conditionResult?: boolean` em `ExecutionStep`; legenda do mapa adaptativa; função `getContrastTextColor()` YIQ; saga das bordas dos blocos no Android (8 commits de troubleshooting); recompensas no Mundo (2 pássaros com mirror, 3 mini-árvores substituem plantinhas estágio 3, 3 flores amarelas).
-- ✅ Briefing MVP atualizado pra v2.11.
 - ✅ **Entrega Nível 5 — bloco de loop fixo `[Repetir 3×]` + mudança estrutural pra blocos com filhos** (Maio/2026, 16 commits, commit final `5c57312`).
-- ✅ Atualização Briefing MVP v2.5 → v2.6 → v2.7 → v2.8 → v2.9 → v2.10 → v2.11.
+- ✅ Atualização Briefing MVP v2.5 → v2.6 → v2.7 → v2.8 → v2.9 → v2.10 → v2.11 → v2.12 → v2.13.
 - ✅ Style Guide v1.1 → v1.2 → v1.3.
 - ✅ Entrega Nível 4 — sequência longa + `move_left` (13/05/2026).
 - ✅ Migração de Manus pra Claude Code como Dev Temporário ativo (Maio/2026).
 - ✅ Atualização Protocolo Dev Temporário v1.0 → v1.1.
 - ✅ Migração de APK release pra dev build com Fast Refresh.
-- ✅ Geração dos assets: `mundo_mini_arvore.png`, `mundo_arvore_jovem.png`, `background_mundo_v2.png`, `plantinha_estagio3.png`, `flor_no_tronco.png`, `mundo_passaro_pousado.jpg`, `mundo_flor_amarela.jpg`.
+- ✅ Geração dos assets: `mundo_mini_arvore.png`, `mundo_arvore_jovem.png`, `background_mundo_v2.png`, `plantinha_estagio3.png`, `flor_no_tronco.png`, `mundo_passaro_pousado.jpg`, `mundo_flor_amarela.jpg`, `mundo_esquilo.png`, `mundo_tronco_com_flor_e_esquilo.png`, `mundo_flor_branca.png`, `mundo_arvore_frutifera.png`.
 
 ---
 

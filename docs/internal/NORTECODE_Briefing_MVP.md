@@ -5,10 +5,20 @@
 **Para:** Dev Temporário ativo (atualmente Claude Code, em substituição ao Manus)
 **Via:** Gui
 **Data:** Maio/2026
-**Versão:** 2.12 — Alinhamento final do Nível 7 (planejamento sem briefing técnico inicial — briefing técnico saiu em paralelo).
+**Versão:** 2.13 — Nível 7 entregue e validado.
+
+**Changelog v2.13:**
+- Nível 7 marcado como ✅ IMPLEMENTADO. 11 commits no `origin/main` (4 base + 7 ajustes pós-teste no celular).
+- Seção 10 atualizada — Nível 7 vai pra "Funcionando", Nível 8 vira próximo na fila.
+- Migração `conditionResult: boolean → string` concluída sem regressão no Nível 6.
+- 3 aprendizados técnicos novos registrados (no BACKLOG):
+  - PNG paletted (modo P) não renderiza em React Native — converter via Pillow pra RGBA.
+  - Dimensão do asset deve ser checada antes de reusar `aspectRatio` de outro asset.
+  - Padrão "elemento que muda posição entre níveis" (`bird_lvl7_a` substitui `bird_lvl6_a`) — vale reusar quando elemento existente precisa reposicionar conforme jardim evolui.
+- Cadeia tripla do tronco caído estabelecida: tronco original → flor no tronco (Nível 5) → tronco com flor + esquilo (Nível 7).
 
 **Changelog v2.12:**
-- Nível 7 detalhado com decisões da sessão de alinhamento de hoje:
+- Nível 7 detalhado com decisões da sessão de alinhamento:
   - Cenário 1×6 linear `[Avatar][CP][CV][CP][CV][CP]` (não mais "caminho com células variadas" vago).
   - Decisão simplificadora: **sem estado "planta seca" novo** — reusa o `CellContent: "seed"` que já existe. Conceito: "canteiro com semente" precisa ser regado. Ciclo natural já estabelecido nos Níveis 1-2 reaproveitado.
   - Reuso do `repeat_5` do Nível 6 (não cria `repeat_6`).
@@ -566,7 +576,7 @@ Quando a criança aperta "Executar":
 
 ---
 
-#### Nível 7 — Se / senão (condicional com dois ramos) — PENDENTE (próximo a implementar)
+#### Nível 7 — Se / senão (condicional com dois ramos) ✅ IMPLEMENTADO
 
 - **Conceito de programação:** if/else. "Se X, faça Y; senão se W, faça Z."
 - **Função pedagógica:** discernimento amadurecido. A criança não só "vê e age" — escolhe entre **duas ações** dependendo do contexto da célula. Quarto conceito de programação do MVP.
@@ -879,15 +889,18 @@ A cada commit que mude lógica/arquitetura, atualizar a doc correspondente.
 - Nível 4 (Sequência longa + `move_left`) — grade 4×4 com caminho em "U" de 12 blocos. Introduz `move_left`. Cenário com 6 pedras forçando rota única em sentido horário. Padrão "3 movimentos + 1 plant" repetido 3 vezes (preparação pedagógica do Nível 5)
 - Nível 5 (Loop fixo com bloco `[Repetir 3×]`) — mesma grade do Nível 4 com 3 sementes pra regar. Introduz bloco `repeat_3` e mudança estrutural na representação de programa (passa a suportar blocos com filhos). UX "modo edição via toque" pra adicionar blocos aninhados. Solução-alvo 9 blocos vs 12 do Nível 4 (alívio pedagógico). Tela do nível vira rolável + autoscroll ao executar
 - Nível 6 (Condicional simples) — grade 1×6 linear com `[Avatar][SC][CV][CP][CV][CV]`. Introduz bloco `if_canteiro_vazio_then_plantar` (bloco sólido único, comportamento condicional embutido) e `repeat_5`. Estados de célula visíveis antes da execução. Feedback visual durante execução: bloco condicional pulsa verde quando condição é verdadeira, cinza quando falsa (via campo `conditionResult` em `ExecutionStep`). Princípio "ferramentas antecipadas" reforçado no texto de conclusão
-- Sistema de recompensas com substituição em cadeia (`seed_lvl1` → `sprout_lvl2` → `grown_sprout_lvl3` → `mini_tree_lvl4` → `young_tree_lvl5`)
-- Continuidade visual das 3 plantas secundárias: 3 sementes do Nível 4 → 3 plantinhas estágio 3 do Nível 5 → 3 mini-árvores do Nível 6
+- Nível 7 (If/else — condicional com dois ramos) — grade 1×6 linear `[Avatar][CP][CV][CP][CV][CP]`. Introduz bloco if/else (sólido único, mesmo padrão visual do Nível 6). Migração técnica: campo `conditionResult` em `ExecutionStep` migrou de `boolean` pra `string` (`"plant" | "water" | "none"`). Feedback visual durante execução com 3 cores distintas: verde (plantou), azul-rio (regou), cinza (nenhum ramo). Decisão simplificadora: sem estado "planta seca" novo — reusa `CellContent: "seed"` existente
+- Sistema de recompensas com substituição em cadeia (`seed_lvl1` → `sprout_lvl2` → `grown_sprout_lvl3` → `mini_tree_lvl4` → `young_tree_lvl5` → `fruit_tree_lvl7`)
+- Cadeia tripla do tronco caído: tronco original → flor no tronco (Nível 5) → tronco com flor + esquilo (Nível 7). "Mais evoluído tem prioridade"
+- Continuidade visual das 3 plantas secundárias: 3 sementes do Nível 4 → 3 plantinhas estágio 3 do Nível 5 → 3 mini-árvores do Nível 6 (mantêm no Nível 7)
 - Background do Mundo substituível por estágio (`background_v1` → `background_v2` ao concluir Nível 5; espaço pra background v3 no Nível 8; árido no Nível 10)
-- Tronco caído substituído por versão com flor brotando ao concluir Nível 5
-- Primeira fauna no Mundo permanente (2 pássaros — mesmo asset com mirror em uma instância, no Nível 6)
-- Diversidade cromática de flores no Mundo (flores rosa do Nível 3 + flores amarelas do Nível 6)
+- Fauna no Mundo permanente: 2 pássaros (Nível 6, mesmo asset com mirror em uma instância) + 2 esquilos (Nível 7, um brotando da cavidade do tronco caído + um no chão). Pássaro do Nível 6 pode ter posição independente no Nível 7 via padrão "elemento que muda posição entre níveis" (`bird_lvl7_a` substitui `bird_lvl6_a`)
+- Árvore frutífera estática (não tem versão parcialmente colhida) — preparação visual pro Nível 8
+- Diversidade cromática de flores no Mundo: rosa (Nível 3) + amarelas (Nível 6) + brancas com matinho (Nível 7)
 - Mensagens de erro contextuais por nível (via campo opcional `failReason` no `ExecutionStep`)
-- Legenda do mapa adaptativa em `LevelScene.tsx` — distingue automaticamente entre "só canteiro vazio", "só canteiro plantado", e "ambos" com base no conteúdo do grid. Padrão estabelecido pra próximos níveis
-- Função `getContrastTextColor(bgColor)` baseada em luminância YIQ — calcula texto preto ou branco automaticamente conforme cor de fundo do bloco. Aplicada na paleta e no `ProgramArea`. Padrão pra blocos novos
+- Legenda do mapa adaptativa em `LevelScene.tsx` — distingue automaticamente entre "só canteiro vazio", "só canteiro plantado", e "ambos" com base no conteúdo do grid
+- Função `getContrastTextColor(bgColor)` baseada em luminância YIQ — calcula texto preto ou branco automaticamente conforme cor de fundo do bloco
+- Padrão de altura uniforme dos blocos da paleta (`height: 72` fixo, conteúdo centralizado) — descoberto no Nível 7 com label longo do if/else
 - Princípio narrativo registrado: Mundo permanente é narrativa visual, não decoração (ver `DECISIONS.md`)
 - Princípio pedagógico "ferramentas antecipadas": cada conceito de programação aprendido nos Níveis 5-8 é apresentado também como ferramenta que a criança vai usar pra restaurar o mundo no Nível 10
 - SafeAreaView correto (react-native-safe-area-context)
@@ -898,12 +911,12 @@ A cada commit que mude lógica/arquitetura, atualizar a doc correspondente.
 
 ### 🚧 Em implementação
 
-- (Nenhum nível em implementação no momento — próximo é o Nível 7)
+- (Nenhum nível em implementação no momento — próximo é o Nível 8)
 
 ### ⏳ Pendente
 
-- Nível 7 (If/else — condicional com dois ramos) — discernimento amadurecido. Árvore principal evolui pra árvore frutífera. Esquilo entra como segunda peça de fauna
-- Níveis 8-10
+- Nível 8 (Variável / contador simples) — transformação visual major: background v3 substitui v2 (gramado predominante, várias árvores próximas, árvore frutífera central destacada). Planta principal e 3 mini-árvores migram do primeiro plano pro background. Cesta com 3 frutas em primeiro plano + 1-2 elementos pequenos de fauna (borboleta/formiga)
+- Níveis 9-10
 - Capítulo Narrativo (telas dedicadas de história) — pendente de sessão dedicada
 - Sessão estratégica dedicada à mecânica da serpente (Níveis 9 e 10) — pendente
 - Acessibilidade (TTS opcional)
@@ -966,5 +979,5 @@ Ao final:
 
 ---
 
-*Atualizado em Maio/2026 — v2.12*
-*Reflete: Nível 6 entregue. Nível 7 alinhado e briefing técnico pronto (próximo a implementar). Próximo passo após Nível 7 entregue: alinhamento do Nível 8 (variável + transformação visual major do Mundo). Dev Temporário ativo: Claude Code.*
+*Atualizado em Maio/2026 — v2.13*
+*Reflete: Nível 7 entregue e validado no celular. 11 commits no main. Próximo nível em fila: Nível 8 (variável + transformação visual major). Dev Temporário ativo: Claude Code.*
