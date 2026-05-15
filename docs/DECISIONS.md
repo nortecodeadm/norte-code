@@ -1,6 +1,6 @@
 # Log de Decisões Técnicas — Norte Code
 
-**Última atualização:** 13/05/2026 (entradas estratégicas do roadmap 5-10 + Nível 5)
+**Última atualização:** 15/05/2026 (Nível 8: variável + repeat_until + transformação visual major + entrada da serpente)
 
 ---
 
@@ -838,6 +838,136 @@ A escolha do verde do `plant` foi consciente: o condicional carrega uma ação p
 
 ---
 
+### [15/05/2026] Decisão narrativa-chave: A serpente entra no Mundo Permanente como recompensa do Nível 8
+
+**CONTEXTO:**
+O roadmap original previa a serpente apenas no Nível 9 (tentação que
+leva à queda). Em sessão de alinhamento do Nível 8 (Maio/2026), Gui
+decidiu antecipar a entrada da serpente — ela aparece como elemento
+no Mundo Permanente já como recompensa do Nível 8.
+
+**MOTIVAÇÃO PRÁTICA:**
+A serpente vai "atuar" no Nível 9 (tentação ativa). Pra ela atuar no
+Nível 9, precisa já existir no WORLD_LAYOUT antes — mesmo padrão dos
+outros elementos que mudam de posição entre níveis (ex: bird_lvl7_a
+substitui bird_lvl6_a com mesmo asset). O Nível 9 vai puxar o asset
+da serpente do Mundo Permanente, não introduzi-la do zero.
+
+**MOTIVAÇÃO NARRATIVA:**
+Coerência com Gênesis 3:1 — "A serpente era mais astuta que todos os
+animais selvagens que o Senhor Deus tinha feito." Ela ESTAVA no jardim
+antes da tentação; não foi importada. Apresentá-la como parte da fauna
+existente do jardim, antes do ato de tentação, é teologicamente
+preciso.
+
+**EXECUÇÃO VISUAL DECIDIDA:**
+A serpente aparece DENTRO da cesta da recompensa, envolvida entre as
+frutas. Especificações:
+- Postura: corpo serpenteando ENTRE as frutas (algumas frutas
+  parcialmente cobertas pelo corpo, outras visíveis), cabeça apoiada
+  no canto da cesta — postura "integrada"
+- Tamanho: médio, claramente visível
+- Espécie/aparência: inspirada em cobra verde brasileira — paleta
+  verde-folhagem (#7FB069 ou similar), corpo fino e elegante
+- Rosto: olhos amendoados neutros (formato típico de réptil),
+  expressão neutra-calma — NÃO assustadora, NÃO fofa
+- Tom emocional: CALMA E ATRAENTE, passa confiança, parece "boa"
+
+**PRINCÍPIO TEOLÓGICO APLICADO:**
+A "atratividade" e "passagem de confiança" da serpente é deliberada
+e teologicamente precisa. O mal bíblico em Gênesis 3 não chega como
+mal — chega como conselho aparentemente bom. A serpente convence
+porque parece sábia, parece amiga. Esse é o ponto mais profundo da
+queda: sedução racional, não violência.
+
+A criança que joga vai sentir essa atratividade visualmente desde o
+Nível 8. Quando a serpente "agir" no Nível 9 oferecendo o atalho, a
+criança já confiou nela visualmente. A queda (Nível 9) e a
+consequência (Nível 10) ganham peso emocional porque a aproximação
+foi cultivada antes.
+
+**RELAÇÃO COM PRINCÍPIO "SEM CATEQUESE EXPLÍCITA":**
+O princípio "sem catequese explícita" (Briefing MVP, Tese central +
+Princípios não-negociáveis; Protocolo de Colaboração, Princípio 2)
+restringe os TEXTOS do jogo: sem versículos bíblicos, sem menção a
+"Deus", "Jesus", "Bíblia", sem sermão. Esse princípio NÃO restringe
+COMPOSIÇÃO VISUAL — simbologia visual reconhecível é exatamente o
+que o produto deve carregar (ver Roadmap Narrativo: "uma serpente
+aparece — sem nome, sem fala explícita — só presença").
+
+A imagem visual cesta + serpente + frutas é simbologia visual, não
+catequese. Quem conhece Gênesis sentirá a conexão; quem não conhece
+verá uma serpente entre frutas em uma cesta — elemento curioso do
+jardim. Princípio preservado.
+
+**POSICIONAMENTO NO MUNDO PERMANENTE:**
+A cesta da recompensa (com a serpente dentro) aparece perto do
+avatar (posição calibrada pelo Gui depois da implementação).
+Visualmente integrada ao primeiro plano, junto com tronco+esquilo,
+pássaros, esquilo no chão, e flores.
+
+**PRECEDENTE PARA FUTURAS DECISÕES:**
+Esta decisão registra também um padrão pra antecipação de elementos
+narrativos: quando um elemento vai "atuar" em um nível futuro, ele
+pode (e em casos teológicamente sensíveis, deve) aparecer
+visualmente antes — preparando o terreno emocional da ação.
+
+---
+
+### [15/05/2026] Decisão técnica: Nível 8 introduz variável reusando `player.inventory.fruits`
+
+**Decisão:** A "variável" do Nível 8 (contador de frutas pegas) NÃO ganhou um campo dedicado tipo `variables: Record<string, number>` no `WorldState`. Reusou o campo já existente `player.inventory.fruits` do `PlayerState`.
+
+**Contexto:** O Nível 8 é o primeiro caso de variável no MVP. O briefing técnico sugeriu adicionar `variables` no `WorldState` como campo genérico, abrindo o caminho pra futuras variáveis. Em sessão com o Gui, decidiu-se YAGNI: enquanto há um único caso, generalizar é especulação. O campo `inventory.fruits` já existia no `PlayerState`, já era incrementado pelo case `pick_fruit` do interpretador, já era lido pela `goalCondition.collect_fruits`. Não fazia sentido criar um segundo caminho pra "número guardado".
+
+**Alternativas consideradas:**
+1. **`variables: Record<string, number>` no `WorldState`** — genérico, futuro-proof. Reset junto do mundo. Pareceria certo se houvesse 2º caso, mas só temos 1.
+2. **Reusar `player.inventory.fruits`** — minimalista, sem mudança de schema. **Escolhida.**
+3. **Ambos: `variables` + sync com `inventory.fruits`** — duplicação ruim.
+
+**Resultado:** O bloco `pick_fruit` incrementa `player.inventory.fruits` (reaproveita case do interpretador). A condição `fruits_equal_3` (nova em `evaluateCondition`) lê `world.player.inventory.fruits === 3`. Reset automático: `resetWorld` em `app/level/[id].tsx` clona `initialWorld` via `JSON.parse(JSON.stringify(...))`, e o `initialWorld` do Nível 8 tem `inventory: { fruits: 0 }` — cada execução começa zerada. Quando aparecer 2º ou 3º caso de variável (provavelmente pós-MVP), generalizar vira refactor objetivo (com casos reais pra desenhar a abstração), não especulação.
+
+**Risco residual:** o nome `inventory.fruits` semanticamente sugere "estoque do avatar", não "variável do programa". Pode confundir leitor que vê o uso descontextualizado. Mitigação: comentário explicativo no `evaluateCondition` (`fruits_equal_3` case) e no `createLevel8`. Aceito enquanto for caso único.
+
+---
+
+### [15/05/2026] Decisão técnica: Nível 8 estabelece padrão "elemento que migra pro background"
+
+**Decisão:** A partir do Nível 8, elementos do primeiro plano podem ser **suprimidos condicionalmente** com base em flags no `worldElements`. A árvore principal (`fruit_tree_lvl7`) e as 3 mini-árvores (`mini_tree_lvl6_a/b/c`) DEIXAM de renderizar no primeiro plano quando `background_mundo_v3` está ativo — visualmente "passam a fazer parte do background".
+
+**Contexto:** O Nível 8 introduz uma transformação visual major do Mundo Permanente. O background v3 traz uma árvore frutífera central destacada + 3-4 árvores médias ao redor. Se a árvore principal e as 3 mini-árvores continuassem no primeiro plano, ficariam "duplicadas" visualmente (no bg + no overlay). Decisão: suprimir do overlay, fica só no bg.
+
+**Alternativas consideradas:**
+1. **Flag no estado do mundo (background_mundo_v3 já existente)** — sem novo campo. Cada `setShow*` ganha `&& !hasBgV3`. Lógica concentrada no `loadData` do `world.tsx`. **Escolhida.**
+2. **Asset transparente substituindo o original** — hack, ruim pra manutenção.
+3. **Campo `visible: boolean` no WORLD_LAYOUT schema** — mais limpo conceitualmente, mas adiciona complexidade ao schema sem ganho objetivo (1 caso só).
+
+**Resultado:** Em `app/world.tsx` → `loadData`, o `setShowArvoreFrutifera`, `setShowMiniArvoreLvl6A/B/C` (e toda a cadeia que termina na frutífera) ganharam o sufixo `&& !hasBgV3`. Aditivo, não-retroativo: enquanto `hasBgV3` for false (Níveis 1-7), comportamento idêntico ao anterior — **nenhuma regressão visual**. Quando o Nível 8 completa e o `background_mundo_v3` entra em `worldElements`, a transformação acontece de uma vez.
+
+**Princípio narrativo aplicado:** "elementos antigos migram pro background conforme novos níveis acontecem". Cria sensação de profundidade temporal — a sementinha do Nível 1 que virou árvore frutífera no Nível 7 agora é parte da paisagem permanente do jardim. Cuidado individual virou paisagem. Abre espaço visual pros eventos do Nível 9 (serpente atuando) e Nível 10 (cenário árido).
+
+**Limites do padrão:** o tronco caído com flor + esquilo MANTÉM no primeiro plano — carrega 3 layers narrativos (morte → flor → esquilo) que se diluiriam no bg. Padrão é seletivo: aplicar caso a caso conforme a coerência narrativa de cada elemento, não automático.
+
+---
+
+### [15/05/2026] Decisão técnica: Nível 8 — `repeat_until_frutas_3` é envelope (com children), `pick_fruit` reaproveita BlockType existente
+
+**Decisão:** O bloco `repeat_until_frutas_3` foi implementado como **container envelope** com slot interno + modo edição via toque (mesma estrutura de `repeat_3`/`repeat_5`), gerando um `RepeatUntilNode` novo no AST. O bloco `pick_fruit` REUSA o `BlockType` que já existia em `blocks.ts` (código morto pré-Nível 8); única mudança técnica: cor trocada de `#F5A623` (laranja) pra `#D8848C` (rosa-fruta).
+
+**Contexto:** Conflito entre Briefing MVP v2.14 (que dizia "sólido único") e Briefing Técnico do Nível 8 (que dizia "envelope com slot interno"). A solução-alvo (`[Direita, Direita, Direita, Repetir até pegar 3 frutas [Pegar fruta]]`) só faz sentido com o `pick_fruit` DENTRO do `repeat_until` — exige envelope. Briefing MVP foi corrigido pra v2.15 (próximo ciclo). Sobre o `pick_fruit`: criar BlockType novo (`pegar_fruta`) seria mudança puramente cosmética, deixaria código morto duplicado. Reusar o existente é mais limpo.
+
+**Alternativas consideradas:**
+1. **Envelope com children + reusar pick_fruit** — caminho mais limpo. **Escolhida.**
+2. Sólido único — quebraria a solução-alvo de 5 blocos.
+3. Renomear `pick_fruit` → `pegar_fruta` — só cosmético, não justifica mudança em todos os lugares que referenciam o tipo.
+4. Criar `pegar_fruta` novo + manter `pick_fruit` morto — duplicação inútil.
+
+**Resultado:** No `interpreter.ts`, novo `RepeatUntilNode { type, condition, body }` no `ASTNode` union. `executeRepeatUntil` faz a iteração condicional com fail-safe contra loop infinito (MAX_EXECUTION_STEPS + check de "iteração não emitiu step"). `evaluateCondition` ganhou case `fruits_equal_3` (hardcoded — quando aparecer 2º caso, generalizar). `pick_fruit` no interpretador estendido pra aceitar `fruit_tree` (incrementa `inventory.fruits` sem consumir a célula, idempotente em >= 3) além do `fruit` original. ProgramArea registra `repeat_until_frutas_3` em `CONTAINER_TYPES`. BlockPalette: cor rosa-fruta `#D8848C` no `pick_fruit`, label "Pegar fruta" + emoji 🍎 (já existiam). Todas as mudanças aditivas — nenhuma regressão nos Níveis 1-7.
+
+**Trade-off:** o nome `pick_fruit` em inglês destoa de blocos do Nível 6+ que ganharam nomes em português (`if_canteiro_vazio_then_plantar`, etc). Aceito por coerência com `plant`/`water` (blocos antigos em inglês). Quando/se houver pass de renomeação, `pick_fruit` entra junto.
+
+---
+
 ## Dívida Técnica Conhecida
 
 Esta seção registra gaps confirmados entre o que o código **declara** e o que ele **executa**, ou pontos que precisam de verificação antes de serem usados. Diferente do log de decisões acima (que é cronológico e imutável), esta seção é mantida viva — itens entram quando descobertos e saem quando endereçados.
@@ -867,6 +997,8 @@ Cada item indica: **o que é**, **impacto atual** (em níveis existentes e plano
 - **Planos futuros:** quem usar `fruits_equal` num nível vai ver o ramo `then` nunca executar, com o engine silenciosamente roteando pro `else` (ou ignorando se não houver `else`). Sintoma: "a condição nunca aciona" — difícil de debugar sem ler o interpretador. Pode aparecer já no Nível 6+ quando condicionais entrarem.
 
 **Classificação:** **Esquecimento.** Diferente das funções (que exigem trabalho estrutural), `fruits_equal` é uma extensão pequena: adicionar o case em `evaluateCondition` e propagar `conditionValue` da árvore AST (que hoje não carrega valor além de `condition: string`). Provavelmente foi declarado em antecipação a um nível e deixou de ser implementado junto. Endereçar quando o primeiro nível com condicionais entrar em desenvolvimento.
+
+**Atualização [15/05/2026] — Nível 8:** o caso específico `fruits_equal_3` (hardcoded em "= 3") foi implementado em `evaluateCondition` pra suportar o `RepeatUntilNode` do `repeat_until_frutas_3`. A `fruits_equal` genérica (que carregaria `conditionValue` variável) **continua não implementada** — só vai precisar quando aparecer 2º caso de variável (provavelmente pós-MVP). Quando isso acontecer, generalizar `fruits_equal_3` em `fruits_equal_<N>` (N parametrizado) é o caminho.
 
 ---
 

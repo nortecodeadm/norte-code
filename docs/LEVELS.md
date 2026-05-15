@@ -502,14 +502,173 @@ semente: condicional + discernimento vão ser vitais no recomeço do
 
 ---
 
-## Nível 8 — Introdução à variável (contador simples)
+## Nível 8 — Saber a medida certa (variável + repeat_until) ✅ IMPLEMENTADO
 
-- **Conceito:** variável
-- **Cenário:** avatar coleta exatamente 3 frutas e leva pra cesto. Indicador "Frutas: 0".
-- **Blocos:** [Andar] [Pegar fruta (frutas + 1)] [Se frutas = 3, parar]
-- **Solução:** [Repetir [Andar, Se houver fruta pegar, Se frutas = 3 parar]]
-- **Recompensa visual:** cesta com frutas no Mundo, bichinho come fruta
-- **Texto:** "Você usou um lugar pra **guardar** uma informação (quantas frutas). Isso se chama **variável**. Programadores usam isso o tempo todo."
+- **Conceito:** variável (contador). Primeira ideia abstrata sem
+  comportamento visível imediato — outros conceitos do MVP têm efeito
+  direto (andar move o avatar, plantar planta), variável é "guardar um
+  número". Resolvemos com dupla representação: contador HUD (texto
+  numérico) + cesta da atividade (visual concreto enchendo).
+- **Função pedagógica:** consciência de **quantidade**. Cuidar não é
+  "fazer pra sempre" — é "fazer até atingir o que é necessário".
+  Mordomia tem medida.
+- **Cenário:** grade 1×5 linear. Avatar começa na coluna 0. Layout:
+  `[Avatar][chão][chão][chão][Árvore frutífera]`. A árvore frutífera
+  é uma célula visualmente fixa (não consome — é "inesgotável").
+  Cesta da atividade renderizada como overlay perto do avatar
+  (componente novo `ActivityBasket`). Contador HUD "🍎 Frutas: X / 3"
+  no topo.
+- **Blocos disponíveis:** [Direita] [Pegar fruta] [Repetir até pegar
+  3 frutas]. `pick_fruit` solto entra (princípio "necessidade antes
+  da ferramenta": criança pode resolver sem o repeat_until antes de
+  descobri-lo).
+- **Solução-alvo (5 blocos):**
+  ```
+  [Direita, Direita, Direita, Repetir até pegar 3 frutas [Pegar fruta]]
+  ```
+- **Solução longa aceita (6 blocos):** 3 movimentos + 3 pick_fruit
+  diretos, sem usar o loop. Cabe em `maxBlocks: 12`.
+- **Texto de conclusão (literal — não alterar):** "Você usou um
+  **lugar pra guardar** uma informação (quantas frutas). Isso se
+  chama variável. Cuidar bem é saber a quantidade certa — não pegar
+  tudo, não pegar de menos. Lembra disso — vai ser muito importante
+  mais pra frente."
+
+**Implementação técnica:**
+- Grid: 5×1, player em (0,0).
+- `grid[0][4] = "fruit_tree"` (CellContent novo do Nível 8). Demais
+  células `"empty"`.
+- Variável `frutas` REUSA `player.inventory.fruits` que já existia
+  no `PlayerState` (decisão registrada em DECISIONS.md — YAGNI sobre
+  campo genérico `variables: Record<string, number>`). Reset
+  automático: `resetWorld` clona o `initialWorld` que tem
+  `inventory: { fruits: 0 }`, então cada execução começa zerada.
+- Condição de vitória `custom`: `state.player.inventory.fruits === 3`
+  (EXATAMENTE 3 — não usei `goalCondition.collect_fruits` porque ele
+  é `>=`, não cobre "exatamente N").
+- Max blocos: 12.
+- Arquivo: `lib/levels/index.ts` → `createLevel8()`.
+
+**Mecânica nova — bloco `pick_fruit` (cor rosa-fruta):**
+- ID: `pick_fruit` (REUSA o tipo que já existia no `BlockType` como
+  código morto pré-Nível 8 — economiza um BlockType novo). Label:
+  "Pegar fruta". Ícone: 🍎.
+- Cor: `#D8848C` (rosa-fruta) — antes era `#F5A623` (laranja, brigava
+  com a cor dos repeats fixos `#E8853D`). Rosa-fruta dialoga com a
+  cor da fruta da árvore frutífera no jardim permanente.
+- **Comportamento de execução** (em `lib/interpreter/interpreter.ts`):
+  - Em célula `"fruit_tree"`: incrementa `inventory.fruits` em 1
+    (sem alterar a célula — visualmente fixa). **Idempotente quando
+    `inventory.fruits >= 3`** (edge case E2 do briefing — 4º
+    pick_fruit é silencioso, sem decrementar nem errar).
+  - Em célula `"fruit"` (caso solta, cenários futuros): mantém
+    comportamento anterior (consome a célula).
+  - Caso contrário: no-op silencioso (heurística da UI gera
+    mensagem contextual).
+
+**Mecânica nova — bloco `repeat_until_frutas_3` (envelope com
+condição embutida):**
+- ID: `repeat_until_frutas_3`. Label: "Repetir até pegar 3 frutas".
+  Ícone: 🔄 🍎. Cor: roxo claro `#A88FD9` (mesma família visual dos
+  condicionais — semanticamente é "loop com condição").
+- Container envelope com slot interno + modo edição via toque,
+  exatamente como `repeat_3`/`repeat_5` (registrado em
+  `CONTAINER_TYPES`).
+- AST novo: `RepeatUntilNode { type: "repeat_until", condition,
+  body }`. Condição hardcoded em `"fruits_equal_3"` no MVP.
+- **Comportamento de execução**: a cada iteração, ANTES dos filhos:
+  - Se `inventory.fruits === 3` → encerra o loop, próximo bloco do
+    programa segue.
+  - Senão → executa filhos uma vez, volta a checar.
+- **Fail-safe:** `MAX_EXECUTION_STEPS` (200, já existia) protege
+  contra loop infinito. Adicional: se uma iteração não emite
+  nenhum step (ex: corpo só com containers vazios) E a condição
+  não muda, o `executeRepeatUntil` força saída com `ctx.error`
+  pra evitar loop tight em teste.
+
+**Edge cases (briefing do Nível 8):**
+- **E1 — Solução longa sem `repeat_until_frutas_3`:** 6 blocos com
+  3 `pick_fruit` em sequência. ✅ Aceita. Princípio "necessidade
+  antes da ferramenta".
+- **E2 — Mais `pick_fruit` que o necessário:** 4º silenciosamente
+  ignorado pela idempotência do interpretador. Programa termina
+  com sucesso (3 === 3).
+- **E3 — `repeat_until` sem `pick_fruit` dentro:** atinge
+  `MAX_EXECUTION_STEPS`, `ctx.error` setado, UI mostra "Hmm,
+  parece que faltou pegar fruta dentro do repetir." (chave
+  `wrong_path` do level 8).
+- **E4/E5 — pick_fruit fora da árvore:** falha silenciosa no
+  interpretador. UI detecta por `inventory.fruits === 0` no fim
+  e mostra "O avatar precisa estar perto da árvore pra pegar
+  frutas. Use os blocos de movimento."
+
+**HUD do contador + cesta da atividade (componentes novos):**
+- HUD: pílula com "🍎 Frutas: X / 3" no topo, abaixo da
+  descrição do nível. Cor neutra (rosa-fruta sobre fundo creme)
+  enquanto X<3, vira verde-plant `#5D8A3C` com pulse curto
+  quando X===3.
+- `ActivityBasket` (`components/level/ActivityBasket.tsx`):
+  componente novo. Recebe `fruitCount` e troca asset entre
+  `atividade_cesta_vazia.png` / `_1.png` / `_2.png` / `_3.png`.
+  Posição placeholder centralizada abaixo do grid — Gui calibra.
+- **Animação "fruta voando da árvore pra cesta" NÃO implementada
+  na primeira entrega.** Cesta troca instantaneamente quando
+  `pick_fruit` executa. Decisão tomada com Gui pra reduzir escopo;
+  fica como polish pós-teste no celular se valer adicionar.
+
+**Recompensas no Mundo permanente — TRANSFORMAÇÃO VISUAL MAJOR:**
+
+A flag `background_mundo_v3` é o gatilho de toda a transformação.
+Quando presente em `worldElements`:
+
+1. `background_mundo_v3` **substitui** `background_mundo_v2` —
+   gramado predominante, 3-4 árvores médias ao redor de uma
+   árvore frutífera central destacada, silhueta de mata distante
+   (3 camadas de profundidade). Asset `background_mundo_v3.png`
+   (720×1260).
+2. **Árvore frutífera (`fruit_tree_lvl7`) DEIXA de renderizar
+   no primeiro plano.** Passa a fazer parte do background v3 (é a
+   árvore central destacada).
+3. **3 mini-árvores (`mini_tree_lvl6_a/b/c`) DEIXAM de renderizar
+   no primeiro plano.** Passam a ser 3 das árvores médias do
+   background v3.
+4. **Tronco caído com flor + esquilo MANTÉM no primeiro plano.**
+   Decisão: o tronco carrega 3 layers narrativos (morte → flor →
+   esquilo) — mover pro background descaracterizaria a cadeia.
+5. **Fauna existente MANTÉM:** 2 pássaros, esquilo no chão.
+   Flores rosa/amarelas/brancas também mantêm.
+6. **NOVO — `basket_with_serpent_lvl8`** — cesta da recompensa
+   com a serpente DENTRO, envolvida nas frutas. Asset único
+   combinado `mundo_cesta_recompensa_com_serpente.png` (2048²).
+   Decisão narrativa-chave registrada em DECISIONS.md — a
+   serpente é apresentada como elemento atrativo, calmo, "boa".
+   Antecipa visualmente a tentação ativa do Nível 9.
+7. **NOVO — `butterfly_perched_lvl8`** — borboleta pousada
+   numa flor (asset `mundo_borboleta_pousada.png`, 906×683).
+8. **NOVO — `butterfly_flying_lvl8`** — borboleta voando em
+   direção a uma flor (asset `mundo_borboleta_voando.png`,
+   820×782). **NÃO é mirror da pousada — é asset distinto**
+   (diferente do padrão dos pássaros do Nível 6, onde 1 asset
+   foi espelhado).
+
+**Princípio narrativo aplicado — "elemento que migra pro
+background":**
+A árvore principal e as mini-árvores que a criança "fez crescer"
+nos níveis anteriores (sementes do Nível 1 e Nível 4) agora
+fazem parte da paisagem permanente do jardim. O cuidado individual
+virou paisagem — sensação de profundidade temporal (jardim chegou
+à plenitude). Abre espaço visual pros eventos do Nível 9
+(serpente atuando) e Nível 10 (cenário árido).
+
+**Conexão com Nível 9 ("preparação narrativa"):**
+A serpente entra no Nível 8 como recompensa, dentro da cesta.
+Visualmente calma e atraente. Quando ela "agir" no Nível 9,
+a criança já confiou nela visualmente — a queda ganha peso
+emocional. Coerência com Gn 3:1 ("a serpente era mais astuta
+que todos os animais selvagens"): ela ESTAVA no jardim antes
+da tentação, não foi importada.
+
+---
 
 ## Nível 9 — Função simples (agrupar ações)
 

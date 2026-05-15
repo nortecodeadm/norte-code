@@ -156,13 +156,58 @@ O campo `else` é opcional. Se omitido, nada acontece quando a condição é fal
 | `has_puddle` | Célula atual contém poça | Implementada |
 | `has_fruit` | Célula atual contém fruta | Implementada |
 | `has_flowerbed` | Célula atual contém canteiro | Implementada |
-| `fruits_equal` | `player.inventory.fruits` igual a N (`conditionValue`) | **Declarada em `ConditionType` mas não implementada em `evaluateCondition` — sempre retorna `false`.** Ver dívida técnica em DECISIONS.md. |
+| `fruits_equal` | `player.inventory.fruits` igual a N (`conditionValue`) | **Declarada em `ConditionType` mas não implementada em `evaluateCondition` — sempre retorna `false`.** Ver dívida técnica em DECISIONS.md. Dúvida pra reaproveitamento futuro. |
+| `fruits_equal_3` | `player.inventory.fruits === 3` | **Implementada (Nível 8).** Hardcoded em "= 3" — usada exclusivamente pelo `RepeatUntilNode` do `repeat_until_frutas_3`. Quando o MVP ganhar 2º caso de variável, vale generalizar pra `fruits_equal_N`. |
 
-Todas as condições implementadas hoje olham a **célula atual do player**. Condições que dependem de inventário ou estado global do mundo (como `fruits_equal`) exigem extensão do `evaluateCondition`.
+A maioria das condições olha a **célula atual do player**. `fruits_equal_3` é a primeira a olhar **estado global do jogador** (`player.inventory.fruits`) — abre o caminho pra condições baseadas em variáveis ou estado de mundo no futuro.
 
 ---
 
-### 2.5 Estrutura de programa na UI — blocos com filhos (Nível 5+)
+### 2.5 RepeatUntil — loop com condição embutida (Nível 8+)
+
+Loop que repete os filhos ATÉ a condição ser satisfeita. Diferente do
+`LoopNode` (`times` fixo), aqui a iteração para quando a condição
+vira verdadeira:
+
+```json
+{
+  "type": "repeat_until",
+  "condition": "fruits_equal_3",
+  "body": [
+    { "type": "action", "name": "pick_fruit" }
+  ],
+  "id": "blk_repeat_until_1"
+}
+```
+
+**Comportamento de execução** (`executeRepeatUntil` em `interpreter.ts`):
+1. Avalia `condition`. Se já verdadeira → encerra sem executar filhos.
+2. Senão → executa `body` uma vez via `executeBlock`.
+3. Volta ao passo 1.
+
+**Origem na UI:** o bloco `repeat_until_frutas_3` da paleta vira
+`RepeatUntilNode { condition: "fruits_equal_3", ... }`. Hoje é o
+único caso. Quando o 2º bloco condicional surgir, vale parametrizar
+o nome do bloco (ex: `repeat_until_<condicao>_<valor>`) ou
+introduzir um seletor de condição na UI.
+
+**Fail-safe contra loop infinito:** mesma proteção do `LoopNode` —
+`MAX_EXECUTION_STEPS` (200). Adicional específico do `RepeatUntil`:
+se uma iteração não emite nenhum step (corpo só com containers
+vazios) E a condição não muda, o `executeRepeatUntil` força saída
+com `ctx.error` antes de loopar tight. Sem isso, o `executeBlock`
+só pararia depois das 200 iterações por contar steps internos
+(zero por iteração).
+
+**Edge case do Nível 8 — `repeat_until_frutas_3` sem `pick_fruit`
+dentro:** o corpo emite steps (move_*, etc.) mas a condição nunca
+muda, e `MAX_EXECUTION_STEPS` para o engine. UI traduz pra
+mensagem contextual "Hmm, parece que faltou pegar fruta dentro do
+repetir." (chave `wrong_path` do level 8).
+
+---
+
+### 2.6 Estrutura de programa na UI — blocos com filhos (Nível 5+)
 
 A partir do Nível 5, a camada de UI suporta **blocos estruturais** (containers) que aceitam filhos. Hoje só um bloco é container — `repeat_3` — mas o padrão está preparado pra todas as estruturas aninhadas dos níveis 6-9 (condicional, if/else, função).
 
@@ -178,7 +223,7 @@ interface ProgramBlock {
 
 Quando `children` é `undefined`, o bloco é simples (folha) — `Níveis 1-4` continuam funcionando idênticos, sem qualquer mudança de comportamento.
 
-**Predicado `isContainerBlock(type)`** em `ProgramArea.tsx` enumera quais tipos são containers. Hoje: `repeat_3` e `repeat_5`. Estruturas dos níveis seguintes serão adicionadas conforme entrarem.
+**Predicado `isContainerBlock(type)`** em `ProgramArea.tsx` enumera quais tipos são containers. Hoje: `repeat_3`, `repeat_5` e `repeat_until_frutas_3` (Nível 8 — mesma mecânica de envelope, semântica diferente). Estruturas dos níveis seguintes serão adicionadas conforme entrarem.
 
 > **Importante:** `if_canteiro_vazio_then_plantar` (Nível 6) **NÃO** é container — é folha. O comportamento condicional embutido fica dentro do `executeAction`, não como `IfNode` com filhos. Ver seção 2.2.
 
@@ -191,6 +236,14 @@ function blocksToAST(blocks: ProgramBlock[]): ASTNode[] {
       return {
         type: "loop",
         times: b.type === "repeat_3" ? 3 : 5,
+        body: blocksToAST(b.children ?? []),
+        id: b.id,
+      };
+    }
+    if (b.type === "repeat_until_frutas_3") {
+      return {
+        type: "repeat_until",
+        condition: "fruits_equal_3",
         body: blocksToAST(b.children ?? []),
         id: b.id,
       };
@@ -265,7 +318,7 @@ interface WorldState {
 
 interface Cell {
   position: Position;
-  content: CellContent;    // "empty" | "seed" | "sprout" | "flower" | "fruit" | "puddle" | "rock" | "flowerbed" | "watering_spot" | "watered" | "basket"
+  content: CellContent;    // "empty" | "seed" | "sprout" | "flower" | "fruit" | "puddle" | "rock" | "flowerbed" | "watering_spot" | "watered" | "basket" | "fruit_tree"
 }
 
 interface PlayerState {
@@ -275,11 +328,23 @@ interface PlayerState {
 }
 ```
 
+**`inventory.fruits` no Nível 8 — variável reaproveitada:** a partir
+do Nível 8, esse campo deixa de ser só "estoque do avatar" e passa
+a ser **a variável `frutas`** do programa. Decisão registrada em
+DECISIONS.md (YAGNI sobre criar campo genérico `variables`).
+Reset automático via clone do `initialWorld` no `resetWorld` de
+`app/level/[id].tsx` — cada execução começa com `fruits: 0`.
+
 **Regras de movimento:**
 - Mover para fora do grid → `fail_move` (step registrado, posição não muda)
 - Mover para célula com `rock` → `fail_move`
 - Plantar em célula não-vazia → no-op (step registrado, sem efeito)
 - Regar seed → vira sprout. Regar sprout → vira flower.
+- `pick_fruit` em `fruit` → consome a célula (vira `empty`) e
+  incrementa `inventory.fruits`. Comportamento original.
+- `pick_fruit` em `fruit_tree` (Nível 8+) → célula NÃO muda
+  (visualmente fixa). Incrementa `inventory.fruits` se < 3,
+  idempotente quando >= 3.
 
 ---
 
