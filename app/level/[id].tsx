@@ -746,7 +746,7 @@ export default function LevelScreen() {
             do worldState pra trocar de asset (vazia → 1 → 2 → 3). */}
         {usesFruitsCounter && (
           <View style={{ alignItems: "center", marginTop: 8 }}>
-            <ActivityBasket fruitCount={fruitCount} size={88} />
+            <ActivityBasket fruitCount={fruitCount} size={80} />
           </View>
         )}
 
