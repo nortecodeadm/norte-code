@@ -5,7 +5,17 @@
 **Para:** Dev Temporário ativo (atualmente Claude Code, em substituição ao Manus)
 **Via:** Gui
 **Data:** Maio/2026
-**Versão:** 2.15 — Nível 8 entregue e validado.
+**Versão:** 2.16 — Sessão estratégica da serpente iniciada e pausada. Decisão narrativa-arquitetural do mascote-gabarito tomada.
+
+**Changelog v2.16:**
+- Sessão estratégica do arco final (Níveis 9-10) iniciada em Maio/2026, com 4 decisões-âncora tomadas:
+  - **Tese-âncora do arco**: "Restauração parcial + aprendizado integrado + motivação pra continuar".
+  - **Tom visual do árido inicial** (Nível 10): (α) cinza-bege contemplativo — deserto bíblico, solene mas com promessa sutil.
+  - **O que sobra no cenário durante Nível 10**: (ζ) híbrido — hipótese de trabalho: tronco com flor + pedra + árvore frutífera seca + 1 borboleta. Definição final pendente.
+  - **Agente da queda quando criança escolhe certo**: (α) serpente seduz o mascote.
+- **Decisão narrativa-arquitetural emergente: Mascote como Gabarito Visual a partir do Nível 7.** Após a execução bem-sucedida do programa da criança, o mascote refaz a tarefa aplicando a solução ótima. Estabelece expectativa de "mascote sempre acerta", que será quebrada no Nível 9 quando a serpente seduzi-lo. Implementação aditiva-retroativa nos Níveis 7-8 (sem violar princípio de não-retroatividade). Decisão completa em `NORTECODE_DECISIONS_PendingEntries_MascoteGabarito.md`.
+- **Sessão da serpente PAUSADA** após decisão do mascote-gabarito. Razão: a base narrativa-mecânica do mascote-gabarito precisa estar implementada e validada no celular ANTES de retomar a sessão da serpente — pois a "quebra de expectativa" do Nível 9 só funciona com essa fundação concreta.
+- Próximos passos: mini-sessão estratégica dedicada ao mascote-gabarito (detalhar transições visuais, posicionamento, animações) → briefing técnico → implementação nos Níveis 7-8 → validação no celular → retomada da sessão da serpente.
 
 **Changelog v2.15:**
 - Nível 8 marcado como ✅ IMPLEMENTADO. 8 commits no `origin/main` (6 base + 2 calibrações pós-teste no celular).
@@ -959,8 +969,9 @@ A cada commit que mude lógica/arquitetura, atualizar a doc correspondente.
 
 ### ⏳ Pendente
 
-- Nível 9 (Função — encapsular sequência) — serpente "atua" pela primeira vez. Sessão estratégica dedicada à mecânica da tentação ainda pendente
-- Nível 10 (Aplicar tudo em ambiente árido — restauração) — sessão estratégica dedicada à execução do árido pendente
+- **Mini-projeto "Mascote como Gabarito Visual"** (precede o Nível 9) — implementação retroativa-aditiva nos Níveis 7 e 8: após a execução bem-sucedida do programa da criança, o mascote refaz a tarefa aplicando a solução ótima (gabarito). Sprite do mascote substitui o avatar verde durante a 2ª execução. Mensagem entre execuções. Fundação narrativa pra quebra de expectativa no Nível 9. Decisão registrada em `NORTECODE_DECISIONS_PendingEntries_MascoteGabarito.md` (Maio/2026). Mini-sessão estratégica dedicada pendente antes do briefing técnico.
+- Nível 9 (Função — encapsular sequência) — serpente "atua" pela primeira vez. Tese-âncora do arco (Níveis 9-10): "Restauração parcial + aprendizado integrado + motivação pra continuar". Decisões parciais já tomadas: tom visual do árido inicial (α — cinza-bege contemplativo); o que sobra no cenário do Nível 10 (ζ — híbrido, hipótese: tronco com flor + pedra + árvore frutífera seca + 1 borboleta); agente da queda = serpente seduz o mascote (α). Mecânica exata da serpente + mecânica do Nível 10 ainda pendentes de sessão estratégica dedicada (a retomar APÓS implementação do mascote-gabarito).
+- Nível 10 (Aplicar tudo em ambiente árido — restauração) — clímax do MVP. Sessão estratégica dedicada pendente.
 - Capítulo Narrativo (telas dedicadas de história) — pendente de sessão dedicada
 - Acessibilidade (TTS opcional)
 
@@ -1022,5 +1033,5 @@ Ao final:
 
 ---
 
-*Atualizado em Maio/2026 — v2.15*
-*Reflete: Nível 8 entregue e validado no celular. 8 commits no main. Próximo nível em fila: Nível 9 (função — serpente atua pela primeira vez). Sessão estratégica dedicada à mecânica da serpente pendente. Dev Temporário ativo: Claude Code.*
+*Atualizado em Maio/2026 — v2.16*
+*Reflete: Nível 8 entregue. Sessão da serpente iniciada com 4 decisões-âncora + decisão emergente do mascote-gabarito. Sessão pausada. Próximo: mini-sessão estratégica do mascote-gabarito → implementação nos Níveis 7-8 → retomada da serpente. Dev Temporário ativo: Claude Code.*
